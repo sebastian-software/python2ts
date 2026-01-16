@@ -205,4 +205,34 @@ finally:
       `)
     })
   })
+
+  describe("Exception Types", () => {
+    it("should handle KeyError", () => {
+      const result = transpile("raise KeyError('key')", { includeRuntime: false })
+      expect(result).toContain("Error")
+    })
+
+    it("should handle IndexError", () => {
+      const result = transpile("raise IndexError('index')", { includeRuntime: false })
+      expect(result).toContain("Error")
+    })
+
+    it("should handle custom exception", () => {
+      const result = transpile("raise CustomError('msg')", { includeRuntime: false })
+      expect(result).toContain("CustomError")
+    })
+
+    it("should handle bare raise (re-raise)", () => {
+      const code = "try:\n    x = 1\nexcept:\n    raise"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("throw")
+    })
+
+    it("should handle try/except with multiple except clauses", () => {
+      const code = "try:\n    x = 1\nexcept ValueError:\n    y = 2\nexcept TypeError:\n    z = 3"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("try")
+      expect(result).toContain("catch")
+    })
+  })
 })
