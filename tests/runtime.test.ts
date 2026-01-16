@@ -536,4 +536,162 @@ describe("Runtime Library (py.*)", () => {
       })
     })
   })
+
+  describe("Format Specifiers", () => {
+    it("should handle 'n' format type (locale-aware)", () => {
+      const result = py.format(1234567.89, "n")
+      expect(result).toBeDefined()
+      expect(typeof result).toBe("string")
+    })
+
+    it("should handle space sign for positive integers", () => {
+      expect(py.format(42, " d")).toBe(" 42")
+    })
+
+    it("should handle space sign for positive floats", () => {
+      expect(py.format(3.14, " .2f")).toBe(" 3.14")
+    })
+
+    it("should handle + sign for percentage", () => {
+      expect(py.format(0.5, "+.0%")).toBe("+50%")
+    })
+
+    it("should handle space sign for percentage", () => {
+      expect(py.format(0.5, " .0%")).toBe(" 50%")
+    })
+
+    it("should handle 'c' format type (character)", () => {
+      expect(py.format(65, "c")).toBe("A")
+      expect(py.format(97, "c")).toBe("a")
+    })
+
+    it("should handle unknown format with default string conversion", () => {
+      expect(py.format({ key: "value" }, "")).toBeDefined()
+    })
+
+    it("should handle 'g' format type (general)", () => {
+      const result = py.format(1234.5678, ".4g")
+      expect(typeof result).toBe("string")
+      expect(result).toBeDefined()
+    })
+
+    it("should handle 'G' format type (general uppercase)", () => {
+      const result = py.format(1234.5678, ".4G")
+      expect(typeof result).toBe("string")
+      expect(result).toBeDefined()
+    })
+
+    it("should handle 'g' with sign", () => {
+      const result = py.format(123.45, "+.3g")
+      expect(result).toContain("+")
+    })
+
+    it("should handle 'g' with space sign", () => {
+      const result = py.format(123.45, " .3g")
+      expect(result.startsWith(" ")).toBe(true)
+    })
+
+    it("should handle 'e' format type (exponential)", () => {
+      const result = py.format(1234.5, ".2e")
+      expect(result).toContain("e")
+    })
+
+    it("should handle 'E' format type (exponential uppercase)", () => {
+      const result = py.format(1234.5, ".2E")
+      expect(result).toContain("E")
+    })
+
+    it("should handle 'e' with + sign", () => {
+      const result = py.format(1234.5, "+.2e")
+      expect(result).toContain("+")
+    })
+
+    it("should handle 'e' with space sign", () => {
+      const result = py.format(1234.5, " .2e")
+      expect(result.startsWith(" ")).toBe(true)
+    })
+
+    it("should handle unknown format type (fallback)", () => {
+      const obj = { custom: "value" }
+      const result = py.format(obj, "")
+      expect(typeof result).toBe("string")
+    })
+
+    it("should handle fill character with left alignment", () => {
+      const result = py.format(42, "*<10d")
+      expect(result).toBe("42********")
+    })
+
+    it("should handle fill character with right alignment", () => {
+      const result = py.format(42, "*>10d")
+      expect(result).toBe("********42")
+    })
+
+    it("should handle fill character with center alignment", () => {
+      const result = py.format(42, "*^10d")
+      expect(result.length).toBe(10)
+      expect(result).toContain("42")
+      expect(result).toContain("*")
+    })
+
+    it("should handle format with invalid/unknown type", () => {
+      const result = py.format({ x: 1 }, "q")
+      expect(typeof result).toBe("string")
+    })
+
+    it("should handle = alignment for sign padding", () => {
+      const result = py.format(-42, "=10d")
+      expect(result.length).toBe(10)
+      expect(result.startsWith("-")).toBe(true)
+    })
+  })
+
+  describe("Index Access (at)", () => {
+    it("should handle py.at with valid negative index", () => {
+      expect(py.at([1, 2, 3], -1)).toBe(3)
+      expect(py.at("hello", -1)).toBe("o")
+    })
+
+    it("should throw IndexError for out of range index", () => {
+      expect(() => py.at([1, 2, 3], 10)).toThrow("IndexError")
+      expect(() => py.at([1, 2, 3], -10)).toThrow("IndexError")
+    })
+  })
+
+  describe("Repetition (repeat)", () => {
+    it("should handle py.repeat with count 0", () => {
+      expect(py.repeat("ab", 0)).toBe("")
+      expect(py.repeat([1, 2], 0)).toEqual([])
+    })
+
+    it("should handle py.repeat with negative count", () => {
+      expect(py.repeat("ab", -1)).toBe("")
+      expect(py.repeat([1, 2], -1)).toEqual([])
+    })
+
+    it("should handle py.repeat with arrays", () => {
+      expect(py.repeat([1, 2], 3)).toEqual([1, 2, 1, 2, 1, 2])
+    })
+  })
+
+  describe("repr() and ascii()", () => {
+    it("should handle py.repr", () => {
+      expect(py.repr("hello")).toBe("'hello'")
+      expect(py.repr(42)).toBe("42")
+    })
+
+    it("should handle py.ascii", () => {
+      expect(py.ascii("hello")).toBe("'hello'")
+    })
+
+    it("should escape non-ASCII characters in ascii()", () => {
+      const result = py.ascii("hello\u00e9")
+      expect(result).toContain("\\u00e9")
+    })
+
+    it("should handle high Unicode characters as surrogate pairs", () => {
+      const result = py.ascii("\u{1F600}")
+      expect(result).toContain("\\u")
+    })
+  })
 })
