@@ -109,6 +109,10 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformLambdaExpression(node, ctx)
     case "Comment":
       return transformComment(node, ctx)
+    case "TryStatement":
+      return transformTryStatement(node, ctx)
+    case "RaiseStatement":
+      return transformRaiseStatement(node, ctx)
     default:
       return getNodeText(node, ctx.source)
   }
@@ -126,7 +130,8 @@ function transformScript(node: SyntaxNode, ctx: TransformContext): string {
         child.name === "PassStatement" ||
         child.name === "BreakStatement" ||
         child.name === "ContinueStatement" ||
-        child.name === "ReturnStatement"
+        child.name === "ReturnStatement" ||
+        child.name === "RaiseStatement"
       ) {
         return transformed + ";"
       }
@@ -899,6 +904,245 @@ function transformForLoopVar(node: SyntaxNode, ctx: TransformContext): string {
   return transformNode(node, ctx)
 }
 
+function transformTryStatement(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+  const baseIndent = "  ".repeat(ctx.indentLevel)
+
+  let tryBody: SyntaxNode | null = null
+  const exceptBodies: { type: string | null; varName: string | null; body: SyntaxNode }[] = []
+  let finallyBody: SyntaxNode | null = null
+
+  let i = 0
+  while (i < children.length) {
+    const child = children[i]
+    if (!child) {
+      i++
+      continue
+    }
+
+    if (child.name === "try") {
+      // Next Body is the try block
+      const nextBody = children[i + 1]
+      if (nextBody && nextBody.name === "Body") {
+        tryBody = nextBody
+        i += 2
+        continue
+      }
+    }
+
+    if (child.name === "except") {
+      // Parse except clause: except [Type] [as name]:
+      let exceptType: string | null = null
+      let exceptVar: string | null = null
+      let exceptBody: SyntaxNode | null = null
+
+      let j = i + 1
+      while (j < children.length) {
+        const next = children[j]
+        if (!next) break
+
+        if (next.name === "Body") {
+          exceptBody = next
+          j++
+          break
+        } else if (next.name === "VariableName") {
+          if (exceptType === null) {
+            exceptType = getNodeText(next, ctx.source)
+          } else {
+            exceptVar = getNodeText(next, ctx.source)
+          }
+        } else if (next.name === "as") {
+          // skip 'as' keyword
+        } else if (next.name === "except" || next.name === "finally") {
+          break
+        }
+        j++
+      }
+
+      if (exceptBody) {
+        exceptBodies.push({ type: exceptType, varName: exceptVar, body: exceptBody })
+      }
+      i = j
+      continue
+    }
+
+    if (child.name === "finally") {
+      // Next Body is the finally block
+      const nextBody = children[i + 1]
+      if (nextBody && nextBody.name === "Body") {
+        finallyBody = nextBody
+        i += 2
+        continue
+      }
+    }
+
+    i++
+  }
+
+  if (!tryBody) {
+    return getNodeText(node, ctx.source)
+  }
+
+  // Build the try/catch/finally
+  const tryCode = transformBody(tryBody, ctx)
+  let result = `try {\n${tryCode}\n${baseIndent}}`
+
+  // Transform except clauses to catch
+  if (exceptBodies.length > 0) {
+    const firstExcept = exceptBodies[0]
+    if (firstExcept) {
+      const catchVar = firstExcept.varName || "e"
+      const catchBody = transformBody(firstExcept.body, ctx)
+
+      if (exceptBodies.length === 1 && !firstExcept.type) {
+        // Simple catch-all
+        result += ` catch (${catchVar}) {\n${catchBody}\n${baseIndent}}`
+      } else if (exceptBodies.length === 1) {
+        // Single typed except - we still catch everything but could add instanceof check
+        result += ` catch (${catchVar}) {\n${catchBody}\n${baseIndent}}`
+      } else {
+        // Multiple except clauses - generate if/else chain
+        const innerIndent = "  ".repeat(ctx.indentLevel + 1)
+        let catchBodyCode = ""
+        for (let idx = 0; idx < exceptBodies.length; idx++) {
+          const exc = exceptBodies[idx]
+          if (!exc) continue
+          const excBodyCode = transformBody(exc.body, ctx)
+          const excVar = exc.varName || catchVar
+
+          if (exc.type) {
+            const condition = idx === 0 ? "if" : "} else if"
+            const mappedType = mapExceptionType(exc.type)
+            catchBodyCode += `${innerIndent}${condition} (${catchVar} instanceof ${mappedType}) {\n`
+            if (excVar !== catchVar) {
+              catchBodyCode += `${innerIndent}  const ${excVar} = ${catchVar};\n`
+            }
+            catchBodyCode += excBodyCode
+              .split("\n")
+              .map((line) => "  " + line)
+              .join("\n")
+            catchBodyCode += "\n"
+          } else {
+            // Catch-all (except without type)
+            if (idx > 0) {
+              catchBodyCode += `${innerIndent}} else {\n`
+            }
+            catchBodyCode += excBodyCode
+              .split("\n")
+              .map((line) => "  " + line)
+              .join("\n")
+            catchBodyCode += "\n"
+          }
+        }
+        if (exceptBodies.some((e) => e.type)) {
+          catchBodyCode += `${innerIndent}}`
+        }
+        result += ` catch (${catchVar}) {\n${catchBodyCode}${baseIndent}}`
+      }
+    }
+  }
+
+  // Add finally block
+  if (finallyBody) {
+    const finallyCode = transformBody(finallyBody, ctx)
+    result += ` finally {\n${finallyCode}\n${baseIndent}}`
+  }
+
+  return result
+}
+
+function mapExceptionType(pythonType: string): string {
+  // Map Python exception types to JavaScript equivalents
+  const mapping: Record<string, string> = {
+    Exception: "Error",
+    BaseException: "Error",
+    ValueError: "Error",
+    TypeError: "TypeError",
+    KeyError: "Error",
+    IndexError: "RangeError",
+    AttributeError: "Error",
+    RuntimeError: "Error",
+    StopIteration: "Error",
+    ZeroDivisionError: "Error",
+    FileNotFoundError: "Error",
+    IOError: "Error",
+    OSError: "Error",
+    NameError: "ReferenceError",
+    SyntaxError: "SyntaxError"
+  }
+  return mapping[pythonType] || "Error"
+}
+
+function transformRaiseStatement(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+
+  // Find the expression after 'raise'
+  const exprNode = children.find((c) => c.name !== "raise")
+
+  if (!exprNode) {
+    // raise without argument - re-throw
+    return "throw"
+  }
+
+  const expr = transformNode(exprNode, ctx)
+
+  // Check if it's a call to an exception type
+  if (exprNode.name === "CallExpression") {
+    const callChildren = getChildren(exprNode)
+    const funcName = callChildren.find((c) => c.name === "VariableName")
+    if (funcName) {
+      const name = getNodeText(funcName, ctx.source)
+      // Map Python exception to Error
+      if (isExceptionType(name)) {
+        // Extract message from args
+        const argList = callChildren.find((c) => c.name === "ArgList")
+        if (argList) {
+          const args = getChildren(argList).filter(
+            (c) => c.name !== "(" && c.name !== ")" && c.name !== ","
+          )
+          if (args.length > 0 && args[0]) {
+            const message = transformNode(args[0], ctx)
+            return `throw new Error(${message})`
+          }
+        }
+        return "throw new Error()"
+      }
+    }
+  }
+
+  // For other expressions, wrap in Error if it's a string
+  if (exprNode.name === "String") {
+    return `throw new Error(${expr})`
+  }
+
+  return `throw ${expr}`
+}
+
+function isExceptionType(name: string): boolean {
+  const exceptionTypes = [
+    "Exception",
+    "BaseException",
+    "ValueError",
+    "TypeError",
+    "KeyError",
+    "IndexError",
+    "AttributeError",
+    "RuntimeError",
+    "StopIteration",
+    "ZeroDivisionError",
+    "FileNotFoundError",
+    "IOError",
+    "OSError",
+    "NameError",
+    "SyntaxError",
+    "AssertionError",
+    "NotImplementedError",
+    "ImportError",
+    "ModuleNotFoundError"
+  ]
+  return exceptionTypes.includes(name)
+}
+
 function transformBody(node: SyntaxNode, ctx: TransformContext): string {
   ctx.indentLevel++
   const children = getChildren(node)
@@ -914,7 +1158,8 @@ function transformBody(node: SyntaxNode, ctx: TransformContext): string {
         child.name === "PassStatement" ||
         child.name === "BreakStatement" ||
         child.name === "ContinueStatement" ||
-        child.name === "ReturnStatement"
+        child.name === "ReturnStatement" ||
+        child.name === "RaiseStatement"
       ) {
         return indent + transformed + ";"
       }

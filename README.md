@@ -167,6 +167,17 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `@classmethod`           | `static`                       | Class methods         |
 | `@property`              | `get`                          | Property accessor     |
 
+### Phase 5 (Exception Handling)
+
+| Python                    | TypeScript                  | Notes              |
+| ------------------------- | --------------------------- | ------------------ |
+| `try: ... except: ...`    | `try { ... } catch { ... }` | Exception handling |
+| `except ValueError:`      | `catch (e) {`               | Typed exception    |
+| `except ValueError as e:` | `catch (e) {`               | Named exception    |
+| `finally:`                | `finally {`                 | Finally block      |
+| `raise ValueError("msg")` | `throw new Error("msg")`    | Raise exception    |
+| `raise`                   | `throw`                     | Re-throw           |
+
 ### Built-in Functions
 
 | Python                                    | TypeScript                                            |
@@ -193,7 +204,7 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 - [x] **Phase 2**: List/dict/set comprehensions
 - [x] **Phase 3**: Advanced functions (`*args`, `**kwargs`, lambda, decorators)
 - [x] **Phase 4**: Classes, inheritance, `@staticmethod`, `@property`
-- [ ] **Phase 5**: Exception handling (`try`/`except`/`finally`)
+- [x] **Phase 5**: Exception handling (`try`/`except`/`finally`, `raise`)
 - [ ] **Phase 6**: Module imports
 - [ ] **Phase 7**: Async/await, type hints
 

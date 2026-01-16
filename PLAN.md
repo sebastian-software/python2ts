@@ -101,12 +101,14 @@ namespace.
 - [x] `@property` decorator → `get` accessor
 - [x] `@staticmethod`, `@classmethod` → `static` method
 
-### Phase 5: Exception Handling
+### Phase 5: Exception Handling ✅ COMPLETED
 
-- [ ] `try`/`except`/`finally` → `try`/`catch`/`finally`
-- [ ] `raise` → `throw`
-- [ ] Exception types mapping
-- [ ] Custom exception classes
+- [x] `try`/`except`/`finally` → `try`/`catch`/`finally`
+- [x] `try`/`except` with exception type (`except ValueError:`)
+- [x] `try`/`except` with `as` clause (`except ValueError as e:`)
+- [x] `raise` → `throw`
+- [x] `raise ExceptionType("message")` → `throw new Error("message")`
+- [x] Exception types mapping (ValueError, TypeError, etc. → Error)
 
 ### Phase 6: Modules & Imports
 
@@ -267,9 +269,9 @@ chore: upgrade dependencies
 
 | Metric   | Value      |
 | -------- | ---------- |
-| Tests    | 506        |
+| Tests    | 521        |
 | Coverage | 89%+       |
-| Phase    | 4 Complete |
+| Phase    | 5 Complete |
 
 ## Next Steps
 
@@ -285,7 +287,8 @@ chore: upgrade dependencies
 10. ~~Multiple assignment~~ ✅
 11. ~~Phase 3: Advanced Functions~~ ✅
 12. ~~Phase 4: Classes~~ ✅
-13. **Phase 5: Exception Handling** ← Next
+13. ~~Phase 5: Exception Handling~~ ✅
+14. **Phase 6: Modules & Imports** ← Next
 
 ---
 
