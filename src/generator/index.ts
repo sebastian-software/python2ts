@@ -4,8 +4,6 @@ import type { ParseResult } from "../parser/index.js"
 export interface GeneratorOptions {
   includeRuntime?: boolean
   runtimeImportPath?: string
-  /** Whether to emit TypeScript type annotations. Defaults to true. */
-  emitTypes?: boolean
 }
 
 export interface GeneratedCode {
@@ -24,7 +22,7 @@ export function generate(
   options: GeneratorOptions = {}
 ): GeneratedCode {
   const opts = { ...defaultOptions, ...options }
-  const result: TransformResult = transform(input, { emitTypes: opts.emitTypes ?? true })
+  const result: TransformResult = transform(input)
 
   const usedRuntimeFunctions = Array.from(result.usesRuntime).sort()
 

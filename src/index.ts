@@ -1,12 +1,7 @@
 export { parse, debugTree, getNodeText, getChildren } from "./parser/index.js"
 export type { ParseResult, NodeVisitor, NodeType } from "./parser/index.js"
 
-export {
-  transform,
-  type TransformResult,
-  type TransformContext,
-  type TransformOptions
-} from "./transformer/index.js"
+export { transform, type TransformResult, type TransformContext } from "./transformer/index.js"
 
 export {
   generate,

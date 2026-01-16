@@ -5,7 +5,7 @@
  * - Special attributes (__name__ -> .name)
  * - Spread operators in calls (*args -> ...args)
  * - Generator functions (function*)
- * - Type hints stripping
+ * - Type hints → TypeScript types
  * - Property setters (@x.setter -> set x())
  * - %-style string formatting
  * - .format() method
@@ -17,6 +17,29 @@ import { describe, it, expect } from "vitest"
 import { execSync } from "child_process"
 import { transpile } from "../../src/generator/index.js"
 import { py } from "../../src/runtime/index.js"
+
+/**
+ * Strip TypeScript type annotations for JavaScript execution
+ */
+function stripTypes(code: string): string {
+  return (
+    code
+      // Remove `: Type` annotations (but not in ternary operators)
+      .replace(
+        /:\s*(?:string|number|boolean|null|void|unknown|any|never|\w+(?:<[^>]+>)?(?:\s*\|\s*\w+(?:<[^>]+>)?)*(?:\[\])?)\s*(?=[=,)\n{])/g,
+        " "
+      )
+      // Remove `?: Type` optional annotations
+      .replace(
+        /\?:\s*(?:string|number|boolean|null|void|unknown|any|never|\w+(?:<[^>]+>)?(?:\s*\|\s*\w+(?:<[^>]+>)?)*(?:\[\])?)\s*(?=[=,)\n{])/g,
+        "? "
+      )
+      // Clean up extra spaces
+      .replace(/\s+=/g, " =")
+      .replace(/\(\s+/g, "(")
+      .replace(/\s+\)/g, ")")
+  )
+}
 
 /**
  * Run Python code and return stdout
@@ -40,8 +63,7 @@ function runPython(code: string): string {
 function runTranspiled(pythonCode: string): string {
   const tsCode = transpile(pythonCode, {
     includeRuntime: false,
-    runtimeImportPath: "python2ts/runtime",
-    emitTypes: false // Disable type annotations for runtime execution
+    runtimeImportPath: "python2ts/runtime"
   })
 
   const outputs: string[] = []
@@ -51,9 +73,11 @@ function runTranspiled(pythonCode: string): string {
     }
   }
 
+  // Strip TypeScript types for JavaScript execution
+  const jsCode = stripTypes(tsCode)
   const executableCode = `
     const console = mockConsole;
-    ${tsCode}
+    ${jsCode}
   `
 
   try {

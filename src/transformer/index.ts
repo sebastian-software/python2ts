@@ -9,13 +9,6 @@ export interface TransformContext {
   scopeStack: Set<string>[]
   /** Set of class names defined in this module (for adding 'new' on instantiation) */
   definedClasses: Set<string>
-  /** Whether to emit TypeScript type annotations */
-  emitTypes: boolean
-}
-
-export interface TransformOptions {
-  /** Whether to emit TypeScript type annotations. Defaults to true. */
-  emitTypes?: boolean
 }
 
 export interface TransformResult {
@@ -23,14 +16,13 @@ export interface TransformResult {
   usesRuntime: Set<string>
 }
 
-function createContext(source: string, options: TransformOptions = {}): TransformContext {
+function createContext(source: string): TransformContext {
   return {
     source,
     indentLevel: 0,
     usesRuntime: new Set(),
     scopeStack: [new Set()], // Start with one global scope
-    definedClasses: new Set(),
-    emitTypes: options.emitTypes ?? true
+    definedClasses: new Set()
   }
 }
 
@@ -225,13 +217,12 @@ function transformPythonType(node: SyntaxNode, ctx: TransformContext): string {
 
 /**
  * Extract type annotation from a TypeDef node, if present
- * Returns null if emitTypes is false or if no type is found
+ * Returns null if no type is found
  */
 function extractTypeAnnotation(
   typeDef: SyntaxNode | undefined,
   ctx: TransformContext
 ): string | null {
-  if (!ctx.emitTypes) return null
   if (!typeDef || typeDef.name !== "TypeDef") return null
   const children = getChildren(typeDef)
   const typeNode = children.find((c) => c.name !== ":" && c.name !== "->")
@@ -241,12 +232,9 @@ function extractTypeAnnotation(
   return null
 }
 
-export function transform(
-  input: string | ParseResult,
-  options: TransformOptions = {}
-): TransformResult {
+export function transform(input: string | ParseResult): TransformResult {
   const parseResult = typeof input === "string" ? parse(input) : input
-  const ctx = createContext(parseResult.source, options)
+  const ctx = createContext(parseResult.source)
   const code = transformNode(parseResult.tree.topNode, ctx)
 
   return {
@@ -2611,9 +2599,9 @@ function transformFunctionDefinition(node: SyntaxNode, ctx: TransformContext): s
   // Check if function is a generator (contains yield)
   const isGenerator = body ? containsYield(body) : false
 
-  // Get return type annotation (only if emitTypes is enabled)
+  // Get return type annotation
   let returnType = ""
-  if (ctx.emitTypes && returnTypeDef) {
+  if (returnTypeDef) {
     const typeChildren = getChildren(returnTypeDef)
     const typeNode = typeChildren.find((c) => c.name !== ":" && c.name !== "->")
     if (typeNode) {
@@ -3167,7 +3155,7 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
   // Add kwargs parameter before rest param if no rest param exists
   // If both exist, kwargs is not supported (rest param must be last in JS)
   if (kwargsParam && !restParam) {
-    const kwargsType = ctx.emitTypes ? ": Record<string, unknown>" : ""
+    const kwargsType = ": Record<string, unknown>"
     params.push(`${kwargsParam}${kwargsType} = {}`)
   }
 

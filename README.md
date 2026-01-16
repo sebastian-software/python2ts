@@ -259,8 +259,6 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `x: Optional[str]`       | `x: string \| null`              | Optional type       |
 | `def fn(x: int) -> str:` | `function fn(x: number): string` | Function signatures |
 
-Use `emitTypes: false` in options to strip type annotations (for JavaScript output).
-
 ### Built-in Functions
 
 | Python                                    | TypeScript                                            |
