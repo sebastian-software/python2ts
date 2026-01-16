@@ -101,6 +101,10 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformReturnStatement(node, ctx)
     case "FunctionDefinition":
       return transformFunctionDefinition(node, ctx)
+    case "DecoratedStatement":
+      return transformDecoratedStatement(node, ctx)
+    case "LambdaExpression":
+      return transformLambdaExpression(node, ctx)
     case "Comment":
       return transformComment(node, ctx)
     default:
@@ -512,9 +516,52 @@ function transformArgList(node: SyntaxNode, ctx: TransformContext): string {
     return buildGeneratorChain(outputExpr, clauses)
   }
 
-  // Regular argument list
-  const args = items.filter((c) => c.name !== ",")
-  return args.map((arg) => transformNode(arg, ctx)).join(", ")
+  // Process arguments, handling keyword arguments (name=value)
+  const args: string[] = []
+  const kwArgs: { name: string; value: string }[] = []
+  let i = 0
+
+  while (i < items.length) {
+    const item = items[i]
+    if (!item) {
+      i++
+      continue
+    }
+
+    // Skip commas
+    if (item.name === ",") {
+      i++
+      continue
+    }
+
+    // Check for keyword argument: VariableName AssignOp Value
+    if (item.name === "VariableName") {
+      const nextItem = items[i + 1]
+      if (nextItem && nextItem.name === "AssignOp") {
+        const valueItem = items[i + 2]
+        if (valueItem) {
+          const name = getNodeText(item, ctx.source)
+          const value = transformNode(valueItem, ctx)
+          kwArgs.push({ name, value })
+          i += 3
+          continue
+        }
+      }
+    }
+
+    // Regular positional argument
+    args.push(transformNode(item, ctx))
+    i++
+  }
+
+  // Combine positional and keyword arguments
+  // Keyword arguments are passed as an options object: { key: value }
+  if (kwArgs.length > 0) {
+    const kwArgsStr = kwArgs.map((kw) => `${kw.name}: ${kw.value}`).join(", ")
+    args.push(`{ ${kwArgsStr} }`)
+  }
+
+  return args.join(", ")
 }
 
 function transformMemberExpression(node: SyntaxNode, ctx: TransformContext): string {
@@ -911,15 +958,147 @@ function transformFunctionDefinition(node: SyntaxNode, ctx: TransformContext): s
   return `function ${funcName}(${params}) {\n${bodyCode}\n}`
 }
 
+function transformDecoratedStatement(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+
+  // Collect decorators and find the function definition
+  const decorators: { name: string; args: string | null }[] = []
+  let funcDef: SyntaxNode | null = null
+
+  for (const child of children) {
+    if (child.name === "Decorator") {
+      const decChildren = getChildren(child)
+      let decoratorName = ""
+      let decoratorArgs: string | null = null
+
+      for (const decChild of decChildren) {
+        if (decChild.name === "VariableName") {
+          decoratorName = getNodeText(decChild, ctx.source)
+        } else if (decChild.name === "MemberExpression") {
+          decoratorName = transformNode(decChild, ctx)
+        } else if (decChild.name === "ArgList") {
+          decoratorArgs = transformArgList(decChild, ctx)
+        }
+      }
+
+      if (decoratorName) {
+        decorators.push({ name: decoratorName, args: decoratorArgs })
+      }
+    } else if (child.name === "FunctionDefinition") {
+      funcDef = child
+    }
+  }
+
+  if (!funcDef) {
+    return getNodeText(node, ctx.source)
+  }
+
+  // Get function details
+  const funcChildren = getChildren(funcDef)
+  let funcName = ""
+  let paramList: SyntaxNode | null = null
+  let body: SyntaxNode | null = null
+
+  for (const child of funcChildren) {
+    if (child.name === "VariableName") {
+      funcName = getNodeText(child, ctx.source)
+    } else if (child.name === "ParamList") {
+      paramList = child
+    } else if (child.name === "Body") {
+      body = child
+    }
+  }
+
+  const params = paramList ? transformParamList(paramList, ctx) : ""
+  const bodyCode = body ? transformBody(body, ctx) : ""
+
+  // Build the decorated function
+  // @decorator def func(): ... -> const func = decorator(function func() { ... })
+  // @decorator(args) def func(): ... -> const func = decorator(args)(function func() { ... })
+  let funcExpr = `function ${funcName}(${params}) {\n${bodyCode}\n}`
+
+  // Apply decorators from bottom to top (innermost first)
+  for (let i = decorators.length - 1; i >= 0; i--) {
+    const dec = decorators[i]
+    if (!dec) continue
+
+    if (dec.args !== null) {
+      funcExpr = `${dec.name}(${dec.args})(${funcExpr})`
+    } else {
+      funcExpr = `${dec.name}(${funcExpr})`
+    }
+  }
+
+  return `const ${funcName} = ${funcExpr}`
+}
+
 function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
   const params: string[] = []
+  let i = 0
 
-  for (const child of children) {
+  while (i < children.length) {
+    const child = children[i]
+    if (!child) {
+      i++
+      continue
+    }
+
+    // Skip parentheses and commas
+    if (child.name === "(" || child.name === ")" || child.name === ",") {
+      i++
+      continue
+    }
+
+    // Check for *args (rest parameter)
+    if (child.name === "*" || getNodeText(child, ctx.source) === "*") {
+      const nextChild = children[i + 1]
+      if (nextChild && nextChild.name === "VariableName") {
+        const name = getNodeText(nextChild, ctx.source)
+        params.push(`...${name}`)
+        i += 2
+        continue
+      }
+      i++
+      continue
+    }
+
+    // Check for **kwargs
+    if (child.name === "**" || getNodeText(child, ctx.source) === "**") {
+      const nextChild = children[i + 1]
+      if (nextChild && nextChild.name === "VariableName") {
+        const name = getNodeText(nextChild, ctx.source)
+        // **kwargs becomes a regular parameter that accepts an object
+        params.push(name)
+        i += 2
+        continue
+      }
+      i++
+      continue
+    }
+
+    // Check for parameter with default value: VariableName AssignOp Value
     if (child.name === "VariableName") {
+      const nextChild = children[i + 1]
+      if (nextChild && nextChild.name === "AssignOp") {
+        // This is a default parameter
+        const defaultValChild = children[i + 2]
+        if (defaultValChild) {
+          const nameCode = getNodeText(child, ctx.source)
+          const defaultCode = transformNode(defaultValChild, ctx)
+          params.push(`${nameCode} = ${defaultCode}`)
+          i += 3
+          continue
+        }
+      }
+      // Regular parameter without default
       params.push(getNodeText(child, ctx.source))
-    } else if (child.name === "AssignParam" || child.name === "DefaultParam") {
-      // Parameter with default value
+      i++
+      continue
+    }
+
+    // Parameter with default value wrapped in a node (legacy handling)
+    if (child.name === "AssignParam" || child.name === "DefaultParam") {
       const paramChildren = getChildren(child)
       const name = paramChildren.find((c) => c.name === "VariableName")
       const defaultVal = paramChildren[paramChildren.length - 1]
@@ -931,7 +1110,11 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
       } else if (name) {
         params.push(getNodeText(name, ctx.source))
       }
+      i++
+      continue
     }
+
+    i++
   }
 
   return params.join(", ")
@@ -941,6 +1124,62 @@ function transformComment(node: SyntaxNode, ctx: TransformContext): string {
   const text = getNodeText(node, ctx.source)
   // Convert Python comment to JS comment
   return "//" + text.slice(1)
+}
+
+function transformLambdaExpression(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+
+  // Lambda format: lambda params: body
+  // Find the ParamList (or individual params) and the body expression
+  let params = ""
+  let body: SyntaxNode | null = null
+
+  // Skip 'lambda' keyword and ':' to find params and body
+  let foundLambda = false
+  let foundColon = false
+  const paramNodes: SyntaxNode[] = []
+
+  for (const child of children) {
+    const text = getNodeText(child, ctx.source)
+
+    if (child.name === "lambda" || (child.name === "Keyword" && text === "lambda")) {
+      foundLambda = true
+      continue
+    }
+
+    if (child.name === ":") {
+      foundColon = true
+      continue
+    }
+
+    if (foundLambda && !foundColon) {
+      // This is a parameter
+      if (child.name === "ParamList") {
+        params = transformParamList(child, ctx)
+      } else if (child.name === "VariableName") {
+        paramNodes.push(child)
+      } else if (child.name !== ",") {
+        paramNodes.push(child)
+      }
+    } else if (foundColon) {
+      // This is the body
+      body = child
+      break
+    }
+  }
+
+  // If we collected individual param nodes, join them
+  if (!params && paramNodes.length > 0) {
+    params = paramNodes.map((p) => getNodeText(p, ctx.source)).join(", ")
+  }
+
+  const bodyCode = body ? transformNode(body, ctx) : ""
+
+  // TypeScript arrow function: (params) => body
+  if (params) {
+    return `(${params}) => ${bodyCode}`
+  }
+  return `() => ${bodyCode}`
 }
 
 // ============================================================

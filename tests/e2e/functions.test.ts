@@ -23,8 +23,7 @@ describe("E2E: Functions", () => {
       const python = `def greet(name, greeting = "Hello"):
     print(greeting, name)`
       const ts = transpile(python, { includeRuntime: false })
-      // Currently parameters are passed through - full default support is Phase 4
-      expect(ts).toContain("function greet(name, greeting)")
+      expect(ts).toContain('function greet(name, greeting = "Hello")')
     })
 
     it("should convert function with return", () => {
