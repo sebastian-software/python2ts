@@ -81,24 +81,25 @@ namespace.
 - [x] Tuple unpacking in for loops → `for (const [x, y] of ...)`
 - [x] Multiple assignment (`a, b = 1, 2`) → `let [a, b] = [1, 2]`
 
-### Phase 3: Advanced Functions
+### Phase 3: Advanced Functions ✅ COMPLETED
 
-- [ ] Default parameter values
-- [ ] `*args` (rest parameters)
-- [ ] `**kwargs` (object spread)
-- [ ] Lambda expressions (`lambda x: x + 1`)
-- [ ] Closures
-- [ ] Decorators (basic support)
+- [x] Default parameter values (`def foo(x=1)` → `function foo(x = 1)`)
+- [x] `*args` (rest parameters) → `...args`
+- [x] `**kwargs` → regular parameter
+- [x] Lambda expressions (`lambda x: x + 1` → `(x) => (x + 1)`)
+- [x] Keyword arguments in calls (`fn(key=val)` → `fn({ key: val })`)
+- [x] Decorators (basic support) (`@dec def fn()` → `const fn = dec(function fn())`)
 
-### Phase 4: Classes
+### Phase 4: Classes ✅ COMPLETED
 
-- [ ] Class definitions
-- [ ] `__init__` → constructor
-- [ ] Instance methods
-- [ ] Inheritance
-- [ ] `__str__`, `__repr__` → `toString()`
-- [ ] `@property` decorator
-- [ ] `@staticmethod`, `@classmethod`
+- [x] Class definitions (`class Dog:` → `class Dog {`)
+- [x] `__init__` → constructor
+- [x] Instance methods (removes `self` parameter, replaces `self.` with `this.`)
+- [x] Inheritance (`class Child(Parent):` → `class Child extends Parent {`)
+- [x] `super().__init__(...)` → `super(...)`
+- [x] `__str__`, `__repr__` → `toString()`
+- [x] `@property` decorator → `get` accessor
+- [x] `@staticmethod`, `@classmethod` → `static` method
 
 ### Phase 5: Exception Handling
 
@@ -266,9 +267,9 @@ chore: upgrade dependencies
 
 | Metric   | Value      |
 | -------- | ---------- |
-| Tests    | 459        |
+| Tests    | 506        |
 | Coverage | 89%+       |
-| Phase    | 2 Complete |
+| Phase    | 4 Complete |
 
 ## Next Steps
 
@@ -282,7 +283,9 @@ chore: upgrade dependencies
 8. ~~Generator expressions~~ ✅
 9. ~~Tuple unpacking~~ ✅
 10. ~~Multiple assignment~~ ✅
-11. **Phase 3: Advanced Functions** ← Next
+11. ~~Phase 3: Advanced Functions~~ ✅
+12. ~~Phase 4: Classes~~ ✅
+13. **Phase 5: Exception Handling** ← Next
 
 ---
 

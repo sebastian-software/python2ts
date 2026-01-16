@@ -101,6 +101,8 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformReturnStatement(node, ctx)
     case "FunctionDefinition":
       return transformFunctionDefinition(node, ctx)
+    case "ClassDefinition":
+      return transformClassDefinition(node, ctx)
     case "DecoratedStatement":
       return transformDecoratedStatement(node, ctx)
     case "LambdaExpression":
@@ -956,6 +958,324 @@ function transformFunctionDefinition(node: SyntaxNode, ctx: TransformContext): s
   const bodyCode = body ? transformBody(body, ctx) : ""
 
   return `function ${funcName}(${params}) {\n${bodyCode}\n}`
+}
+
+function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+
+  let className = ""
+  let parentClass: string | null = null
+  let body: SyntaxNode | null = null
+
+  for (const child of children) {
+    if (child.name === "VariableName") {
+      className = getNodeText(child, ctx.source)
+    } else if (child.name === "ArgList") {
+      // Inheritance: class Child(Parent)
+      const argChildren = getChildren(child)
+      const parentNode = argChildren.find((c) => c.name === "VariableName")
+      if (parentNode) {
+        parentClass = getNodeText(parentNode, ctx.source)
+      }
+    } else if (child.name === "Body") {
+      body = child
+    }
+  }
+
+  // Build class header
+  let classHeader = `class ${className}`
+  if (parentClass) {
+    classHeader += ` extends ${parentClass}`
+  }
+
+  // Transform class body
+  const bodyCode = body ? transformClassBody(body, ctx) : ""
+
+  return `${classHeader} {\n${bodyCode}\n}`
+}
+
+function transformClassBody(node: SyntaxNode, ctx: TransformContext): string {
+  ctx.indentLevel++
+  const children = getChildren(node)
+  const indent = "  ".repeat(ctx.indentLevel)
+  const members: string[] = []
+
+  for (const child of children) {
+    if (child.name === ":") continue
+
+    if (child.name === "FunctionDefinition") {
+      members.push(transformClassMethod(child, ctx, null))
+    } else if (child.name === "DecoratedStatement") {
+      members.push(transformClassDecoratedMethod(child, ctx))
+    } else if (child.name === "AssignStatement") {
+      // Class-level assignment (class attribute)
+      const transformed = transformNode(child, ctx)
+      members.push(indent + transformed + ";")
+    } else if (child.name === "ExpressionStatement") {
+      // Docstrings or other expressions
+      const transformed = transformNode(child, ctx)
+      if (transformed.trim()) {
+        members.push(indent + transformed + ";")
+      }
+    } else if (child.name === "PassStatement") {
+      // Skip pass in class body
+    }
+  }
+
+  ctx.indentLevel--
+  return members.filter((m) => m.trim()).join("\n\n")
+}
+
+function transformClassMethod(
+  node: SyntaxNode,
+  ctx: TransformContext,
+  decorator: string | null
+): string {
+  const children = getChildren(node)
+  const indent = "  ".repeat(ctx.indentLevel)
+
+  let methodName = ""
+  let paramList: SyntaxNode | null = null
+  let body: SyntaxNode | null = null
+
+  for (const child of children) {
+    if (child.name === "VariableName") {
+      methodName = getNodeText(child, ctx.source)
+    } else if (child.name === "ParamList") {
+      paramList = child
+    } else if (child.name === "Body") {
+      body = child
+    }
+  }
+
+  // Transform parameters, removing 'self' or 'cls'
+  const params = paramList ? transformMethodParamList(paramList, ctx) : ""
+
+  // Transform body, replacing 'self' with 'this'
+  const bodyCode = body ? transformClassMethodBody(body, ctx) : ""
+
+  // Handle special methods
+  if (methodName === "__init__") {
+    return `${indent}constructor(${params}) {\n${bodyCode}\n${indent}}`
+  }
+
+  if (methodName === "__str__" || methodName === "__repr__") {
+    return `${indent}toString() {\n${bodyCode}\n${indent}}`
+  }
+
+  // Handle decorators
+  let prefix = ""
+  if (decorator === "staticmethod" || decorator === "classmethod") {
+    prefix = "static "
+  } else if (decorator === "property") {
+    prefix = "get "
+  }
+
+  return `${indent}${prefix}${methodName}(${params}) {\n${bodyCode}\n${indent}}`
+}
+
+function transformClassDecoratedMethod(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+
+  let decorator: string | null = null
+  let funcDef: SyntaxNode | null = null
+
+  for (const child of children) {
+    if (child.name === "Decorator") {
+      const decChildren = getChildren(child)
+      const nameNode = decChildren.find((c) => c.name === "VariableName")
+      if (nameNode) {
+        decorator = getNodeText(nameNode, ctx.source)
+      }
+    } else if (child.name === "FunctionDefinition") {
+      funcDef = child
+    }
+  }
+
+  if (!funcDef) {
+    return getNodeText(node, ctx.source)
+  }
+
+  return transformClassMethod(funcDef, ctx, decorator)
+}
+
+function transformMethodParamList(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+  const params: string[] = []
+  let i = 0
+  let isFirstParam = true
+
+  while (i < children.length) {
+    const child = children[i]
+    if (!child) {
+      i++
+      continue
+    }
+
+    // Skip parentheses and commas
+    if (child.name === "(" || child.name === ")" || child.name === ",") {
+      i++
+      continue
+    }
+
+    // Skip 'self' and 'cls' (first parameter in instance/class methods)
+    if (child.name === "VariableName" && isFirstParam) {
+      const name = getNodeText(child, ctx.source)
+      if (name === "self" || name === "cls") {
+        i++
+        isFirstParam = false
+        continue
+      }
+    }
+    isFirstParam = false
+
+    // Check for *args (rest parameter)
+    if (child.name === "*" || getNodeText(child, ctx.source) === "*") {
+      const nextChild = children[i + 1]
+      if (nextChild && nextChild.name === "VariableName") {
+        const name = getNodeText(nextChild, ctx.source)
+        params.push(`...${name}`)
+        i += 2
+        continue
+      }
+      i++
+      continue
+    }
+
+    // Check for **kwargs
+    if (child.name === "**" || getNodeText(child, ctx.source) === "**") {
+      const nextChild = children[i + 1]
+      if (nextChild && nextChild.name === "VariableName") {
+        const name = getNodeText(nextChild, ctx.source)
+        params.push(name)
+        i += 2
+        continue
+      }
+      i++
+      continue
+    }
+
+    // Check for parameter with default value
+    if (child.name === "VariableName") {
+      const nextChild = children[i + 1]
+      if (nextChild && nextChild.name === "AssignOp") {
+        const defaultValChild = children[i + 2]
+        if (defaultValChild) {
+          const nameCode = getNodeText(child, ctx.source)
+          const defaultCode = transformNode(defaultValChild, ctx)
+          params.push(`${nameCode} = ${defaultCode}`)
+          i += 3
+          continue
+        }
+      }
+      params.push(getNodeText(child, ctx.source))
+      i++
+      continue
+    }
+
+    i++
+  }
+
+  return params.join(", ")
+}
+
+function transformClassMethodBody(node: SyntaxNode, ctx: TransformContext): string {
+  ctx.indentLevel++
+  const children = getChildren(node)
+  const indent = "  ".repeat(ctx.indentLevel)
+
+  const statements = children
+    .filter((child) => child.name !== ":")
+    .map((child) => {
+      let transformed: string
+
+      // Special handling for AssignStatement to avoid "let" on self.x assignments
+      if (child.name === "AssignStatement") {
+        transformed = transformClassAssignment(child, ctx)
+      } else {
+        transformed = transformNode(child, ctx)
+      }
+
+      // Replace self. and cls. with this.
+      transformed = transformed.replace(/\bself\./g, "this.")
+      transformed = transformed.replace(/\bcls\./g, "this.")
+
+      // Handle super().__init__(...) -> super(...)
+      transformed = transformed.replace(/super\(\)\.__init__\(/g, "super(")
+
+      // Handle cls() -> this() for classmethod
+      transformed = transformed.replace(/\bcls\(\)/g, "new this()")
+
+      if (
+        child.name === "ExpressionStatement" ||
+        child.name === "AssignStatement" ||
+        child.name === "PassStatement" ||
+        child.name === "BreakStatement" ||
+        child.name === "ContinueStatement" ||
+        child.name === "ReturnStatement"
+      ) {
+        return indent + transformed + ";"
+      }
+      return indent + transformed
+    })
+    .filter((s) => s.trim() !== "" && s.trim() !== "/* pass */;")
+
+  ctx.indentLevel--
+  return statements.join("\n")
+}
+
+function transformClassAssignment(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+  if (children.length < 3) return getNodeText(node, ctx.source)
+
+  const assignOpIndex = children.findIndex((c) => c.name === "AssignOp" || c.name === "=")
+  if (assignOpIndex === -1) return getNodeText(node, ctx.source)
+
+  const targets = children.slice(0, assignOpIndex).filter((c) => c.name !== ",")
+  const values = children.slice(assignOpIndex + 1).filter((c) => c.name !== ",")
+
+  if (targets.length === 0 || values.length === 0) {
+    return getNodeText(node, ctx.source)
+  }
+
+  if (targets.length === 1) {
+    const target = targets[0]
+    if (!target) return getNodeText(node, ctx.source)
+
+    const targetCode = transformNode(target, ctx)
+
+    // Check if target is a member expression (like self.x)
+    const isMemberAssignment = target.name === "MemberExpression"
+
+    if (values.length === 1) {
+      const value = values[0]
+      if (!value) return getNodeText(node, ctx.source)
+      // No "let" for member expressions (self.x = y -> this.x = y)
+      if (isMemberAssignment) {
+        return `${targetCode} = ${transformNode(value, ctx)}`
+      }
+      return `let ${targetCode} = ${transformNode(value, ctx)}`
+    } else {
+      const valuesCodes = values.map((v) => transformNode(v, ctx))
+      if (isMemberAssignment) {
+        return `${targetCode} = [${valuesCodes.join(", ")}]`
+      }
+      return `let ${targetCode} = [${valuesCodes.join(", ")}]`
+    }
+  }
+
+  // Multiple target assignment (destructuring)
+  const targetCodes = targets.map((t) => transformAssignTarget(t, ctx))
+  const targetPattern = `[${targetCodes.join(", ")}]`
+
+  if (values.length === 1) {
+    const value = values[0]
+    if (!value) return getNodeText(node, ctx.source)
+    return `let ${targetPattern} = ${transformNode(value, ctx)}`
+  } else {
+    const valuesCodes = values.map((v) => transformNode(v, ctx))
+    return `let ${targetPattern} = [${valuesCodes.join(", ")}]`
+  }
 }
 
 function transformDecoratedStatement(node: SyntaxNode, ctx: TransformContext): string {

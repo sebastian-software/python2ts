@@ -141,6 +141,32 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `a, b = 1, 2`                   | `let [a, b] = [1, 2]`           | Multiple assignment   |
 | `a, b = b, a`                   | `let [a, b] = [b, a]`           | Swap pattern          |
 
+### Phase 3 (Advanced Functions)
+
+| Python              | TypeScript                                  | Notes              |
+| ------------------- | ------------------------------------------- | ------------------ |
+| `def fn(x=1):`      | `function fn(x = 1)`                        | Default parameters |
+| `def fn(*args):`    | `function fn(...args)`                      | Rest parameters    |
+| `def fn(**kwargs):` | `function fn(kwargs)`                       | Keyword args       |
+| `lambda x: x + 1`   | `(x) => (x + 1)`                            | Lambda expressions |
+| `fn(key=val)`       | `fn({ key: val })`                          | Keyword arguments  |
+| `@decorator`        | `const fn = decorator(function fn() {...})` | Decorators         |
+
+### Phase 4 (Classes)
+
+| Python                   | TypeScript                     | Notes                 |
+| ------------------------ | ------------------------------ | --------------------- |
+| `class Dog:`             | `class Dog {`                  | Class definition      |
+| `class Child(Parent):`   | `class Child extends Parent {` | Inheritance           |
+| `def __init__(self, x):` | `constructor(x) {`             | Constructor           |
+| `def method(self, x):`   | `method(x) {`                  | Instance methods      |
+| `self.x`                 | `this.x`                       | Instance attributes   |
+| `super().__init__(x)`    | `super(x)`                     | Super calls           |
+| `def __str__(self):`     | `toString() {`                 | String representation |
+| `@staticmethod`          | `static`                       | Static methods        |
+| `@classmethod`           | `static`                       | Class methods         |
+| `@property`              | `get`                          | Property accessor     |
+
 ### Built-in Functions
 
 | Python                                    | TypeScript                                            |
@@ -164,9 +190,9 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 ## Roadmap
 
 - [x] **Phase 1**: Literals, operators, control flow, functions, built-ins
-- [x] **Phase 2**: List/dict/set comprehensions ✓
-- [ ] **Phase 3**: Advanced functions (`*args`, `**kwargs`, lambda, decorators)
-- [ ] **Phase 4**: Classes, inheritance
+- [x] **Phase 2**: List/dict/set comprehensions
+- [x] **Phase 3**: Advanced functions (`*args`, `**kwargs`, lambda, decorators)
+- [x] **Phase 4**: Classes, inheritance, `@staticmethod`, `@property`
 - [ ] **Phase 5**: Exception handling (`try`/`except`/`finally`)
 - [ ] **Phase 6**: Module imports
 - [ ] **Phase 7**: Async/await, type hints
