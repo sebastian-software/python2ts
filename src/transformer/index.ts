@@ -166,6 +166,8 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformAwaitExpression(node, ctx)
     case "WithStatement":
       return transformWithStatement(node, ctx)
+    case "MatchStatement":
+      return transformMatchStatement(node, ctx)
     default:
       return getNodeText(node, ctx.source)
   }
@@ -1272,6 +1274,101 @@ function transformWhileStatement(node: SyntaxNode, ctx: TransformContext): strin
   const bodyCode = transformBody(body, ctx)
 
   return `while (${condCode}) {\n${bodyCode}\n}`
+}
+
+function transformMatchStatement(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+
+  // Find the subject (what we're matching) and the body (containing clauses)
+  let subject: SyntaxNode | null = null
+  let matchBody: SyntaxNode | null = null
+
+  for (const child of children) {
+    if (child.name === "match" || child.name === ":") continue
+    if (child.name === "MatchBody") {
+      matchBody = child
+    } else if (!subject) {
+      subject = child
+    }
+  }
+
+  if (!subject || !matchBody) return getNodeText(node, ctx.source)
+
+  const subjectCode = transformNode(subject, ctx)
+  const clauses = transformMatchBody(matchBody, ctx)
+
+  return `switch (${subjectCode}) {\n${clauses}\n}`
+}
+
+function transformMatchBody(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+  const clauses: string[] = []
+  const indent = "  ".repeat(ctx.indentLevel + 1)
+
+  for (const child of children) {
+    if (child.name === "MatchClause") {
+      clauses.push(transformMatchClause(child, ctx, indent))
+    }
+  }
+
+  return clauses.join("\n")
+}
+
+function transformMatchClause(node: SyntaxNode, ctx: TransformContext, indent: string): string {
+  const children = getChildren(node)
+
+  let pattern: SyntaxNode | null = null
+  let body: SyntaxNode | null = null
+
+  for (const child of children) {
+    if (child.name === "case" || child.name === ":") continue
+    if (child.name === "Body") {
+      body = child
+    } else if (!pattern) {
+      pattern = child
+    }
+  }
+
+  if (!pattern || !body) return ""
+
+  const patternText = getNodeText(pattern, ctx.source)
+
+  // Increase indent for body content
+  ctx.indentLevel++
+  const bodyCode = transformBody(body, ctx)
+  ctx.indentLevel--
+
+  const bodyIndent = indent + "  "
+
+  // Handle wildcard pattern (_) as default
+  if (patternText === "_" || pattern.name === "CapturePattern") {
+    const captureVar = getNodeText(pattern, ctx.source)
+    if (captureVar === "_") {
+      return `${indent}default:\n${bodyIndent}${bodyCode.trim()}\n${bodyIndent}break;`
+    }
+  }
+
+  // Handle literal patterns
+  const caseValue = transformMatchPattern(pattern, ctx)
+  return `${indent}case ${caseValue}:\n${bodyIndent}${bodyCode.trim()}\n${bodyIndent}break;`
+}
+
+function transformMatchPattern(node: SyntaxNode, ctx: TransformContext): string {
+  switch (node.name) {
+    case "LiteralPattern": {
+      const children = getChildren(node)
+      const literal = children[0]
+      if (literal) {
+        return transformNode(literal, ctx)
+      }
+      return getNodeText(node, ctx.source)
+    }
+    case "CapturePattern":
+      // Variable capture - in switch this would be default
+      return getNodeText(node, ctx.source)
+    default:
+      return getNodeText(node, ctx.source)
+  }
 }
 
 function transformForStatement(node: SyntaxNode, ctx: TransformContext): string {
