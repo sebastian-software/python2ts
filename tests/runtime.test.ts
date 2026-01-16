@@ -747,59 +747,59 @@ describe("Runtime Library (py.*)", () => {
 
   describe("String methods", () => {
     it("swapcase should swap character cases", () => {
-      expect(py.swapcase("Hello World")).toBe("hELLO wORLD")
-      expect(py.swapcase("ABC")).toBe("abc")
-      expect(py.swapcase("abc")).toBe("ABC")
+      expect(py.string.swapcase("Hello World")).toBe("hELLO wORLD")
+      expect(py.string.swapcase("ABC")).toBe("abc")
+      expect(py.string.swapcase("abc")).toBe("ABC")
     })
 
     it("strIndex should find substring or throw", () => {
-      expect(py.strIndex("hello", "ll")).toBe(2)
-      expect(py.strIndex("hello", "l")).toBe(2)
-      expect(() => py.strIndex("hello", "xyz")).toThrow()
+      expect(py.string.index("hello", "ll")).toBe(2)
+      expect(py.string.index("hello", "l")).toBe(2)
+      expect(() => py.string.index("hello", "xyz")).toThrow()
     })
 
     it("strRindex should find last substring or throw", () => {
-      expect(py.strRindex("hello", "l")).toBe(3)
-      expect(py.strRindex("abcabc", "bc")).toBe(4)
-      expect(() => py.strRindex("hello", "xyz")).toThrow()
+      expect(py.string.rindex("hello", "l")).toBe(3)
+      expect(py.string.rindex("abcabc", "bc")).toBe(4)
+      expect(() => py.string.rindex("hello", "xyz")).toThrow()
     })
 
     it("rsplit should split from the right", () => {
-      expect(py.rsplit("a,b,c,d", ",", 2)).toEqual(["a,b", "c", "d"])
-      expect(py.rsplit("a,b,c", ",")).toEqual(["a", "b", "c"])
-      expect(py.rsplit("hello", ",")).toEqual(["hello"])
+      expect(py.string.rsplit("a,b,c,d", ",", 2)).toEqual(["a,b", "c", "d"])
+      expect(py.string.rsplit("a,b,c", ",")).toEqual(["a", "b", "c"])
+      expect(py.string.rsplit("hello", ",")).toEqual(["hello"])
     })
   })
 
   describe("List methods", () => {
     it("listRemove should remove first occurrence", () => {
       const arr = [1, 2, 3, 2, 4]
-      py.listRemove(arr, 2)
+      py.list.remove(arr, 2)
       expect(arr).toEqual([1, 3, 2, 4])
     })
 
     it("listRemove should throw if not found", () => {
       const arr = [1, 2, 3]
       expect(() => {
-        py.listRemove(arr, 5)
+        py.list.remove(arr, 5)
       }).toThrow()
     })
 
     it("listSort should sort with key function", () => {
       const arr = [{ n: 3 }, { n: 1 }, { n: 2 }]
-      py.listSort(arr, { key: (x: { n: number }) => x.n })
+      py.list.sort(arr, { key: (x: { n: number }) => x.n })
       expect(arr.map((x) => x.n)).toEqual([1, 2, 3])
     })
 
     it("listSort should sort in reverse", () => {
       const arr = [1, 3, 2]
-      py.listSort(arr, { reverse: true })
+      py.list.sort(arr, { reverse: true })
       expect(arr).toEqual([3, 2, 1])
     })
 
     it("listSort with key and reverse", () => {
       const arr = ["bb", "a", "ccc"]
-      py.listSort(arr, { key: (x: string) => x.length, reverse: true })
+      py.list.sort(arr, { key: (x: string) => x.length, reverse: true })
       expect(arr).toEqual(["ccc", "bb", "a"])
     })
   })
@@ -807,51 +807,51 @@ describe("Runtime Library (py.*)", () => {
   describe("Dict methods", () => {
     it("dictSetdefault should return existing value", () => {
       const obj = { a: 1 }
-      expect(py.dictSetdefault(obj, "a", 99)).toBe(1)
+      expect(py.dict.setdefault(obj, "a", 99)).toBe(1)
       expect(obj.a).toBe(1)
     })
 
     it("dictSetdefault should set and return default for missing key", () => {
       const obj: Record<string, number> = { a: 1 }
-      expect(py.dictSetdefault(obj, "b", 2)).toBe(2)
+      expect(py.dict.setdefault(obj, "b", 2)).toBe(2)
       expect(obj.b).toBe(2)
     })
 
     it("dictFromkeys should create dict from keys", () => {
-      const result = py.dictFromkeys(["a", "b", "c"], 0)
+      const result = py.dict.fromkeys(["a", "b", "c"], 0)
       expect(result).toEqual({ a: 0, b: 0, c: 0 })
     })
 
     it("dictFromkeys should use undefined as default", () => {
-      const result = py.dictFromkeys(["x", "y"])
+      const result = py.dict.fromkeys(["x", "y"])
       expect(result).toEqual({ x: undefined, y: undefined })
     })
   })
 
   describe("Set methods", () => {
     it("setIntersection should return common elements", () => {
-      const result = py.setIntersection(new Set([1, 2, 3]), new Set([2, 3, 4]))
+      const result = py.set.intersection(new Set([1, 2, 3]), new Set([2, 3, 4]))
       expect(result).toEqual(new Set([2, 3]))
     })
 
     it("setDifference should return elements only in first set", () => {
-      const result = py.setDifference(new Set([1, 2, 3]), new Set([2, 3, 4]))
+      const result = py.set.difference(new Set([1, 2, 3]), new Set([2, 3, 4]))
       expect(result).toEqual(new Set([1]))
     })
 
     it("setSymmetricDifference should return elements in either but not both", () => {
-      const result = py.setSymmetricDifference(new Set([1, 2, 3]), new Set([2, 3, 4]))
+      const result = py.set.symmetricDifference(new Set([1, 2, 3]), new Set([2, 3, 4]))
       expect(result).toEqual(new Set([1, 4]))
     })
 
     it("setIssubset should check if all elements are in other set", () => {
-      expect(py.setIssubset(new Set([1, 2]), new Set([1, 2, 3]))).toBe(true)
-      expect(py.setIssubset(new Set([1, 4]), new Set([1, 2, 3]))).toBe(false)
+      expect(py.set.issubset(new Set([1, 2]), new Set([1, 2, 3]))).toBe(true)
+      expect(py.set.issubset(new Set([1, 4]), new Set([1, 2, 3]))).toBe(false)
     })
 
     it("setIssuperset should check if contains all elements of other set", () => {
-      expect(py.setIssuperset(new Set([1, 2, 3]), new Set([1, 2]))).toBe(true)
-      expect(py.setIssuperset(new Set([1, 2]), new Set([1, 2, 3]))).toBe(false)
+      expect(py.set.issuperset(new Set([1, 2, 3]), new Set([1, 2]))).toBe(true)
+      expect(py.set.issuperset(new Set([1, 2]), new Set([1, 2, 3]))).toBe(false)
     })
   })
 })
