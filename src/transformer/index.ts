@@ -1027,7 +1027,16 @@ function transformMemberExpression(node: SyntaxNode, ctx: TransformContext): str
     const objCode = transformNode(obj, ctx)
     const propName = getNodeText(prop, ctx.source)
 
-    return `${objCode}.${propName}`
+    // Map Python special attributes to JavaScript equivalents
+    const attrMap: Record<string, string> = {
+      __name__: "name",
+      __doc__: "undefined", // JS functions don't have docstrings
+      __class__: "constructor",
+      __dict__: "this" // Rough equivalent
+    }
+
+    const mappedProp = attrMap[propName] ?? propName
+    return `${objCode}.${mappedProp}`
   }
 }
 
