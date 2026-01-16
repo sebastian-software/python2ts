@@ -868,6 +868,11 @@ function transformMethodCall(
       ctx.usesRuntime.add("rpartition")
       return `py.rpartition(${objCode}, ${args})`
 
+    // String format method
+    case "format":
+      ctx.usesRuntime.add("strFormat")
+      return `py.strFormat(${objCode}, ${args})`
+
     // List methods
     case "append":
       return `${objCode}.push(${args})`

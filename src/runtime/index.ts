@@ -75,6 +75,43 @@ export const py = {
     })
   },
 
+  /**
+   * Python str.format() style string formatting
+   * Handles {} positional and {name} named placeholders
+   */
+  strFormat(template: string, ...args: unknown[]): string {
+    let positionalIndex = 0
+    // Last argument might be an object with named parameters
+    const lastArg = args[args.length - 1]
+    const namedParams =
+      lastArg && typeof lastArg === "object" && !Array.isArray(lastArg)
+        ? (lastArg as Record<string, unknown>)
+        : {}
+
+    return template.replace(/\{([^}]*)\}/g, (match, key: string) => {
+      // Empty {} - use next positional argument
+      if (key === "") {
+        if (positionalIndex < args.length) {
+          return String(args[positionalIndex++])
+        }
+        return match
+      }
+
+      // Numeric index like {0}, {1}
+      const numIndex = parseInt(key, 10)
+      if (!isNaN(numIndex) && numIndex < args.length) {
+        return String(args[numIndex])
+      }
+
+      // Named parameter like {name}
+      if (key in namedParams) {
+        return String(namedParams[key])
+      }
+
+      return match
+    })
+  },
+
   // ============================================================
   // Slicing
   // ============================================================
