@@ -54,6 +54,23 @@ function declareVariable(ctx: TransformContext, name: string): void {
   }
 }
 
+/** Check if a node or any of its descendants contain a yield statement */
+function containsYield(node: SyntaxNode): boolean {
+  if (node.name === "YieldStatement" || node.name === "YieldExpression") {
+    return true
+  }
+  // Don't recurse into nested function definitions - their yields are for their own scope
+  if (node.name === "FunctionDefinition" || node.name === "LambdaExpression") {
+    return false
+  }
+  for (const child of getChildren(node)) {
+    if (containsYield(child)) {
+      return true
+    }
+  }
+  return false
+}
+
 export function transform(input: string | ParseResult): TransformResult {
   const parseResult = typeof input === "string" ? parse(input) : input
   const ctx = createContext(parseResult.source)
@@ -1913,8 +1930,12 @@ function transformFunctionDefinition(node: SyntaxNode, ctx: TransformContext): s
   const params = paramList ? transformParamList(paramList, ctx) : ""
   const bodyCode = body ? transformBody(body, ctx) : ""
 
+  // Check if function is a generator (contains yield)
+  const isGenerator = body ? containsYield(body) : false
+
   const asyncPrefix = isAsync ? "async " : ""
-  return `${asyncPrefix}function ${funcName}(${params}) {\n${bodyCode}\n}`
+  const generatorStar = isGenerator ? "*" : ""
+  return `${asyncPrefix}function${generatorStar} ${funcName}(${params}) {\n${bodyCode}\n}`
 }
 
 function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): string {
@@ -2013,6 +2034,10 @@ function transformClassMethod(
   // Transform body, replacing 'self' with 'this'
   const bodyCode = body ? transformClassMethodBody(body, ctx) : ""
 
+  // Check if method is a generator (contains yield)
+  const isGenerator = body ? containsYield(body) : false
+  const generatorStar = isGenerator ? "*" : ""
+
   // Handle special methods
   if (methodName === "__init__") {
     return `${indent}constructor(${params}) {\n${bodyCode}\n${indent}}`
@@ -2030,7 +2055,7 @@ function transformClassMethod(
     prefix = "get "
   }
 
-  return `${indent}${prefix}${methodName}(${params}) {\n${bodyCode}\n${indent}}`
+  return `${indent}${prefix}${generatorStar}${methodName}(${params}) {\n${bodyCode}\n${indent}}`
 }
 
 function transformClassDecoratedMethod(node: SyntaxNode, ctx: TransformContext): string {
