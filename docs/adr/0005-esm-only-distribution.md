@@ -91,7 +91,7 @@ Users with CJS codebases can:
 1. Use dynamic `import()`:
 
    ```javascript
-   const { transpile } = await import('python2ts');
+   const { transpile } = await import("python2ts")
    ```
 
 2. Upgrade to ESM (recommended)
@@ -104,8 +104,8 @@ All internal imports use `.js` extensions as required by ESM:
 
 ```typescript
 // Correct
-import { parse } from './parser/index.js';
+import { parse } from "./parser/index.js"
 
 // Incorrect (won't work in ESM)
-import { parse } from './parser/index';
+import { parse } from "./parser/index"
 ```

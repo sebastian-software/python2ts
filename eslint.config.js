@@ -1,5 +1,5 @@
-import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
+import eslint from "@eslint/js"
+import tseslint from "typescript-eslint"
 
 export default tseslint.config(
   eslint.configs.recommended,
@@ -7,20 +7,20 @@ export default tseslint.config(
   {
     languageOptions: {
       parserOptions: {
-        project: './tsconfig.lint.json',
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
+        project: "./tsconfig.lint.json",
+        tsconfigRootDir: import.meta.dirname
+      }
+    }
   },
   {
-    files: ['tests/**/*.ts'],
+    files: ["tests/**/*.ts"],
     rules: {
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-    },
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-call": "off"
+    }
   },
   {
-    ignores: ['dist/**', 'coverage/**', '*.config.ts', '*.config.js'],
+    ignores: ["dist/**", "coverage/**", "*.config.ts", "*.config.js"]
   }
-);
+)

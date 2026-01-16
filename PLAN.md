@@ -2,7 +2,9 @@
 
 ## Overview
 
-An AST-based transpiler that converts Python code to TypeScript. The parser is based on `@lezer/python`, and Python-specific operations are delegated to runtime helpers under the `py` namespace.
+An AST-based transpiler that converts Python code to TypeScript. The parser is based on
+`@lezer/python`, and Python-specific operations are delegated to runtime helpers under the `py`
+namespace.
 
 ## Architecture
 

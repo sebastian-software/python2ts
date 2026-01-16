@@ -33,14 +33,15 @@ Options considered:
 
 ## Decision
 
-We will use a **single namespace object** called `py` that contains all Python-compatible helper functions.
+We will use a **single namespace object** called `py` that contains all Python-compatible helper
+functions.
 
 ```typescript
-import { py } from 'python2ts/runtime';
+import { py } from "python2ts/runtime"
 
-py.floordiv(10, 3); // 3
-py.slice(arr, 1, 4); // Slicing
-py.range(10); // Iterable
+py.floordiv(10, 3) // 3
+py.slice(arr, 1, 4) // Slicing
+py.range(10) // Iterable
 ```
 
 Design principles:
@@ -76,11 +77,11 @@ for i, v in enumerate(items):
 
 ```typescript
 // Generated TypeScript
-import { py } from 'python2ts/runtime';
+import { py } from "python2ts/runtime"
 
-let x = py.floordiv(10, 3);
-let items = [1, 2, 3];
+let x = py.floordiv(10, 3)
+let items = [1, 2, 3]
 for (const [i, v] of py.enumerate(items)) {
-  console.log(i, v);
+  console.log(i, v)
 }
 ```

@@ -95,16 +95,16 @@ coverage: {
 ### Example Test Pattern
 
 ```typescript
-describe('E2E: Operators', () => {
-  it('should preserve Python modulo semantics', () => {
-    const python = 'x = -7 % 3';
-    const ts = transpile(python);
+describe("E2E: Operators", () => {
+  it("should preserve Python modulo semantics", () => {
+    const python = "x = -7 % 3"
+    const ts = transpile(python)
 
     // Verify generated code uses runtime
-    expect(ts).toContain('py.mod(-7, 3)');
+    expect(ts).toContain("py.mod(-7, 3)")
 
     // Verify runtime produces Python result
-    expect(py.mod(-7, 3)).toBe(2); // Python: 2, JS: -1
-  });
-});
+    expect(py.mod(-7, 3)).toBe(2) // Python: 2, JS: -1
+  })
+})
 ```

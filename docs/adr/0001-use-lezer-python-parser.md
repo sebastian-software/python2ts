@@ -6,7 +6,8 @@ Accepted
 
 ## Context
 
-We need a Python parser to generate an Abstract Syntax Tree (AST) from Python source code. The parser must:
+We need a Python parser to generate an Abstract Syntax Tree (AST) from Python source code. The
+parser must:
 
 1. Run in Node.js/browser environments (JavaScript/TypeScript)
 2. Be well-maintained and reliable
@@ -15,7 +16,8 @@ We need a Python parser to generate an Abstract Syntax Tree (AST) from Python so
 
 Alternatives considered:
 
-1. **Tree-sitter Python** - Excellent parser, but requires native bindings (WASM available but complex setup)
+1. **Tree-sitter Python** - Excellent parser, but requires native bindings (WASM available but
+   complex setup)
 2. **python-ast** - Limited maintenance, incomplete Python 3 support
 3. **Custom parser** - High development effort, error-prone
 4. **@lezer/python** - CodeMirror's Python parser, pure JavaScript, actively maintained

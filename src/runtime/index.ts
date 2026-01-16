@@ -15,14 +15,14 @@ export const py = {
    * Always rounds towards negative infinity, unlike Math.floor for negatives
    */
   floordiv(a: number, b: number): number {
-    return Math.floor(a / b);
+    return Math.floor(a / b)
   },
 
   /**
    * Power operator (Python **)
    */
   pow(base: number, exp: number): number {
-    return Math.pow(base, exp);
+    return Math.pow(base, exp)
   },
 
   /**
@@ -30,7 +30,7 @@ export const py = {
    * Python's % always returns a result with the same sign as the divisor
    */
   mod(a: number, b: number): number {
-    return ((a % b) + b) % b;
+    return ((a % b) + b) % b
   },
 
   // ============================================================
@@ -42,46 +42,46 @@ export const py = {
    * Supports negative indices and step
    */
   slice<T>(obj: string | T[], start?: number, stop?: number, step?: number): string | T[] {
-    const len = obj.length;
-    const actualStep = step ?? 1;
+    const len = obj.length
+    const actualStep = step ?? 1
 
     if (actualStep === 0) {
-      throw new Error('slice step cannot be zero');
+      throw new Error("slice step cannot be zero")
     }
 
     // Normalize start and stop
-    let actualStart: number;
-    let actualStop: number;
+    let actualStart: number
+    let actualStop: number
 
     if (actualStep > 0) {
-      actualStart = start === undefined ? 0 : normalizeIndex(start, len);
-      actualStop = stop === undefined ? len : normalizeIndex(stop, len);
+      actualStart = start === undefined ? 0 : normalizeIndex(start, len)
+      actualStop = stop === undefined ? len : normalizeIndex(stop, len)
     } else {
-      actualStart = start === undefined ? len - 1 : normalizeIndex(start, len, true);
-      actualStop = stop === undefined ? -1 : normalizeIndex(stop, len, true);
+      actualStart = start === undefined ? len - 1 : normalizeIndex(start, len, true)
+      actualStop = stop === undefined ? -1 : normalizeIndex(stop, len, true)
     }
 
-    const result: T[] = [];
+    const result: T[] = []
 
     if (actualStep > 0) {
       for (let i = actualStart; i < actualStop; i += actualStep) {
         if (i >= 0 && i < len) {
-          result.push((obj as T[])[i] as T);
+          result.push((obj as T[])[i] as T)
         }
       }
     } else {
       for (let i = actualStart; i > actualStop; i += actualStep) {
         if (i >= 0 && i < len) {
-          result.push((obj as T[])[i] as T);
+          result.push((obj as T[])[i] as T)
         }
       }
     }
 
-    if (typeof obj === 'string') {
-      return result.join('');
+    if (typeof obj === "string") {
+      return result.join("")
     }
 
-    return result;
+    return result
   },
 
   // ============================================================
@@ -92,37 +92,37 @@ export const py = {
    * Python range() function
    */
   range(startOrStop: number, stop?: number, step?: number): Iterable<number> {
-    let start: number;
-    let end: number;
-    let stepVal: number;
+    let start: number
+    let end: number
+    let stepVal: number
 
     if (stop === undefined) {
-      start = 0;
-      end = startOrStop;
-      stepVal = 1;
+      start = 0
+      end = startOrStop
+      stepVal = 1
     } else {
-      start = startOrStop;
-      end = stop;
-      stepVal = step ?? 1;
+      start = startOrStop
+      end = stop
+      stepVal = step ?? 1
     }
 
     if (stepVal === 0) {
-      throw new Error('range() arg 3 must not be zero');
+      throw new Error("range() arg 3 must not be zero")
     }
 
     return {
       *[Symbol.iterator]() {
         if (stepVal > 0) {
           for (let i = start; i < end; i += stepVal) {
-            yield i;
+            yield i
           }
         } else {
           for (let i = start; i > end; i += stepVal) {
-            yield i;
+            yield i
           }
         }
-      },
-    };
+      }
+    }
   },
 
   /**
@@ -131,12 +131,12 @@ export const py = {
   enumerate<T>(iterable: Iterable<T>, start = 0): Iterable<[number, T]> {
     return {
       *[Symbol.iterator]() {
-        let index = start;
+        let index = start
         for (const item of iterable) {
-          yield [index++, item] as [number, T];
+          yield [index++, item] as [number, T]
         }
-      },
-    };
+      }
+    }
   },
 
   /**
@@ -145,20 +145,20 @@ export const py = {
   zip<T extends unknown[][]>(...iterables: { [K in keyof T]: Iterable<T[K]> }): Iterable<T> {
     return {
       *[Symbol.iterator]() {
-        const iterators = iterables.map((it) => (it as Iterable<unknown>)[Symbol.iterator]());
+        const iterators = iterables.map((it) => (it as Iterable<unknown>)[Symbol.iterator]())
 
         for (;;) {
-          const results = iterators.map((it) => it.next());
+          const results = iterators.map((it) => it.next())
 
           if (results.some((r) => r.done)) {
-            break;
+            break
           }
 
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-          yield results.map((r) => r.value) as T;
+          yield results.map((r) => r.value) as T
         }
-      },
-    };
+      }
+    }
   },
 
   // ============================================================
@@ -170,30 +170,30 @@ export const py = {
    */
   list<T>(iterable?: Iterable<T>): T[] {
     if (iterable === undefined) {
-      return [];
+      return []
     }
-    return Array.from(iterable);
+    return Array.from(iterable)
   },
 
   /**
    * Create a Map (Python dict)
    */
   dict<K, V>(entries?: Iterable<[K, V]>): Map<K, V> {
-    return new Map(entries);
+    return new Map(entries)
   },
 
   /**
    * Create a Set
    */
   set<T>(iterable?: Iterable<T>): Set<T> {
-    return new Set(iterable);
+    return new Set(iterable)
   },
 
   /**
    * Create a tuple (readonly array)
    */
   tuple<T extends unknown[]>(...items: T): Readonly<T> {
-    return Object.freeze([...items]) as Readonly<T>;
+    return Object.freeze([...items]) as Readonly<T>
   },
 
   // ============================================================
@@ -204,125 +204,125 @@ export const py = {
    * Python len() function
    */
   len(obj: string | unknown[] | Map<unknown, unknown> | Set<unknown> | { length: number }): number {
-    if (typeof obj === 'string' || Array.isArray(obj)) {
-      return obj.length;
+    if (typeof obj === "string" || Array.isArray(obj)) {
+      return obj.length
     }
     if (obj instanceof Map || obj instanceof Set) {
-      return obj.size;
+      return obj.size
     }
     // Handle objects with length property (e.g., NodeList, arguments)
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (typeof obj === 'object' && obj !== null && 'length' in obj) {
-      return obj.length;
+    if (typeof obj === "object" && obj !== null && "length" in obj) {
+      return obj.length
     }
-    throw new TypeError('object has no len()');
+    throw new TypeError("object has no len()")
   },
 
   /**
    * Python abs() function
    */
   abs(x: number): number {
-    return Math.abs(x);
+    return Math.abs(x)
   },
 
   /**
    * Python min() function
    */
   min<T>(...args: T[] | [Iterable<T>]): T {
-    const first = args[0];
+    const first = args[0]
     if (
       args.length === 1 &&
-      typeof first === 'object' &&
+      typeof first === "object" &&
       first !== null &&
       Symbol.iterator in first
     ) {
-      const arr = [...first];
+      const arr = [...first]
       if (arr.length === 0) {
-        throw new Error('min() arg is an empty sequence');
+        throw new Error("min() arg is an empty sequence")
       }
-      return arr.reduce((a, b) => (a < b ? a : b));
+      return arr.reduce((a, b) => (a < b ? a : b))
     }
 
     if (args.length === 0) {
-      throw new Error('min expected at least 1 argument, got 0');
+      throw new Error("min expected at least 1 argument, got 0")
     }
 
-    return (args as T[]).reduce((a, b) => (a < b ? a : b));
+    return (args as T[]).reduce((a, b) => (a < b ? a : b))
   },
 
   /**
    * Python max() function
    */
   max<T>(...args: T[] | [Iterable<T>]): T {
-    const first = args[0];
+    const first = args[0]
     if (
       args.length === 1 &&
-      typeof first === 'object' &&
+      typeof first === "object" &&
       first !== null &&
       Symbol.iterator in first
     ) {
-      const arr = [...first];
+      const arr = [...first]
       if (arr.length === 0) {
-        throw new Error('max() arg is an empty sequence');
+        throw new Error("max() arg is an empty sequence")
       }
-      return arr.reduce((a, b) => (a > b ? a : b));
+      return arr.reduce((a, b) => (a > b ? a : b))
     }
 
     if (args.length === 0) {
-      throw new Error('max expected at least 1 argument, got 0');
+      throw new Error("max expected at least 1 argument, got 0")
     }
 
-    return (args as T[]).reduce((a, b) => (a > b ? a : b));
+    return (args as T[]).reduce((a, b) => (a > b ? a : b))
   },
 
   /**
    * Python sum() function
    */
   sum(iterable: Iterable<number>, start = 0): number {
-    let total = start;
+    let total = start
     for (const item of iterable) {
-      total += item;
+      total += item
     }
-    return total;
+    return total
   },
 
   /**
    * Python sorted() function
    */
   sorted<T>(iterable: Iterable<T>, options?: { key?: (x: T) => unknown; reverse?: boolean }): T[] {
-    const arr = Array.from(iterable);
-    const key = options?.key ?? ((x: T) => x);
-    const reverse = options?.reverse ?? false;
+    const arr = Array.from(iterable)
+    const key = options?.key ?? ((x: T) => x)
+    const reverse = options?.reverse ?? false
 
     arr.sort((a, b) => {
-      const aKey = key(a);
-      const bKey = key(b);
+      const aKey = key(a)
+      const bKey = key(b)
 
-      let cmp: number;
-      if (typeof aKey === 'string' && typeof bKey === 'string') {
-        cmp = aKey.localeCompare(bKey);
+      let cmp: number
+      if (typeof aKey === "string" && typeof bKey === "string") {
+        cmp = aKey.localeCompare(bKey)
       } else {
-        cmp = (aKey as number) - (bKey as number);
+        cmp = (aKey as number) - (bKey as number)
       }
 
-      return reverse ? -cmp : cmp;
-    });
+      return reverse ? -cmp : cmp
+    })
 
-    return arr;
+    return arr
   },
 
   /**
    * Python reversed() function
    */
   reversed<T>(iterable: Iterable<T>): Iterable<T> {
-    const arr = Array.from(iterable);
+    const arr = Array.from(iterable)
     return {
       *[Symbol.iterator]() {
         for (let i = arr.length - 1; i >= 0; i--) {
-          yield arr[i] as T;
+          yield arr[i] as T
         }
-      },
-    };
+      }
+    }
   },
 
   // ============================================================
@@ -333,31 +333,31 @@ export const py = {
    * Python int() function
    */
   int(x: string | number | boolean, base?: number): number {
-    if (typeof x === 'boolean') {
-      return x ? 1 : 0;
+    if (typeof x === "boolean") {
+      return x ? 1 : 0
     }
-    if (typeof x === 'number') {
-      return Math.trunc(x);
+    if (typeof x === "number") {
+      return Math.trunc(x)
     }
-    const parsed = base !== undefined ? parseInt(x, base) : parseInt(x, 10);
+    const parsed = base !== undefined ? parseInt(x, base) : parseInt(x, 10)
     if (isNaN(parsed)) {
-      throw new Error(`invalid literal for int(): '${x}'`);
+      throw new Error(`invalid literal for int(): '${x}'`)
     }
-    return parsed;
+    return parsed
   },
 
   /**
    * Python float() function
    */
   float(x: string | number): number {
-    if (typeof x === 'number') {
-      return x;
+    if (typeof x === "number") {
+      return x
     }
-    const parsed = parseFloat(x);
+    const parsed = parseFloat(x)
     if (isNaN(parsed)) {
-      throw new Error(`could not convert string to float: '${x}'`);
+      throw new Error(`could not convert string to float: '${x}'`)
     }
-    return parsed;
+    return parsed
   },
 
   /**
@@ -365,47 +365,47 @@ export const py = {
    */
   str(x: unknown): string {
     if (x === null) {
-      return 'None';
+      return "None"
     }
     if (x === undefined) {
-      return 'None';
+      return "None"
     }
-    if (typeof x === 'boolean') {
-      return x ? 'True' : 'False';
+    if (typeof x === "boolean") {
+      return x ? "True" : "False"
     }
     if (Array.isArray(x)) {
-      return '[' + x.map((item) => py.repr(item)).join(', ') + ']';
+      return "[" + x.map((item) => py.repr(item)).join(", ") + "]"
     }
     if (x instanceof Map) {
       const entries = Array.from(x.entries())
         .map(([k, v]) => `${py.repr(k)}: ${py.repr(v)}`)
-        .join(', ');
-      return '{' + entries + '}';
+        .join(", ")
+      return "{" + entries + "}"
     }
     if (x instanceof Set) {
       if (x.size === 0) {
-        return 'set()';
+        return "set()"
       }
       return (
-        '{' +
+        "{" +
         Array.from(x)
           .map((item) => py.repr(item))
-          .join(', ') +
-        '}'
-      );
+          .join(", ") +
+        "}"
+      )
     }
     // eslint-disable-next-line @typescript-eslint/no-base-to-string
-    return String(x);
+    return String(x)
   },
 
   /**
    * Python repr() function
    */
   repr(x: unknown): string {
-    if (typeof x === 'string') {
-      return `'${x}'`;
+    if (typeof x === "string") {
+      return `'${x}'`
     }
-    return py.str(x);
+    return py.str(x)
   },
 
   /**
@@ -413,24 +413,24 @@ export const py = {
    */
   bool(x: unknown): boolean {
     if (x === null || x === undefined) {
-      return false;
+      return false
     }
-    if (typeof x === 'boolean') {
-      return x;
+    if (typeof x === "boolean") {
+      return x
     }
-    if (typeof x === 'number') {
-      return x !== 0;
+    if (typeof x === "number") {
+      return x !== 0
     }
-    if (typeof x === 'string') {
-      return x.length > 0;
+    if (typeof x === "string") {
+      return x.length > 0
     }
     if (Array.isArray(x)) {
-      return x.length > 0;
+      return x.length > 0
     }
     if (x instanceof Map || x instanceof Set) {
-      return x.size > 0;
+      return x.size > 0
     }
-    return true;
+    return true
   },
 
   // ============================================================
@@ -441,31 +441,31 @@ export const py = {
    * Python 'in' operator
    */
   in<T>(item: T, container: Iterable<T> | string | Map<T, unknown> | Set<T>): boolean {
-    if (typeof container === 'string') {
-      return container.includes(item as unknown as string);
+    if (typeof container === "string") {
+      return container.includes(item as unknown as string)
     }
     if (container instanceof Map) {
-      return container.has(item);
+      return container.has(item)
     }
     if (container instanceof Set) {
-      return container.has(item);
+      return container.has(item)
     }
     if (Array.isArray(container)) {
-      return container.includes(item);
+      return container.includes(item)
     }
     for (const element of container) {
       if (element === item) {
-        return true;
+        return true
       }
     }
-    return false;
+    return false
   },
 
   /**
    * Python 'is' operator (identity comparison)
    */
   is(a: unknown, b: unknown): boolean {
-    return a === b;
+    return a === b
   },
 
   // ============================================================
@@ -477,7 +477,7 @@ export const py = {
      * Python str.join()
      */
     join(sep: string, iterable: Iterable<string>): string {
-      return Array.from(iterable).join(sep);
+      return Array.from(iterable).join(sep)
     },
 
     /**
@@ -486,28 +486,28 @@ export const py = {
     split(s: string, sep?: string, maxsplit?: number): string[] {
       if (sep === undefined) {
         // Split on whitespace
-        const result = s.trim().split(/\s+/);
+        const result = s.trim().split(/\s+/)
         if (maxsplit !== undefined && maxsplit >= 0) {
           if (result.length > maxsplit + 1) {
-            const limited = result.slice(0, maxsplit);
-            limited.push(result.slice(maxsplit).join(' '));
-            return limited;
+            const limited = result.slice(0, maxsplit)
+            limited.push(result.slice(maxsplit).join(" "))
+            return limited
           }
         }
-        return result;
+        return result
       }
 
       if (maxsplit !== undefined && maxsplit >= 0) {
-        const parts = s.split(sep);
+        const parts = s.split(sep)
         if (parts.length > maxsplit + 1) {
-          const limited = parts.slice(0, maxsplit);
-          limited.push(parts.slice(maxsplit).join(sep));
-          return limited;
+          const limited = parts.slice(0, maxsplit)
+          limited.push(parts.slice(maxsplit).join(sep))
+          return limited
         }
-        return parts;
+        return parts
       }
 
-      return s.split(sep);
+      return s.split(sep)
     },
 
     /**
@@ -515,40 +515,40 @@ export const py = {
      */
     strip(s: string, chars?: string): string {
       if (chars === undefined) {
-        return s.trim();
+        return s.trim()
       }
-      const regex = new RegExp(`^[${escapeRegex(chars)}]+|[${escapeRegex(chars)}]+$`, 'g');
-      return s.replace(regex, '');
+      const regex = new RegExp(`^[${escapeRegex(chars)}]+|[${escapeRegex(chars)}]+$`, "g")
+      return s.replace(regex, "")
     },
 
     /**
      * Python str.upper()
      */
     upper(s: string): string {
-      return s.toUpperCase();
+      return s.toUpperCase()
     },
 
     /**
      * Python str.lower()
      */
     lower(s: string): string {
-      return s.toLowerCase();
+      return s.toLowerCase()
     },
 
     /**
      * Python str.startswith()
      */
     startswith(s: string, prefix: string, start?: number, end?: number): boolean {
-      const substr = s.slice(start, end);
-      return substr.startsWith(prefix);
+      const substr = s.slice(start, end)
+      return substr.startsWith(prefix)
     },
 
     /**
      * Python str.endswith()
      */
     endswith(s: string, suffix: string, start?: number, end?: number): boolean {
-      const substr = s.slice(start, end);
-      return substr.endsWith(suffix);
+      const substr = s.slice(start, end)
+      return substr.endsWith(suffix)
     },
 
     /**
@@ -556,54 +556,54 @@ export const py = {
      */
     replace(s: string, old: string, newStr: string, count?: number): string {
       if (count === undefined || count < 0) {
-        return s.split(old).join(newStr);
+        return s.split(old).join(newStr)
       }
 
-      let result = s;
+      let result = s
       for (let i = 0; i < count; i++) {
-        const index = result.indexOf(old);
-        if (index === -1) break;
-        result = result.slice(0, index) + newStr + result.slice(index + old.length);
+        const index = result.indexOf(old)
+        if (index === -1) break
+        result = result.slice(0, index) + newStr + result.slice(index + old.length)
       }
-      return result;
+      return result
     },
 
     /**
      * Python str.find()
      */
     find(s: string, sub: string, start?: number, end?: number): number {
-      const substr = s.slice(start, end);
-      const index = substr.indexOf(sub);
-      if (index === -1) return -1;
-      return (start ?? 0) + index;
+      const substr = s.slice(start, end)
+      const index = substr.indexOf(sub)
+      if (index === -1) return -1
+      return (start ?? 0) + index
     },
 
     /**
      * Python str.count()
      */
     count(s: string, sub: string, start?: number, end?: number): number {
-      const substr = s.slice(start, end);
-      if (sub.length === 0) return substr.length + 1;
+      const substr = s.slice(start, end)
+      if (sub.length === 0) return substr.length + 1
 
-      let count = 0;
-      let pos = 0;
+      let count = 0
+      let pos = 0
       while ((pos = substr.indexOf(sub, pos)) !== -1) {
-        count++;
-        pos += sub.length;
+        count++
+        pos += sub.length
       }
-      return count;
+      return count
     },
 
     /**
      * Python str.format()
      */
     format(s: string, ...args: unknown[]): string {
-      let index = 0;
+      let index = 0
       return s.replace(/\{(\d*)\}/g, (_, num: string) => {
-        const i = num === '' ? index++ : parseInt(num, 10);
-        return String(args[i]);
-      });
-    },
+        const i = num === "" ? index++ : parseInt(num, 10)
+        return String(args[i])
+      })
+    }
   },
 
   // ============================================================
@@ -614,44 +614,44 @@ export const py = {
    * Python isinstance() - simplified version
    */
   isinstance(obj: unknown, classInfo: unknown): boolean {
-    if (classInfo === Number || classInfo === 'int' || classInfo === 'float') {
-      return typeof obj === 'number';
+    if (classInfo === Number || classInfo === "int" || classInfo === "float") {
+      return typeof obj === "number"
     }
-    if (classInfo === String || classInfo === 'str') {
-      return typeof obj === 'string';
+    if (classInfo === String || classInfo === "str") {
+      return typeof obj === "string"
     }
-    if (classInfo === Boolean || classInfo === 'bool') {
-      return typeof obj === 'boolean';
+    if (classInfo === Boolean || classInfo === "bool") {
+      return typeof obj === "boolean"
     }
-    if (classInfo === Array || classInfo === 'list') {
-      return Array.isArray(obj);
+    if (classInfo === Array || classInfo === "list") {
+      return Array.isArray(obj)
     }
-    if (classInfo === Map || classInfo === 'dict') {
-      return obj instanceof Map;
+    if (classInfo === Map || classInfo === "dict") {
+      return obj instanceof Map
     }
-    if (classInfo === Set || classInfo === 'set') {
-      return obj instanceof Set;
+    if (classInfo === Set || classInfo === "set") {
+      return obj instanceof Set
     }
-    if (typeof classInfo === 'function') {
-      return obj instanceof classInfo;
+    if (typeof classInfo === "function") {
+      return obj instanceof classInfo
     }
-    return false;
+    return false
   },
 
   /**
    * Python type() - simplified version
    */
   type(obj: unknown): string {
-    if (obj === null) return 'NoneType';
-    if (typeof obj === 'number') {
-      return Number.isInteger(obj) ? 'int' : 'float';
+    if (obj === null) return "NoneType"
+    if (typeof obj === "number") {
+      return Number.isInteger(obj) ? "int" : "float"
     }
-    if (typeof obj === 'string') return 'str';
-    if (typeof obj === 'boolean') return 'bool';
-    if (Array.isArray(obj)) return 'list';
-    if (obj instanceof Map) return 'dict';
-    if (obj instanceof Set) return 'set';
-    return typeof obj;
+    if (typeof obj === "string") return "str"
+    if (typeof obj === "boolean") return "bool"
+    if (Array.isArray(obj)) return "list"
+    if (obj instanceof Map) return "dict"
+    if (obj instanceof Set) return "set"
+    return typeof obj
   },
 
   /**
@@ -661,10 +661,10 @@ export const py = {
     // Note: This is a simplified sync version for Node.js
     // In a real implementation, you'd want to use readline or similar
     if (prompt) {
-      process.stdout.write(prompt);
+      process.stdout.write(prompt)
     }
     // For now, return empty string - proper implementation needs readline
-    throw new Error('input() requires async implementation');
+    throw new Error("input() requires async implementation")
   },
 
   /**
@@ -672,16 +672,16 @@ export const py = {
    */
   ord(char: string): number {
     if (char.length !== 1) {
-      throw new Error('ord() expected a character');
+      throw new Error("ord() expected a character")
     }
-    return char.charCodeAt(0);
+    return char.charCodeAt(0)
   },
 
   /**
    * Python chr()
    */
   chr(code: number): string {
-    return String.fromCharCode(code);
+    return String.fromCharCode(code)
   },
 
   /**
@@ -689,9 +689,9 @@ export const py = {
    */
   all(iterable: Iterable<unknown>): boolean {
     for (const item of iterable) {
-      if (!py.bool(item)) return false;
+      if (!py.bool(item)) return false
     }
-    return true;
+    return true
   },
 
   /**
@@ -699,9 +699,9 @@ export const py = {
    */
   any(iterable: Iterable<unknown>): boolean {
     for (const item of iterable) {
-      if (py.bool(item)) return true;
+      if (py.bool(item)) return true
     }
-    return false;
+    return false
   },
 
   /**
@@ -711,10 +711,10 @@ export const py = {
     return {
       *[Symbol.iterator]() {
         for (const item of iterable) {
-          yield fn(item);
+          yield fn(item)
         }
-      },
-    };
+      }
+    }
   },
 
   /**
@@ -725,11 +725,11 @@ export const py = {
       *[Symbol.iterator]() {
         for (const item of iterable) {
           if (fn === null ? py.bool(item) : fn(item)) {
-            yield item;
+            yield item
           }
         }
-      },
-    };
+      }
+    }
   },
 
   /**
@@ -738,65 +738,65 @@ export const py = {
   round(number: number, ndigits?: number): number {
     if (ndigits === undefined || ndigits === 0) {
       // Python uses banker's rounding (round half to even)
-      const rounded = Math.round(number);
+      const rounded = Math.round(number)
       if (Math.abs(number % 1) === 0.5) {
-        return rounded % 2 === 0 ? rounded : rounded - Math.sign(number);
+        return rounded % 2 === 0 ? rounded : rounded - Math.sign(number)
       }
-      return rounded;
+      return rounded
     }
 
-    const factor = Math.pow(10, ndigits);
-    return Math.round(number * factor) / factor;
+    const factor = Math.pow(10, ndigits)
+    return Math.round(number * factor) / factor
   },
 
   /**
    * Python divmod()
    */
   divmod(a: number, b: number): [number, number] {
-    return [py.floordiv(a, b), py.mod(a, b)];
+    return [py.floordiv(a, b), py.mod(a, b)]
   },
 
   /**
    * Python hex()
    */
   hex(x: number): string {
-    const prefix = x < 0 ? '-0x' : '0x';
-    return prefix + Math.abs(Math.trunc(x)).toString(16);
+    const prefix = x < 0 ? "-0x" : "0x"
+    return prefix + Math.abs(Math.trunc(x)).toString(16)
   },
 
   /**
    * Python oct()
    */
   oct(x: number): string {
-    const prefix = x < 0 ? '-0o' : '0o';
-    return prefix + Math.abs(Math.trunc(x)).toString(8);
+    const prefix = x < 0 ? "-0o" : "0o"
+    return prefix + Math.abs(Math.trunc(x)).toString(8)
   },
 
   /**
    * Python bin()
    */
   bin(x: number): string {
-    const prefix = x < 0 ? '-0b' : '0b';
-    return prefix + Math.abs(Math.trunc(x)).toString(2);
-  },
-};
+    const prefix = x < 0 ? "-0b" : "0b"
+    return prefix + Math.abs(Math.trunc(x)).toString(2)
+  }
+}
 
 // Helper functions
 
 function normalizeIndex(index: number, length: number, forNegativeStep = false): number {
   if (index < 0) {
-    index = length + index;
+    index = length + index
   }
 
   if (forNegativeStep) {
-    return Math.max(-1, Math.min(length - 1, index));
+    return Math.max(-1, Math.min(length - 1, index))
   }
 
-  return Math.max(0, Math.min(length, index));
+  return Math.max(0, Math.min(length, index))
 }
 
 function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
-export default py;
+export default py

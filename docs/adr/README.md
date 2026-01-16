@@ -4,7 +4,8 @@ This directory contains Architecture Decision Records (ADRs) for the python2ts p
 
 ## What is an ADR?
 
-An Architecture Decision Record captures an important architectural decision made along with its context and consequences.
+An Architecture Decision Record captures an important architectural decision made along with its
+context and consequences.
 
 ## ADR Index
 

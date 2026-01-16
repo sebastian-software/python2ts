@@ -18,9 +18,9 @@ Several Python operators behave differently from their JavaScript counterparts:
 
 ```javascript
 // JavaScript
-Math.floor(10 / 3); // = 3
-Math.floor(-10 / 3); // = -4 (same, but coincidental)
-Math.trunc(-10 / 3); // = -3 (what // would mean if rounding toward zero)
+Math.floor(10 / 3) // = 3
+Math.floor(-10 / 3) // = -4 (same, but coincidental)
+Math.trunc(-10 / 3) // = -3 (what // would mean if rounding toward zero)
 ```
 
 ### Modulo (`%`)
@@ -33,8 +33,8 @@ Math.trunc(-10 / 3); // = -3 (what // would mean if rounding toward zero)
 
 ```javascript
 // JavaScript - result has sign of dividend
--7 % 3; // = -1
-7 % -3; // = 1
+;-7 % 3 // = -1
+7 % -3 // = 1
 ```
 
 We must decide: Should we prioritize **JavaScript idioms** or **Python correctness**?

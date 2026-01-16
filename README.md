@@ -21,7 +21,7 @@ npm install python2ts
 ### Basic Transpilation
 
 ```typescript
-import { transpile } from 'python2ts';
+import { transpile } from "python2ts"
 
 const python = `
 def greet(name):
@@ -29,66 +29,66 @@ def greet(name):
 
 for i in range(5):
     greet("World")
-`;
+`
 
-const typescript = transpile(python);
-console.log(typescript);
+const typescript = transpile(python)
+console.log(typescript)
 ```
 
 Output:
 
 ```typescript
-import { py } from 'python2ts/runtime';
+import { py } from "python2ts/runtime"
 
 function greet(name) {
-  console.log('Hello, ' + name);
+  console.log("Hello, " + name)
 }
 for (const i of py.range(5)) {
-  greet('World');
+  greet("World")
 }
 ```
 
 ### Using the Runtime
 
 ```typescript
-import { py } from 'python2ts/runtime';
+import { py } from "python2ts/runtime"
 
 // Python-style floor division (rounds toward negative infinity)
-py.floordiv(7, 3); // 2
-py.floordiv(-7, 3); // -3 (not -2 like JS Math.floor)
+py.floordiv(7, 3) // 2
+py.floordiv(-7, 3) // -3 (not -2 like JS Math.floor)
 
 // Python-style modulo (result has sign of divisor)
-py.mod(-7, 3); // 2 (not -1 like JS %)
+py.mod(-7, 3) // 2 (not -1 like JS %)
 
 // Slicing
-py.slice([0, 1, 2, 3, 4], 1, 4); // [1, 2, 3]
-py.slice([0, 1, 2, 3, 4], undefined, undefined, -1); // [4, 3, 2, 1, 0]
+py.slice([0, 1, 2, 3, 4], 1, 4) // [1, 2, 3]
+py.slice([0, 1, 2, 3, 4], undefined, undefined, -1) // [4, 3, 2, 1, 0]
 
 // Iterables
-[...py.range(5)]; // [0, 1, 2, 3, 4]
-[...py.enumerate(['a', 'b', 'c'])]; // [[0, 'a'], [1, 'b'], [2, 'c']]
-[...py.zip([1, 2], ['a', 'b'])]; // [[1, 'a'], [2, 'b']]
+;[...py.range(5)] // [0, 1, 2, 3, 4]
+;[...py.enumerate(["a", "b", "c"])] // [[0, 'a'], [1, 'b'], [2, 'c']]
+;[...py.zip([1, 2], ["a", "b"])] // [[1, 'a'], [2, 'b']]
 ```
 
 ### Advanced API
 
 ```typescript
-import { parse, transform, generate } from 'python2ts';
+import { parse, transform, generate } from "python2ts"
 
 // Step 1: Parse Python code
-const parseResult = parse('x = 1 + 2');
+const parseResult = parse("x = 1 + 2")
 
 // Step 2: Transform to TypeScript AST
-const transformResult = transform(parseResult);
+const transformResult = transform(parseResult)
 
 // Step 3: Generate TypeScript code
 const generated = generate(parseResult, {
   includeRuntime: true,
-  runtimeImportPath: 'python2ts/runtime',
-});
+  runtimeImportPath: "python2ts/runtime"
+})
 
-console.log(generated.code);
-console.log(generated.usedRuntimeFunctions); // ['range', 'len', ...]
+console.log(generated.code)
+console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 ```
 
 ## Supported Python Syntax

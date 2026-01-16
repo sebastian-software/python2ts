@@ -1,80 +1,78 @@
-import { parser } from '@lezer/python';
-import type { SyntaxNode, Tree } from '@lezer/common';
-import type { ParseResult } from './types.js';
+import { parser } from "@lezer/python"
+import type { SyntaxNode, Tree } from "@lezer/common"
+import type { ParseResult } from "./types.js"
 
 export function parse(source: string): ParseResult {
-  const tree = parser.parse(source);
-  return { tree, source };
+  const tree = parser.parse(source)
+  return { tree, source }
 }
 
 export function getNodeText(node: SyntaxNode, source: string): string {
-  return source.slice(node.from, node.to);
+  return source.slice(node.from, node.to)
 }
 
 export function getChildren(node: SyntaxNode): SyntaxNode[] {
-  const children: SyntaxNode[] = [];
-  let child = node.firstChild;
+  const children: SyntaxNode[] = []
+  let child = node.firstChild
   while (child) {
-    children.push(child);
-    child = child.nextSibling;
+    children.push(child)
+    child = child.nextSibling
   }
-  return children;
+  return children
 }
 
 export function getChildByType(node: SyntaxNode, type: string): SyntaxNode | null {
-  let child = node.firstChild;
+  let child = node.firstChild
   while (child) {
     if (child.name === type) {
-      return child;
+      return child
     }
-    child = child.nextSibling;
+    child = child.nextSibling
   }
-  return null;
+  return null
 }
 
 export function getChildrenByType(node: SyntaxNode, type: string): SyntaxNode[] {
-  const children: SyntaxNode[] = [];
-  let child = node.firstChild;
+  const children: SyntaxNode[] = []
+  let child = node.firstChild
   while (child) {
     if (child.name === type) {
-      children.push(child);
+      children.push(child)
     }
-    child = child.nextSibling;
+    child = child.nextSibling
   }
-  return children;
+  return children
 }
 
 export function walkTree(tree: Tree, callback: (node: SyntaxNode) => void): void {
-  const cursor = tree.cursor();
+  const cursor = tree.cursor()
   do {
-    callback(cursor.node);
-  } while (cursor.next());
+    callback(cursor.node)
+  } while (cursor.next())
 }
 
 export function debugTree(tree: Tree, source: string): string {
-  const lines: string[] = [];
-  const cursor = tree.cursor();
-  let depth = 0;
+  const lines: string[] = []
+  const cursor = tree.cursor()
+  let depth = 0
 
   do {
-    const indent = '  '.repeat(depth);
-    const text = source.slice(cursor.from, cursor.to).replace(/\n/g, '\\n');
-    const preview = text.length > 30 ? text.slice(0, 30) + '...' : text;
-    lines.push(
-      `${indent}${cursor.name} [${String(cursor.from)}-${String(cursor.to)}] "${preview}"`
-    );
+    const indent = "  ".repeat(depth)
+    const text = source.slice(cursor.from, cursor.to).replace(/\n/g, "\\n")
+    const preview = text.length > 30 ? text.slice(0, 30) + "..." : text
+    lines.push(`${indent}${cursor.name} [${String(cursor.from)}-${String(cursor.to)}] "${preview}"`)
 
     if (cursor.firstChild()) {
-      depth++;
+      depth++
     } else {
       while (!cursor.nextSibling()) {
-        if (!cursor.parent()) break;
-        depth--;
+        if (!cursor.parent()) break
+        depth--
       }
     }
-  } while (depth > 0 || cursor.nextSibling());
+  } while (depth > 0 || cursor.nextSibling())
 
-  return lines.join('\n');
+  return lines.join("\n")
 }
 
-export * from './types.js';
+export * from "./types.js"
