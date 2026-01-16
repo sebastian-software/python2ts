@@ -954,6 +954,26 @@ function transformArgList(node: SyntaxNode, ctx: TransformContext): string {
       continue
     }
 
+    // Handle spread operators: *args and **kwargs
+    if (item.name === "*" || (item.name === "ArithOp" && getNodeText(item, ctx.source) === "*")) {
+      const nextItem = items[i + 1]
+      if (nextItem) {
+        args.push(`...${transformNode(nextItem, ctx)}`)
+        i += 2
+        continue
+      }
+    }
+
+    if (item.name === "**" || (item.name === "ArithOp" && getNodeText(item, ctx.source) === "**")) {
+      const nextItem = items[i + 1]
+      if (nextItem) {
+        // **kwargs spreads object properties as keyword arguments
+        args.push(`...Object.entries(${transformNode(nextItem, ctx)})`)
+        i += 2
+        continue
+      }
+    }
+
     // Check for keyword argument: VariableName AssignOp Value
     if (item.name === "VariableName") {
       const nextItem = items[i + 1]
