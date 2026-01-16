@@ -2366,6 +2366,8 @@ function transformDecoratedStatement(node: SyntaxNode, ctx: TransformContext): s
 function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
   const params: string[] = []
+  let restParam: string | null = null
+  let kwargsParam: string | null = null
   let i = 0
 
   while (i < children.length) {
@@ -2386,7 +2388,7 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
       const nextChild = children[i + 1]
       if (nextChild && nextChild.name === "VariableName") {
         const name = getNodeText(nextChild, ctx.source)
-        params.push(`...${name}`)
+        restParam = `...${name}`
         i += 2
         continue
       }
@@ -2394,13 +2396,13 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
       continue
     }
 
-    // Check for **kwargs
+    // Check for **kwargs - store separately to add at the end
     if (child.name === "**" || getNodeText(child, ctx.source) === "**") {
       const nextChild = children[i + 1]
       if (nextChild && nextChild.name === "VariableName") {
         const name = getNodeText(nextChild, ctx.source)
-        // **kwargs becomes a regular parameter that accepts an object
-        params.push(name)
+        // Store kwargs separately - it will be handled after rest param
+        kwargsParam = name
         i += 2
         continue
       }
@@ -2446,6 +2448,17 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
     }
 
     i++
+  }
+
+  // Add kwargs parameter before rest param if no rest param exists
+  // If both exist, kwargs is not supported (rest param must be last in JS)
+  if (kwargsParam && !restParam) {
+    params.push(`${kwargsParam} = {}`)
+  }
+
+  // Add rest parameter last (must be last in JS)
+  if (restParam) {
+    params.push(restParam)
   }
 
   return params.join(", ")

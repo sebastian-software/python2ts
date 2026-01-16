@@ -170,7 +170,7 @@ describe("E2E: Advanced Functions", () => {
       const python = `def config(**kwargs):
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "function config(kwargs) {
+        "function config(kwargs = {}) {
           /* pass */;
         }"
       `)
@@ -180,7 +180,7 @@ describe("E2E: Advanced Functions", () => {
       const python = `def create(name, **options):
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "function create(name, options) {
+        "function create(name, options = {}) {
           /* pass */;
         }"
       `)
@@ -190,7 +190,7 @@ describe("E2E: Advanced Functions", () => {
       const python = `def flexible(*args, **kwargs):
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "function flexible(...args, kwargs) {
+        "function flexible(...args) {
           /* pass */;
         }"
       `)
@@ -202,7 +202,7 @@ describe("E2E: Advanced Functions", () => {
       const python = `def complex_func(a, b=1, *args, **kwargs):
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "function complex_func(a, b = 1, ...args, kwargs) {
+        "function complex_func(a, b = 1, ...args) {
           /* pass */;
         }"
       `)
