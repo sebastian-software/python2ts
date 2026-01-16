@@ -802,6 +802,135 @@ describe("Runtime Library (py.*)", () => {
       py.list.sort(arr, { key: (x: string) => x.length, reverse: true })
       expect(arr).toEqual(["ccc", "bb", "a"])
     })
+
+    it("listSort should sort without options", () => {
+      const arr = [3, 1, 2]
+      py.list.sort(arr)
+      expect(arr).toEqual([1, 2, 3])
+    })
+
+    it("listAppend should add item to end", () => {
+      const arr = [1, 2]
+      py.list.append(arr, 3)
+      expect(arr).toEqual([1, 2, 3])
+    })
+
+    it("listExtend should add items from iterable", () => {
+      const arr = [1, 2]
+      py.list.extend(arr, [3, 4, 5])
+      expect(arr).toEqual([1, 2, 3, 4, 5])
+    })
+
+    it("listInsert should insert item at index", () => {
+      const arr = [1, 3]
+      py.list.insert(arr, 1, 2)
+      expect(arr).toEqual([1, 2, 3])
+    })
+
+    it("listPop should remove and return last item", () => {
+      const arr = [1, 2, 3]
+      expect(py.list.pop(arr)).toBe(3)
+      expect(arr).toEqual([1, 2])
+    })
+
+    it("listPop should remove and return item at index", () => {
+      const arr = [1, 2, 3]
+      expect(py.list.pop(arr, 1)).toBe(2)
+      expect(arr).toEqual([1, 3])
+    })
+
+    it("listPop should handle negative index", () => {
+      const arr = [1, 2, 3]
+      expect(py.list.pop(arr, -2)).toBe(2)
+      expect(arr).toEqual([1, 3])
+    })
+
+    it("listPop should throw for empty list", () => {
+      const arr: number[] = []
+      expect(() => py.list.pop(arr)).toThrow("pop from empty list")
+    })
+
+    it("listPop should throw for out of range index", () => {
+      const arr = [1, 2, 3]
+      expect(() => py.list.pop(arr, 10)).toThrow("pop index out of range")
+      expect(() => py.list.pop(arr, -10)).toThrow("pop index out of range")
+    })
+
+    it("listClear should remove all items", () => {
+      const arr = [1, 2, 3]
+      py.list.clear(arr)
+      expect(arr).toEqual([])
+    })
+
+    it("listIndex should find first occurrence", () => {
+      const arr = [1, 2, 3, 2]
+      expect(py.list.index(arr, 2)).toBe(1)
+    })
+
+    it("listIndex should find with start parameter", () => {
+      const arr = [1, 2, 3, 2]
+      expect(py.list.index(arr, 2, 2)).toBe(3)
+    })
+
+    it("listIndex should find with start and end parameters", () => {
+      const arr = [1, 2, 3, 2, 4]
+      expect(py.list.index(arr, 2, 0, 2)).toBe(1)
+    })
+
+    it("listIndex should throw if not found", () => {
+      const arr = [1, 2, 3]
+      expect(() => py.list.index(arr, 5)).toThrow("x not in list")
+    })
+
+    it("listCount should count occurrences", () => {
+      const arr = [1, 2, 2, 3, 2]
+      expect(py.list.count(arr, 2)).toBe(3)
+      expect(py.list.count(arr, 5)).toBe(0)
+    })
+
+    it("listReverse should reverse in place", () => {
+      const arr = [1, 2, 3]
+      py.list.reverse(arr)
+      expect(arr).toEqual([3, 2, 1])
+    })
+
+    it("listCopy should return shallow copy", () => {
+      const arr = [1, 2, 3]
+      const copy = py.list.copy(arr)
+      expect(copy).toEqual(arr)
+      expect(copy).not.toBe(arr)
+    })
+
+    it("sliceAssign should replace slice with step=1", () => {
+      const arr = [0, 1, 2, 3, 4]
+      py.list.sliceAssign(arr, 1, 3, undefined, [10, 20, 30])
+      expect(arr).toEqual([0, 10, 20, 30, 3, 4])
+    })
+
+    it("sliceAssign should handle negative indices", () => {
+      const arr = [0, 1, 2, 3, 4]
+      py.list.sliceAssign(arr, -2, undefined, undefined, [10, 20])
+      expect(arr).toEqual([0, 1, 2, 10, 20])
+    })
+
+    it("sliceAssign should handle step > 1", () => {
+      const arr = [0, 1, 2, 3, 4]
+      py.list.sliceAssign(arr, 0, 5, 2, [10, 20, 30])
+      expect(arr).toEqual([10, 1, 20, 3, 30])
+    })
+
+    it("sliceAssign should throw for mismatched extended slice size", () => {
+      const arr = [0, 1, 2, 3, 4]
+      expect(() => {
+        py.list.sliceAssign(arr, 0, 5, 2, [10, 20])
+      }).toThrow("attempt to assign sequence of size 2 to extended slice of size 3")
+    })
+
+    it("sliceAssign should handle negative step", () => {
+      const arr = [0, 1, 2, 3, 4]
+      py.list.sliceAssign(arr, 4, 1, -2, [40, 20])
+      expect(arr).toEqual([0, 1, 20, 3, 40])
+    })
   })
 
   describe("Dict methods", () => {
@@ -825,6 +954,97 @@ describe("Runtime Library (py.*)", () => {
     it("dictFromkeys should use undefined as default", () => {
       const result = py.dict.fromkeys(["x", "y"])
       expect(result).toEqual({ x: undefined, y: undefined })
+    })
+
+    it("dictGet should return value for existing key", () => {
+      const obj = { a: 1, b: 2 }
+      expect(py.dict.get(obj, "a")).toBe(1)
+      expect(py.dict.get(obj, "b")).toBe(2)
+    })
+
+    it("dictGet should return undefined for missing key", () => {
+      const obj = { a: 1 }
+      expect(py.dict.get(obj, "b" as keyof typeof obj)).toBeUndefined()
+    })
+
+    it("dictGet should return default for missing key", () => {
+      const obj = { a: 1 }
+      expect(py.dict.get(obj, "b" as keyof typeof obj, 99)).toBe(99)
+    })
+
+    it("dictPop should remove and return value", () => {
+      const obj: Record<string, number> = { a: 1, b: 2 }
+      expect(py.dict.pop(obj, "a")).toBe(1)
+      expect(obj).toEqual({ b: 2 })
+    })
+
+    it("dictPop should return default for missing key", () => {
+      const obj: Record<string, number> = { a: 1 }
+      expect(py.dict.pop(obj, "b", 99)).toBe(99)
+    })
+
+    it("dictPop should throw for missing key without default", () => {
+      const obj: Record<string, number> = { a: 1 }
+      expect(() => py.dict.pop(obj, "b")).toThrow("KeyError")
+    })
+
+    it("dictPopitem should remove and return last item", () => {
+      const obj: Record<string, number> = { a: 1, b: 2 }
+      const [key, value] = py.dict.popitem(obj)
+      expect(key).toBe("b")
+      expect(value).toBe(2)
+      expect(obj).toEqual({ a: 1 })
+    })
+
+    it("dictPopitem should throw for empty dict", () => {
+      const obj: Record<string, number> = {}
+      expect(() => py.dict.popitem(obj)).toThrow("dictionary is empty")
+    })
+
+    it("dictUpdate should update with another dict", () => {
+      const obj: Record<string, number> = { a: 1 }
+      py.dict.update(obj, { b: 2, c: 3 })
+      expect(obj).toEqual({ a: 1, b: 2, c: 3 })
+    })
+
+    it("dictUpdate should update with iterable of pairs", () => {
+      const obj: Record<string, number> = { a: 1 }
+      py.dict.update(obj, [
+        ["b", 2],
+        ["c", 3]
+      ] as Iterable<[string, number]>)
+      expect(obj).toEqual({ a: 1, b: 2, c: 3 })
+    })
+
+    it("dictClear should remove all items", () => {
+      const obj: Record<string, number> = { a: 1, b: 2, c: 3 }
+      py.dict.clear(obj)
+      expect(obj).toEqual({})
+    })
+
+    it("dictCopy should return shallow copy", () => {
+      const obj = { a: 1, b: 2 }
+      const copy = py.dict.copy(obj)
+      expect(copy).toEqual(obj)
+      expect(copy).not.toBe(obj)
+    })
+
+    it("dictKeys should return array of keys", () => {
+      const obj = { a: 1, b: 2 }
+      expect(py.dict.keys(obj)).toEqual(["a", "b"])
+    })
+
+    it("dictValues should return array of values", () => {
+      const obj = { a: 1, b: 2 }
+      expect(py.dict.values(obj)).toEqual([1, 2])
+    })
+
+    it("dictItems should return array of [key, value] pairs", () => {
+      const obj = { a: 1, b: 2 }
+      expect(py.dict.items(obj)).toEqual([
+        ["a", 1],
+        ["b", 2]
+      ])
     })
   })
 
@@ -852,6 +1072,96 @@ describe("Runtime Library (py.*)", () => {
     it("setIssuperset should check if contains all elements of other set", () => {
       expect(py.set.issuperset(new Set([1, 2, 3]), new Set([1, 2]))).toBe(true)
       expect(py.set.issuperset(new Set([1, 2]), new Set([1, 2, 3]))).toBe(false)
+    })
+
+    it("setAdd should add element to set", () => {
+      const s = new Set([1, 2])
+      py.set.add(s, 3)
+      expect(s).toEqual(new Set([1, 2, 3]))
+    })
+
+    it("setRemove should remove element from set", () => {
+      const s = new Set([1, 2, 3])
+      py.set.remove(s, 2)
+      expect(s).toEqual(new Set([1, 3]))
+    })
+
+    it("setRemove should throw if element not found", () => {
+      const s = new Set([1, 2])
+      expect(() => {
+        py.set.remove(s, 5)
+      }).toThrow("KeyError")
+    })
+
+    it("setDiscard should remove element if present", () => {
+      const s = new Set([1, 2, 3])
+      py.set.discard(s, 2)
+      expect(s).toEqual(new Set([1, 3]))
+    })
+
+    it("setDiscard should not throw if element not found", () => {
+      const s = new Set([1, 2])
+      py.set.discard(s, 5)
+      expect(s).toEqual(new Set([1, 2]))
+    })
+
+    it("setPop should remove and return element", () => {
+      const s = new Set([1])
+      const item = py.set.pop(s)
+      expect(item).toBe(1)
+      expect(s.size).toBe(0)
+    })
+
+    it("setPop should throw for empty set", () => {
+      const s = new Set<number>()
+      expect(() => py.set.pop(s)).toThrow("pop from an empty set")
+    })
+
+    it("setClear should remove all elements", () => {
+      const s = new Set([1, 2, 3])
+      py.set.clear(s)
+      expect(s.size).toBe(0)
+    })
+
+    it("setCopy should return shallow copy", () => {
+      const s = new Set([1, 2, 3])
+      const copy = py.set.copy(s)
+      expect(copy).toEqual(s)
+      expect(copy).not.toBe(s)
+    })
+
+    it("setUpdate should add elements from iterables", () => {
+      const s = new Set([1])
+      py.set.update(s, [2, 3], [4, 5])
+      expect(s).toEqual(new Set([1, 2, 3, 4, 5]))
+    })
+
+    it("setUnion should return union of sets", () => {
+      const result = py.set.union(new Set([1, 2]), [3, 4], [4, 5])
+      expect(result).toEqual(new Set([1, 2, 3, 4, 5]))
+    })
+
+    it("setIntersectionUpdate should keep only common elements", () => {
+      const s = new Set([1, 2, 3, 4])
+      py.set.intersectionUpdate(s, new Set([2, 3, 5]))
+      expect(s).toEqual(new Set([2, 3]))
+    })
+
+    it("setDifferenceUpdate should remove elements found in other", () => {
+      const s = new Set([1, 2, 3, 4])
+      py.set.differenceUpdate(s, new Set([2, 3, 5]))
+      expect(s).toEqual(new Set([1, 4]))
+    })
+
+    it("setSymmetricDifferenceUpdate should update with symmetric difference", () => {
+      const s = new Set([1, 2, 3])
+      py.set.symmetricDifferenceUpdate(s, new Set([2, 3, 4]))
+      expect(s).toEqual(new Set([1, 4]))
+    })
+
+    it("setIsdisjoint should check if no common elements", () => {
+      expect(py.set.isdisjoint(new Set([1, 2]), new Set([3, 4]))).toBe(true)
+      expect(py.set.isdisjoint(new Set([1, 2]), new Set([2, 3]))).toBe(false)
     })
   })
 })
