@@ -74,8 +74,6 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformBinaryExpression(node, ctx)
     case "UnaryExpression":
       return transformUnaryExpression(node, ctx)
-    case "CompareOp":
-      return transformCompareOp(node, ctx)
     case "ParenthesizedExpression":
       return transformParenthesizedExpression(node, ctx)
     case "NamedExpression":
@@ -90,10 +88,6 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformFormatString(node, ctx)
     case "Boolean":
       return transformBoolean(node, ctx)
-    case "True":
-      return "true"
-    case "False":
-      return "false"
     case "None":
       return "null"
     case "VariableName":
@@ -118,8 +112,6 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformGeneratorExpression(node, ctx)
     case "TupleExpression":
       return transformTupleExpression(node, ctx)
-    case "SubscriptExpression":
-      return transformSubscriptExpression(node, ctx)
     case "IfStatement":
       return transformIfStatement(node, ctx)
     case "WhileStatement":
@@ -203,6 +195,7 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
   const targets = children.slice(0, assignOpIndex).filter((c) => c.name !== ",")
   const values = children.slice(assignOpIndex + 1).filter((c) => c.name !== ",")
 
+  /* c8 ignore next 3 - defensive: empty targets/values can't occur with valid Python */
   if (targets.length === 0 || values.length === 0) {
     return getNodeText(node, ctx.source)
   }
@@ -210,12 +203,13 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
   // Single target assignment
   if (targets.length === 1) {
     const target = targets[0]
+    /* c8 ignore next */
     if (!target) return getNodeText(node, ctx.source)
 
     const targetCode = transformNode(target, ctx)
 
     // Determine if we need 'let' or not
-    // - MemberExpression (obj.attr) and SubscriptExpression (arr[i]) never need 'let'
+    // - MemberExpression (obj.attr or arr[i]) never needs 'let'
     // - VariableName needs 'let' only if not already declared in an accessible scope
     let needsLet = false
     if (target.name === "VariableName") {
@@ -257,6 +251,7 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
   if (values.length === 1) {
     // Unpacking from single value: a, b = point
     const value = values[0]
+    /* c8 ignore next */
     if (!value) return getNodeText(node, ctx.source)
     const valueCode = transformNode(value, ctx)
     return allDeclaredAtAccessibleScope
@@ -341,13 +336,8 @@ function transformBinaryExpression(node: SyntaxNode, ctx: TransformContext): str
     case "in":
       ctx.usesRuntime.add("in")
       return `py.in(${leftCode}, ${rightCode})`
-    case "not in":
-      ctx.usesRuntime.add("in")
-      return `!py.in(${leftCode}, ${rightCode})`
     case "is":
       return `(${leftCode} === ${rightCode})`
-    case "is not":
-      return `(${leftCode} !== ${rightCode})`
     case "+":
       // Check for array concatenation
       if (isArrayLiteral(left) && isArrayLiteral(right)) {
@@ -423,55 +413,6 @@ function transformUnaryExpression(node: SyntaxNode, ctx: TransformContext): stri
   }
 }
 
-function transformCompareOp(node: SyntaxNode, ctx: TransformContext): string {
-  const children = getChildren(node)
-  if (children.length < 3) return getNodeText(node, ctx.source)
-
-  const parts: string[] = []
-  let prevOperand = children[0]
-  if (!prevOperand) return getNodeText(node, ctx.source)
-
-  for (let i = 1; i < children.length; i += 2) {
-    const op = children[i]
-    const operand = children[i + 1]
-
-    if (!op || !operand) break
-
-    const prevCode = transformNode(prevOperand, ctx)
-    const operandCode = transformNode(operand, ctx)
-    const opText = getNodeText(op, ctx.source)
-
-    let comparison: string
-    switch (opText) {
-      case "in":
-        ctx.usesRuntime.add("in")
-        comparison = `py.in(${prevCode}, ${operandCode})`
-        break
-      case "not in":
-        ctx.usesRuntime.add("in")
-        comparison = `!py.in(${prevCode}, ${operandCode})`
-        break
-      case "is":
-        comparison = `(${prevCode} === ${operandCode})`
-        break
-      case "is not":
-        comparison = `(${prevCode} !== ${operandCode})`
-        break
-      default:
-        comparison = `(${prevCode} ${opText} ${operandCode})`
-    }
-
-    parts.push(comparison)
-    prevOperand = operand
-  }
-
-  if (parts.length === 1) {
-    return parts[0] ?? ""
-  }
-
-  return `(${parts.join(" && ")})`
-}
-
 function transformParenthesizedExpression(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
   const inner = children.find((c) => c.name !== "(" && c.name !== ")")
@@ -485,6 +426,7 @@ function transformNamedExpression(node: SyntaxNode, ctx: TransformContext): stri
   const varName = children.find((c) => c.name === "VariableName")
   const value = children.find((c) => c.name !== "VariableName" && c.name !== "AssignOp")
 
+  /* c8 ignore next 3 - defensive: walrus operator always has name and value */
   if (!varName || !value) {
     return getNodeText(node, ctx.source)
   }
@@ -506,6 +448,7 @@ function transformConditionalExpression(node: SyntaxNode, ctx: TransformContext)
     const condition = exprs[1]
     const falseExpr = exprs[2]
 
+    /* c8 ignore next - defensive: checked exprs.length >= 3 above */
     if (trueExpr && condition && falseExpr) {
       const condCode = transformNode(condition, ctx)
       const trueCode = transformNode(trueExpr, ctx)
@@ -515,6 +458,7 @@ function transformConditionalExpression(node: SyntaxNode, ctx: TransformContext)
     }
   }
 
+  /* c8 ignore next */
   return getNodeText(node, ctx.source)
 }
 
@@ -783,6 +727,7 @@ function transformArgList(node: SyntaxNode, ctx: TransformContext): string {
 
   while (i < items.length) {
     const item = items[i]
+    /* c8 ignore next 4 - defensive: items from parser are never null */
     if (!item) {
       i++
       continue
@@ -883,6 +828,7 @@ function transformSliceFromMember(
   const bracketStart = children.findIndex((c) => c.name === "[")
   const bracketEnd = children.findIndex((c) => c.name === "]")
 
+  /* c8 ignore next 3 - defensive: subscript always has brackets */
   if (bracketStart === -1 || bracketEnd === -1) {
     return `py.slice(${objCode})`
   }
@@ -917,6 +863,7 @@ function transformSliceFromMember(
   }
 
   // If no colons, it's not a slice
+  /* c8 ignore next 3 - defensive: slice detection already checked for colons */
   if (colonIndices.length === 0) {
     return `py.slice(${objCode})`
   }
@@ -971,39 +918,6 @@ function transformTupleExpression(node: SyntaxNode, ctx: TransformContext): stri
   return `py.tuple(${elementCodes.join(", ")})`
 }
 
-function transformSubscriptExpression(node: SyntaxNode, ctx: TransformContext): string {
-  const children = getChildren(node)
-  if (children.length < 2) return getNodeText(node, ctx.source)
-
-  const obj = children[0]
-  const subscriptNode = children.find((c) => c.name === "subscript" || c.name === "Slice")
-
-  if (!obj) return getNodeText(node, ctx.source)
-
-  const objCode = transformNode(obj, ctx)
-
-  // Check if it's a slice operation
-  if (subscriptNode?.name === "Slice" || hasSliceSyntax(node, ctx)) {
-    return transformSlice(obj, node, ctx)
-  }
-
-  // Simple index access
-  const indexChildren = children.filter((c) => c.name !== "[" && c.name !== "]" && c !== obj)
-  const index = indexChildren[0]
-
-  if (!index) return `${objCode}[]`
-
-  const indexCode = transformNode(index, ctx)
-
-  // Check if the index is a negative number literal (for py.at() support)
-  if (isNegativeIndexLiteral(index, ctx)) {
-    ctx.usesRuntime.add("at")
-    return `py.at(${objCode}, ${indexCode})`
-  }
-
-  return `${objCode}[${indexCode}]`
-}
-
 function isNegativeIndexLiteral(node: SyntaxNode, ctx: TransformContext): boolean {
   // Check for a UnaryExpression with - operator and a Number
   if (node.name === "UnaryExpression") {
@@ -1015,39 +929,6 @@ function isNegativeIndexLiteral(node: SyntaxNode, ctx: TransformContext): boolea
     return hasMinusOp && hasNumber
   }
   return false
-}
-
-function hasSliceSyntax(node: SyntaxNode, ctx: TransformContext): boolean {
-  const text = getNodeText(node, ctx.source)
-  // Check if there's a colon in the subscript
-  const match = text.match(/\[([^\]]*)\]/)
-  return match ? (match[1]?.includes(":") ?? false) : false
-}
-
-function transformSlice(obj: SyntaxNode, subscriptNode: SyntaxNode, ctx: TransformContext): string {
-  ctx.usesRuntime.add("slice")
-  const objCode = transformNode(obj, ctx)
-
-  // Extract slice parameters from the subscript
-  const text = getNodeText(subscriptNode, ctx.source)
-  const match = text.match(/\[([^\]]*)\]/)
-  if (!match || !match[1]) {
-    return `py.slice(${objCode})`
-  }
-
-  const sliceText = match[1]
-  const parts = sliceText.split(":")
-
-  const start = parts[0]?.trim() || "undefined"
-  const stop = parts[1]?.trim() || "undefined"
-  const step = parts[2]?.trim() || "undefined"
-
-  // Transform any expressions in the slice parameters
-  const startCode = start === "undefined" ? "undefined" : start
-  const stopCode = stop === "undefined" ? "undefined" : stop
-  const stepCode = step === "undefined" ? "undefined" : step
-
-  return `py.slice(${objCode}, ${startCode}, ${stopCode}, ${stepCode})`
 }
 
 function transformIfStatement(node: SyntaxNode, ctx: TransformContext): string {
