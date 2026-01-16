@@ -216,7 +216,7 @@ describe("Transformer", () => {
 
     it("should transform for loop", () => {
       const result = transform("for i in items:\n    print(i)")
-      expect(result.code).toContain("for (const i of items)")
+      expect(result.code).toContain("for (const i of py.iter(items))")
     })
 
     it("should transform break", () => {

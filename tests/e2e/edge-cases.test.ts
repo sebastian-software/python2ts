@@ -33,9 +33,9 @@ z = 3`
     for item in items:
         if item > 0:
             print(item)`
-      const ts = transpile(python, { includeRuntime: false })
+      const ts = transpile(python)
       expect(ts).toContain("function process(items)")
-      expect(ts).toContain("for (const item of items)")
+      expect(ts).toContain("for (const item of py.iter(items))")
       expect(ts).toContain("if ((item > 0))")
     })
 
@@ -44,10 +44,10 @@ z = 3`
     for j in cols:
         for k in depths:
             print(i, j, k)`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("for (const i of rows)")
-      expect(ts).toContain("for (const j of cols)")
-      expect(ts).toContain("for (const k of depths)")
+      const ts = transpile(python)
+      expect(ts).toContain("for (const i of py.iter(rows))")
+      expect(ts).toContain("for (const j of py.iter(cols))")
+      expect(ts).toContain("for (const k of py.iter(depths))")
     })
   })
 

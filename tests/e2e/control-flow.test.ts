@@ -112,7 +112,7 @@ else:
       const python = `for item in items:
     print(item)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const item of items) {
+        "for (const item of py.iter(items)) {
           console.log(item);
         }"
       `)
@@ -146,7 +146,7 @@ else:
       const python = `for x, y in pairs:
     print(x, y)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const [x, y] of pairs) {
+        "for (const [x, y] of py.iter(pairs)) {
           console.log(x, y);
         }"
       `)
@@ -156,7 +156,7 @@ else:
       const python = `for i, (a, b) in items:
     print(i, a, b)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const [i, [a, b]] of items) {
+        "for (const [i, [a, b]] of py.iter(items)) {
           console.log(i, a, b);
         }"
       `)
@@ -166,7 +166,7 @@ else:
       const python = `for a, b, c in triples:
     print(a, b, c)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const [a, b, c] of triples) {
+        "for (const [a, b, c] of py.iter(triples)) {
           console.log(a, b, c);
         }"
       `)
@@ -176,7 +176,7 @@ else:
       const python = `for key, value in d.items():
     print(key, value)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const [key, value] of d.items()) {
+        "for (const [key, value] of Object.entries(d)) {
           console.log(key, value);
         }"
       `)
@@ -199,7 +199,7 @@ else:
     if found:
         break`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const i of items) {
+        "for (const i of py.iter(items)) {
           if (found) {
             break;
         }
@@ -212,7 +212,7 @@ else:
     if skip:
         continue`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const i of items) {
+        "for (const i of py.iter(items)) {
           if (skip) {
             continue;
         }
@@ -274,7 +274,7 @@ else:
         print(item)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "if (items) {
-          for (const item of items) {
+          for (const item of py.iter(items)) {
             console.log(item);
         }
         }"
@@ -286,7 +286,7 @@ else:
     if item > 0:
         print(item)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const item of items) {
+        "for (const item of py.iter(items)) {
           if ((item > 0)) {
             console.log(item);
         }

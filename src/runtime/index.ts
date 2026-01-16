@@ -200,7 +200,7 @@ export const py = {
    * Safe iteration helper for for-in loops
    * Handles both arrays (iterates values) and objects (iterates keys)
    */
-  iter<T>(obj: Iterable<T> | Record<string, unknown>): Iterable<T> | string[] {
+  iter<T>(obj: Iterable<T> | Record<string, unknown> | null | undefined): Iterable<T> | string[] {
     if (obj === null || obj === undefined) {
       return []
     }
@@ -1002,7 +1002,7 @@ export const py = {
    */
   capitalize(s: string): string {
     if (s.length === 0) return s
-    return s[0]!.toUpperCase() + s.slice(1).toLowerCase()
+    return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
   },
 
   /**
@@ -1157,11 +1157,11 @@ export const py = {
    * Python list.sort() with key function
    */
   listSort<T>(arr: T[], options?: { key?: (x: T) => unknown; reverse?: boolean }): void {
-    const key = options?.key ?? ((x: T) => x)
+    const key = options?.key ?? ((x: T) => x as unknown)
     const reverse = options?.reverse ?? false
     arr.sort((a, b) => {
-      const aKey = key(a)
-      const bKey = key(b)
+      const aKey = key(a) as string | number
+      const bKey = key(b) as string | number
       let cmp = 0
       if (aKey < bKey) cmp = -1
       else if (aKey > bKey) cmp = 1

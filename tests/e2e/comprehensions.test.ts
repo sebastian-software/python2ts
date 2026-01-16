@@ -140,7 +140,7 @@ describe("E2E: Comprehensions", () => {
     it("should handle comprehension with method call on item", () => {
       expect(
         transpile("[s.strip() for s in strings]", { includeRuntime: false })
-      ).toMatchInlineSnapshot(`"strings.map((s) => s.strip());"`)
+      ).toMatchInlineSnapshot(`"strings.map((s) => s.trim());"`)
     })
 
     it("should handle comprehension with nested function calls", () => {
@@ -170,7 +170,7 @@ describe("E2E: Comprehensions", () => {
     it("should transform mapping with transformation", () => {
       expect(
         transpile("upper_words = [word.upper() for word in words]", { includeRuntime: false })
-      ).toMatchInlineSnapshot(`"let upper_words = words.map((word) => word.upper());"`)
+      ).toMatchInlineSnapshot(`"let upper_words = words.map((word) => word.toUpperCase());"`)
     })
 
     it("should transform flattening nested lists", () => {

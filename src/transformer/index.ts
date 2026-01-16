@@ -848,8 +848,12 @@ function transformMethodCall(
       return `${objCode}.push(${args})`
     case "extend":
       return `${objCode}.push(...${args})`
-    case "insert":
-      return `${objCode}.splice(${args.split(",")[0]}, 0, ${args.split(",").slice(1).join(",")})`
+    case "insert": {
+      const insertArgs = args.split(",")
+      const index = insertArgs[0] ?? "0"
+      const value = insertArgs.slice(1).join(",")
+      return `${objCode}.splice(${index}, 0, ${value})`
+    }
     case "remove":
       ctx.usesRuntime.add("listRemove")
       return `py.listRemove(${objCode}, ${args})`
