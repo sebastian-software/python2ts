@@ -2921,6 +2921,16 @@ function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): stri
 
   const firstParent = parentClasses[0]
   if (firstParent) {
+    // Special handling for NamedTuple
+    if (firstParent === "NamedTuple") {
+      return transformNamedTuple(className, body, ctx)
+    }
+
+    // Special handling for Enum types
+    if (firstParent === "Enum" || firstParent === "IntEnum" || firstParent === "StrEnum") {
+      return transformEnum(className, firstParent, body, ctx)
+    }
+
     // Use first parent for extends
     classHeader += ` extends ${firstParent}`
 
@@ -3831,6 +3841,199 @@ function getMethodName(node: SyntaxNode, ctx: TransformContext): string {
     }
   }
   return ""
+}
+
+// ============================================================================
+// NamedTuple Transformation
+// ============================================================================
+
+/**
+ * Transform a NamedTuple class to a TypeScript class with readonly fields
+ * NamedTuple is essentially a frozen dataclass
+ */
+function transformNamedTuple(
+  className: string,
+  body: SyntaxNode | null,
+  ctx: TransformContext
+): string {
+  // Extract fields (reuse dataclass field extraction)
+  const fields = body ? extractDataclassFields(body, ctx) : []
+
+  // Generate like frozen dataclass (readonly + Object.freeze)
+  return generateDataclassCode(
+    className,
+    [], // no parent classes in output
+    fields,
+    { frozen: true }, // always frozen
+    body,
+    ctx,
+    null // jsdoc
+  )
+}
+
+// ============================================================================
+// Enum Transformation
+// ============================================================================
+
+interface EnumMember {
+  name: string
+  value: string
+  isString: boolean
+  numericValue: number | null
+}
+
+/**
+ * Transform a Python Enum class to TypeScript
+ * - String values → type union from values
+ * - Sequential numeric values → type union from names
+ * - Meaningful numeric values → as const object + union type
+ */
+function transformEnum(
+  className: string,
+  enumType: string,
+  body: SyntaxNode | null,
+  ctx: TransformContext
+): string {
+  const members = extractEnumMembers(body, ctx)
+
+  if (members.length === 0) {
+    return `type ${className} = never`
+  }
+
+  // Determine output format based on enum type and values
+  const allStrings = members.every((m) => m.isString)
+
+  // StrEnum or all string values → string union from values
+  if (enumType === "StrEnum" || allStrings) {
+    return generateStringUnionEnum(className, members)
+  }
+
+  // Check if values are sequential (1, 2, 3...) starting from any number
+  const isSequential = checkSequentialEnum(members)
+
+  // Sequential values → string union from names (values are meaningless)
+  if (isSequential) {
+    return generateNameUnionEnum(className, members)
+  }
+
+  // Meaningful numeric values → as const object + union type
+  return generateConstObjectEnum(className, members)
+}
+
+/**
+ * Extract enum members from class body
+ */
+function extractEnumMembers(body: SyntaxNode | null, ctx: TransformContext): EnumMember[] {
+  if (!body) return []
+
+  const members: EnumMember[] = []
+  const children = getChildren(body)
+
+  for (const child of children) {
+    if (child.name === "AssignStatement") {
+      const member = parseEnumMember(child, ctx)
+      if (member) {
+        members.push(member)
+      }
+    }
+  }
+
+  return members
+}
+
+/**
+ * Parse a single enum member from an assignment statement
+ */
+function parseEnumMember(node: SyntaxNode, ctx: TransformContext): EnumMember | null {
+  const children = getChildren(node)
+  let name = ""
+  let value = ""
+  let isString = false
+  let numericValue: number | null = null
+
+  for (const child of children) {
+    if (child.name === "VariableName" && !name) {
+      name = getNodeText(child, ctx.source)
+    } else if (child.name === "Number") {
+      value = getNodeText(child, ctx.source)
+      numericValue = parseFloat(value)
+      isString = false
+    } else if (child.name === "String") {
+      const rawValue = getNodeText(child, ctx.source)
+      // Remove quotes and get the actual string content
+      value = rawValue.slice(1, -1)
+      isString = true
+    } else if (child.name === "CallExpression") {
+      // Handle auto() - treat as sequential
+      const callText = getNodeText(child, ctx.source)
+      if (callText === "auto()") {
+        value = "auto"
+        numericValue = null
+        isString = false
+      } else {
+        // Complex expression, use as-is
+        value = callText
+        isString = false
+      }
+    }
+  }
+
+  if (!name) return null
+
+  return { name, value, isString, numericValue }
+}
+
+/**
+ * Check if enum values are sequential (1, 2, 3... or any starting point)
+ */
+function checkSequentialEnum(members: EnumMember[]): boolean {
+  if (members.length === 0) return true
+
+  // If any member uses auto(), treat as sequential
+  if (members.some((m) => m.value === "auto")) return true
+
+  // Check if all values are numeric and sequential
+  const numericMembers = members.filter((m) => m.numericValue !== null)
+  if (numericMembers.length !== members.length) return false
+
+  // Check for sequential pattern
+  const values = numericMembers.map((m) => m.numericValue as number)
+  const firstValue = values[0]
+  if (firstValue === undefined) return false
+
+  for (let i = 1; i < values.length; i++) {
+    if (values[i] !== firstValue + i) return false
+  }
+
+  return true
+}
+
+/**
+ * Generate string union from enum member values
+ * type Status = "pending" | "active"
+ */
+function generateStringUnionEnum(className: string, members: EnumMember[]): string {
+  const values = members.map((m) => `"${m.value}"`).join(" | ")
+  return `type ${className} = ${values}`
+}
+
+/**
+ * Generate string union from enum member names
+ * type Color = "RED" | "GREEN" | "BLUE"
+ */
+function generateNameUnionEnum(className: string, members: EnumMember[]): string {
+  const names = members.map((m) => `"${m.name}"`).join(" | ")
+  return `type ${className} = ${names}`
+}
+
+/**
+ * Generate as const object with union type
+ * const HttpStatus = { OK: 200, NOT_FOUND: 404 } as const
+ * type HttpStatus = typeof HttpStatus[keyof typeof HttpStatus]
+ */
+function generateConstObjectEnum(className: string, members: EnumMember[]): string {
+  const entries = members.map((m) => `  ${m.name}: ${m.value}`).join(",\n")
+  return `const ${className} = {\n${entries}\n} as const\ntype ${className} = typeof ${className}[keyof typeof ${className}]`
 }
 
 function transformParamList(node: SyntaxNode, ctx: TransformContext): string {

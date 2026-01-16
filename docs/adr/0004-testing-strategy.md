@@ -55,6 +55,8 @@ tests/
     ├── docstrings.test.ts        # Docstrings → JSDoc conversion
     ├── decorators.test.ts        # Class decorators
     ├── dataclass.test.ts         # @dataclass transformation
+    ├── namedtuple.test.ts        # NamedTuple transformation
+    ├── enum.test.ts              # Enum transformation
     ├── smoke.test.ts             # Cross-Python verification
     └── edge-cases.test.ts        # Edge cases
 ```

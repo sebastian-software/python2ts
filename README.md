@@ -230,6 +230,14 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `age: int = 0`                            | `age: number = 0;`                                    | Default value          |
 | `@dataclass(frozen=True)`                 | `readonly` + `Object.freeze(this)`                    | Immutable              |
 | `field(default_factory=list)`             | `= []`                                                | Factory default        |
+| **NamedTuple**                            |                                                       |                        |
+| `class Point(NamedTuple):`                | `class Point { readonly x; ... }`                     | Immutable class        |
+| `x: int`                                  | `readonly x: number`                                  | Readonly field         |
+| **Enum**                                  |                                                       |                        |
+| `class Color(Enum): RED = 1`              | `type Color = "RED" \| ...`                           | Sequential → union     |
+| `class Status(Enum): X = "x"`             | `type Status = "x" \| ...`                            | String → union         |
+| `class Http(Enum): OK = 200`              | `const Http = { OK: 200 } as const`                   | Values → as const      |
+| `class Mode(StrEnum): ...`                | `type Mode = "..." \| ...`                            | StrEnum → union        |
 | **Comprehensions**                        |                                                       |                        |
 | `[x for x in items]`                      | `items.map((x) => x)`                                 | List comprehension     |
 | `[x for x in items if x > 0]`             | `items.filter(...).map(...)`                          | With condition         |
@@ -376,6 +384,8 @@ class Person {
 - [x] **Docstrings**: Google/NumPy-style docstrings → JSDoc comments
 - [x] **Class Decorators**: `@decorator class C:` → `const C = decorator(class C {})`
 - [x] **@dataclass**: Automatic constructor generation with typed fields
+- [x] **NamedTuple**: Immutable classes with readonly fields and Object.freeze
+- [x] **Enum**: Type-safe enums → string unions or `as const` objects
 
 ## Architecture
 
