@@ -69,8 +69,16 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformMemberExpression(node, ctx);
     case 'ArrayExpression':
       return transformArrayExpression(node, ctx);
+    case 'ArrayComprehensionExpression':
+      return transformArrayComprehension(node, ctx);
     case 'DictionaryExpression':
       return transformDictionaryExpression(node, ctx);
+    case 'DictionaryComprehensionExpression':
+      return transformDictComprehension(node, ctx);
+    case 'SetExpression':
+      return transformSetExpression(node, ctx);
+    case 'SetComprehensionExpression':
+      return transformSetComprehension(node, ctx);
     case 'TupleExpression':
       return transformTupleExpression(node, ctx);
     case 'SubscriptExpression':
@@ -810,6 +818,331 @@ function transformComment(node: SyntaxNode, ctx: TransformContext): string {
   const text = getNodeText(node, ctx.source);
   // Convert Python comment to JS comment
   return '//' + text.slice(1);
+}
+
+// ============================================================
+// Comprehensions
+// ============================================================
+
+interface ComprehensionClause {
+  type: 'for' | 'if';
+  variable?: string;
+  iterable?: string;
+  condition?: string;
+}
+
+function parseComprehensionClauses(children: SyntaxNode[], ctx: TransformContext): {
+  outputExpr: string;
+  clauses: ComprehensionClause[];
+} {
+  // Skip brackets
+  const items = children.filter((c) => c.name !== '[' && c.name !== ']' && c.name !== '{' && c.name !== '}');
+
+  if (items.length === 0) {
+    return { outputExpr: '', clauses: [] };
+  }
+
+  // First item is the output expression
+  const outputNode = items[0];
+  if (!outputNode) {
+    return { outputExpr: '', clauses: [] };
+  }
+  const outputExpr = transformNode(outputNode, ctx);
+
+  const clauses: ComprehensionClause[] = [];
+  let i = 1;
+
+  while (i < items.length) {
+    const item = items[i];
+    if (!item) {
+      i++;
+      continue;
+    }
+
+    if (item.name === 'for' || (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'for')) {
+      // for variable in iterable
+      const varNode = items[i + 1];
+      // Skip 'in' keyword
+      const iterableNode = items[i + 3];
+
+      if (varNode && iterableNode) {
+        clauses.push({
+          type: 'for',
+          variable: transformNode(varNode, ctx),
+          iterable: transformNode(iterableNode, ctx),
+        });
+        i += 4;
+      } else {
+        i++;
+      }
+    } else if (item.name === 'if' || (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'if')) {
+      // if condition
+      const conditionNode = items[i + 1];
+      if (conditionNode) {
+        clauses.push({
+          type: 'if',
+          condition: transformNode(conditionNode, ctx),
+        });
+        i += 2;
+      } else {
+        i++;
+      }
+    } else if (item.name === 'in' || (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'in')) {
+      // Skip 'in' keyword (already handled in 'for' case)
+      i++;
+    } else {
+      i++;
+    }
+  }
+
+  return { outputExpr, clauses };
+}
+
+function transformArrayComprehension(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node);
+  const { outputExpr, clauses } = parseComprehensionClauses(children, ctx);
+
+  if (clauses.length === 0) {
+    return `[${outputExpr}]`;
+  }
+
+  // Build the comprehension from inside out
+  // [expr for x in items if cond] -> items.filter(x => cond).map(x => expr)
+  // [expr for x in a for y in b] -> a.flatMap(x => b.map(y => expr))
+
+  return buildComprehensionChain(outputExpr, clauses, 'array');
+}
+
+function transformDictComprehension(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node);
+
+  // Dict comprehension has key: value as output
+  // Find the colon to split key and value
+  const items = children.filter((c) => c.name !== '{' && c.name !== '}');
+
+  let keyExpr = '';
+  let valueExpr = '';
+  let colonIndex = -1;
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item?.name === ':') {
+      colonIndex = i;
+      break;
+    }
+  }
+
+  const keyNode = items[0];
+  const valueNode = items[colonIndex + 1];
+  if (colonIndex > 0 && keyNode && valueNode) {
+    keyExpr = transformNode(keyNode, ctx);
+    valueExpr = transformNode(valueNode, ctx);
+  }
+
+  // Parse clauses starting after key: value
+  const clauseItems = items.slice(colonIndex + 2);
+  const clauses: ComprehensionClause[] = [];
+  let i = 0;
+
+  while (i < clauseItems.length) {
+    const item = clauseItems[i];
+    if (!item) {
+      i++;
+      continue;
+    }
+
+    if (item.name === 'for' || (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'for')) {
+      const varNode = clauseItems[i + 1];
+      const iterableNode = clauseItems[i + 3];
+
+      if (varNode && iterableNode) {
+        clauses.push({
+          type: 'for',
+          variable: transformNode(varNode, ctx),
+          iterable: transformNode(iterableNode, ctx),
+        });
+        i += 4;
+      } else {
+        i++;
+      }
+    } else if (item.name === 'if' || (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'if')) {
+      const conditionNode = clauseItems[i + 1];
+      if (conditionNode) {
+        clauses.push({
+          type: 'if',
+          condition: transformNode(conditionNode, ctx),
+        });
+        i += 2;
+      } else {
+        i++;
+      }
+    } else {
+      i++;
+    }
+  }
+
+  ctx.usesRuntime.add('dict');
+  return buildDictComprehensionChain(keyExpr, valueExpr, clauses);
+}
+
+function transformSetExpression(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node);
+  const elements = children.filter(
+    (c) => c.name !== '{' && c.name !== '}' && c.name !== ','
+  );
+
+  ctx.usesRuntime.add('set');
+  const elementCodes = elements.map((el) => transformNode(el, ctx));
+  return `py.set([${elementCodes.join(', ')}])`;
+}
+
+function transformSetComprehension(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node);
+  const { outputExpr, clauses } = parseComprehensionClauses(children, ctx);
+
+  if (clauses.length === 0) {
+    ctx.usesRuntime.add('set');
+    return `py.set([${outputExpr}])`;
+  }
+
+  ctx.usesRuntime.add('set');
+  const arrayComp = buildComprehensionChain(outputExpr, clauses, 'array');
+  return `py.set(${arrayComp})`;
+}
+
+function buildComprehensionChain(
+  outputExpr: string,
+  clauses: ComprehensionClause[],
+  type: 'array' | 'generator'
+): string {
+  if (clauses.length === 0) {
+    return type === 'array' ? `[${outputExpr}]` : outputExpr;
+  }
+
+  // Separate for-clauses and their associated if-clauses
+  const forClauses: { variable: string; iterable: string; conditions: string[] }[] = [];
+
+  for (const clause of clauses) {
+    if (clause.type === 'for' && clause.variable && clause.iterable) {
+      forClauses.push({
+        variable: clause.variable,
+        iterable: clause.iterable,
+        conditions: [],
+      });
+    } else if (clause.type === 'if' && clause.condition && forClauses.length > 0) {
+      const lastFor = forClauses[forClauses.length - 1];
+      if (lastFor) {
+        lastFor.conditions.push(clause.condition);
+      }
+    }
+  }
+
+  if (forClauses.length === 0) {
+    return type === 'array' ? `[${outputExpr}]` : outputExpr;
+  }
+
+  // Build chain from innermost to outermost
+  // Single for: items.filter(...).map(...)
+  // Multiple for: a.flatMap(x => b.filter(...).map(...))
+
+  if (forClauses.length === 1) {
+    const fc = forClauses[0];
+    if (!fc) return `[${outputExpr}]`;
+
+    let chain = fc.iterable;
+
+    // Add filters
+    for (const cond of fc.conditions) {
+      chain = `${chain}.filter((${fc.variable}) => ${cond})`;
+    }
+
+    // Add map
+    chain = `${chain}.map((${fc.variable}) => ${outputExpr})`;
+
+    return chain;
+  }
+
+  // Multiple for-clauses: use flatMap
+  // Build from outside in
+  let result = '';
+
+  for (let i = 0; i < forClauses.length; i++) {
+    const fc = forClauses[i];
+    if (!fc) continue;
+
+    const isLast = i === forClauses.length - 1;
+
+    let inner = fc.iterable;
+
+    // Add filters
+    for (const cond of fc.conditions) {
+      inner = `${inner}.filter((${fc.variable}) => ${cond})`;
+    }
+
+    if (isLast) {
+      // Innermost: use map
+      inner = `${inner}.map((${fc.variable}) => ${outputExpr})`;
+    } else {
+      // Not innermost: will wrap next level
+      result = inner;
+      continue;
+    }
+
+    // Now wrap from inside out
+    for (let j = forClauses.length - 2; j >= 0; j--) {
+      const outerFc = forClauses[j];
+      if (!outerFc) continue;
+
+      let outerChain = outerFc.iterable;
+      for (const cond of outerFc.conditions) {
+        outerChain = `${outerChain}.filter((${outerFc.variable}) => ${cond})`;
+      }
+
+      inner = `${outerChain}.flatMap((${outerFc.variable}) => ${inner})`;
+    }
+
+    result = inner;
+    break;
+  }
+
+  return result;
+}
+
+function buildDictComprehensionChain(
+  keyExpr: string,
+  valueExpr: string,
+  clauses: ComprehensionClause[]
+): string {
+  if (clauses.length === 0) {
+    return `py.dict([[${keyExpr}, ${valueExpr}]])`;
+  }
+
+  // Build array of [key, value] pairs, then wrap with py.dict
+  const forClauses: { variable: string; iterable: string; conditions: string[] }[] = [];
+
+  for (const clause of clauses) {
+    if (clause.type === 'for' && clause.variable && clause.iterable) {
+      forClauses.push({
+        variable: clause.variable,
+        iterable: clause.iterable,
+        conditions: [],
+      });
+    } else if (clause.type === 'if' && clause.condition && forClauses.length > 0) {
+      const lastFor = forClauses[forClauses.length - 1];
+      if (lastFor) {
+        lastFor.conditions.push(clause.condition);
+      }
+    }
+  }
+
+  if (forClauses.length === 0) {
+    return `py.dict([[${keyExpr}, ${valueExpr}]])`;
+  }
+
+  const pairExpr = `[${keyExpr}, ${valueExpr}]`;
+  const arrayComp = buildComprehensionChain(pairExpr, clauses, 'array');
+
+  return `py.dict(${arrayComp})`;
 }
 
 export { transformNode, createContext };

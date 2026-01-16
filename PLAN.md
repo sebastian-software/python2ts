@@ -1,10 +1,10 @@
-# Python zu TypeScript Converter - Projektplan
+# Python to TypeScript Converter - Project Plan
 
-## Übersicht
+## Overview
 
-Ein AST-basierter Transpiler, der Python-Code nach TypeScript konvertiert. Der Parser basiert auf `@lezer/python`, und Python-spezifische Operationen werden an Runtime-Helfer unter dem `py`-Namespace delegiert.
+An AST-based transpiler that converts Python code to TypeScript. The parser is based on `@lezer/python`, and Python-specific operations are delegated to runtime helpers under the `py` namespace.
 
-## Architektur
+## Architecture
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
@@ -22,98 +22,116 @@ Ein AST-basierter Transpiler, der Python-Code nach TypeScript konvertiert. Der P
                         └─────────────────┘
 ```
 
-## Kernkomponenten
+## Core Components
 
 ### 1. Parser (`src/parser/`)
-- Wrapper um `@lezer/python`
-- AST-Traversierung und Node-Typen
+- Wrapper around `@lezer/python`
+- AST traversal and node types
+- See [ADR-0001](./docs/adr/0001-use-lezer-python-parser.md)
 
 ### 2. Transformer (`src/transformer/`)
-- Konvertiert Lezer-AST zu TypeScript-AST
-- Handler für jeden Python-Node-Typ
+- Converts Lezer AST to TypeScript
+- Handlers for each Python node type
 
 ### 3. Code Generator (`src/generator/`)
-- Generiert TypeScript-Code aus transformiertem AST
+- Generates TypeScript code from transformed AST
+- Manages runtime imports
 
 ### 4. Runtime Library (`src/runtime/`)
-- `py.*` Helfer-Funktionen für Python-spezifische Operationen
-- Wird mit dem generierten Code ausgeliefert
+- `py.*` helper functions for Python-specific operations
+- See [ADR-0002](./docs/adr/0002-runtime-namespace-design.md)
 
-## Phasen der Implementierung
+## Implementation Phases
 
-### Phase 1: Grundgerüst (MVP)
-- [x] Projektsetup (TypeScript, Vitest, ESLint)
-- [ ] Lezer Parser Integration
-- [ ] Basis-Transformer Struktur
-- [ ] Code Generator Grundstruktur
+### Phase 1: Foundation (MVP) ✅ COMPLETED
 
-**Unterstützte Syntax:**
-- Literale: `int`, `float`, `str`, `bool`, `None`
-- Variablen und Zuweisungen
-- Arithmetische Operatoren: `+`, `-`, `*`, `/`, `//`, `%`, `**`
-- Vergleichsoperatoren: `==`, `!=`, `<`, `>`, `<=`, `>=`
-- Logische Operatoren: `and`, `or`, `not`
+- [x] Project setup (TypeScript, Vitest, ESLint, tsup)
+- [x] Lezer parser integration
+- [x] Base transformer structure
+- [x] Code generator
+- [x] Runtime library foundation
+- [x] 412 tests with 89%+ coverage
 
-### Phase 2: Kontrollfluss
-- [ ] `if`/`elif`/`else`
-- [ ] `while`-Schleifen
-- [ ] `for`-Schleifen (mit `py.iter()`)
-- [ ] `break`, `continue`, `pass`
+**Supported Syntax:**
+- [x] Literals: `int`, `float`, `str`, `bool`, `None`
+- [x] Variables and assignments
+- [x] Arithmetic operators: `+`, `-`, `*`, `/`, `//`, `%`, `**`
+- [x] Comparison operators: `==`, `!=`, `<`, `>`, `<=`, `>=`
+- [x] Logical operators: `and`, `or`, `not`
+- [x] Control flow: `if`/`elif`/`else`, `while`, `for-in`
+- [x] `break`, `continue`, `pass`
+- [x] Function definitions and calls
+- [x] Lists, dictionaries, tuples
+- [x] Slicing with `py.slice()`
+- [x] Built-in functions: `print`, `len`, `range`, `enumerate`, `zip`, etc.
 
-### Phase 3: Datenstrukturen
-- [ ] Listen → `py.list()`
-- [ ] Dictionaries → `py.dict()`
-- [ ] Tuples → `py.tuple()`
-- [ ] Sets → `py.set()`
-- [ ] Slicing → `py.slice()`
-- [ ] List Comprehensions → `py.listComp()`
+### Phase 2: Comprehensions & Advanced Data Structures 🔄 IN PROGRESS
 
-### Phase 4: Funktionen
-- [ ] Funktionsdefinitionen
-- [ ] Default-Parameter
-- [ ] `*args`, `**kwargs`
-- [ ] Lambda-Ausdrücke
+- [ ] List comprehensions → inline or `py.listComp()`
+- [ ] Dict comprehensions
+- [ ] Set comprehensions
+- [ ] Generator expressions
+- [ ] Tuple unpacking in for loops
+- [ ] Multiple assignment (`a, b = 1, 2`)
+
+### Phase 3: Advanced Functions
+
+- [ ] Default parameter values
+- [ ] `*args` (rest parameters)
+- [ ] `**kwargs` (object spread)
+- [ ] Lambda expressions (`lambda x: x + 1`)
 - [ ] Closures
+- [ ] Decorators (basic support)
 
-### Phase 5: Klassen
-- [ ] Klassendefinitionen
-- [ ] Vererbung
-- [ ] `__init__`, `__str__`, etc.
-- [ ] Properties (`@property`)
-- [ ] Statische Methoden, Klassenmethoden
+### Phase 4: Classes
 
-### Phase 6: Python Built-ins
-- [ ] `print()` → `console.log()`
-- [ ] `len()` → `py.len()`
-- [ ] `range()` → `py.range()`
-- [ ] `enumerate()` → `py.enumerate()`
-- [ ] `zip()` → `py.zip()`
-- [ ] `map()`, `filter()`, `reduce()`
-- [ ] String-Methoden
-- [ ] Liste der Built-ins erweitern
+- [ ] Class definitions
+- [ ] `__init__` → constructor
+- [ ] Instance methods
+- [ ] Inheritance
+- [ ] `__str__`, `__repr__` → `toString()`
+- [ ] `@property` decorator
+- [ ] `@staticmethod`, `@classmethod`
 
-### Phase 7: Exception Handling
-- [ ] `try`/`except`/`finally`
-- [ ] `raise`
-- [ ] Custom Exceptions
+### Phase 5: Exception Handling
 
-### Phase 8: Module & Imports
-- [ ] `import` Statements
-- [ ] `from ... import ...`
-- [ ] Relative Imports
+- [ ] `try`/`except`/`finally` → `try`/`catch`/`finally`
+- [ ] `raise` → `throw`
+- [ ] Exception types mapping
+- [ ] Custom exception classes
+
+### Phase 6: Modules & Imports
+
+- [ ] `import module`
+- [ ] `from module import name`
+- [ ] `from module import *`
+- [ ] Relative imports
+- [ ] Module aliasing (`import x as y`)
+
+### Phase 7: Advanced Features
+
+- [ ] Context managers (`with` statement)
+- [ ] Async/await
+- [ ] Type hints → TypeScript types
+- [ ] f-strings → template literals
+- [ ] Walrus operator (`:=`)
 
 ## py.* Runtime API
 
 ```typescript
-// src/runtime/index.ts
 export const py = {
+  // Arithmetic (Python semantics)
+  floordiv(a: number, b: number): number,  // //
+  pow(base: number, exp: number): number,   // **
+  mod(a: number, b: number): number,        // %
+
   // Slicing
   slice<T>(obj: string | T[], start?: number, stop?: number, step?: number): string | T[],
 
   // Iterables
   range(stop: number): Iterable<number>,
   range(start: number, stop: number, step?: number): Iterable<number>,
-  enumerate<T>(iterable: Iterable<T>): Iterable<[number, T]>,
+  enumerate<T>(iterable: Iterable<T>, start?: number): Iterable<[number, T]>,
   zip<T, U>(a: Iterable<T>, b: Iterable<U>): Iterable<[T, U]>,
 
   // Collections
@@ -127,149 +145,134 @@ export const py = {
   abs(x: number): number,
   min<T>(...args: T[]): T,
   max<T>(...args: T[]): T,
-  sum(iterable: Iterable<number>): number,
-  sorted<T>(iterable: Iterable<T>, key?: (x: T) => any, reverse?: boolean): T[],
+  sum(iterable: Iterable<number>, start?: number): number,
+  sorted<T>(iterable: Iterable<T>, options?: { key?: (x: T) => any, reverse?: boolean }): T[],
   reversed<T>(iterable: Iterable<T>): Iterable<T>,
+  all(iterable: Iterable<unknown>): boolean,
+  any(iterable: Iterable<unknown>): boolean,
+  map<T, U>(fn: (x: T) => U, iterable: Iterable<T>): Iterable<U>,
+  filter<T>(fn: ((x: T) => boolean) | null, iterable: Iterable<T>): Iterable<T>,
 
   // Type Conversions
-  int(x: string | number | boolean): number,
+  int(x: string | number | boolean, base?: number): number,
   float(x: string | number): number,
   str(x: any): string,
   bool(x: any): boolean,
+  repr(x: any): string,
 
   // String operations
   string: {
     join(sep: string, iterable: Iterable<string>): string,
     split(s: string, sep?: string, maxsplit?: number): string[],
-    // ... weitere String-Methoden
+    strip(s: string, chars?: string): string,
+    upper(s: string): string,
+    lower(s: string): string,
+    replace(s: string, old: string, new_: string, count?: number): string,
+    startswith(s: string, prefix: string): boolean,
+    endswith(s: string, suffix: string): boolean,
+    find(s: string, sub: string, start?: number, end?: number): number,
+    count(s: string, sub: string): number,
+    format(s: string, ...args: unknown[]): string,
   },
-
-  // Operators
-  floordiv(a: number, b: number): number,  // //
-  pow(base: number, exp: number): number,   // **
-  mod(a: number, b: number): number,        // % (Python-Semantik)
 
   // Membership & Identity
   in<T>(item: T, container: Iterable<T> | string): boolean,
-  is(a: any, b: any): boolean,
 
-  // Comprehensions
-  listComp<T, S>(iterable: Iterable<S>, map: (x: S) => T, filter?: (x: S) => boolean): T[],
-  dictComp<K, V, S>(iterable: Iterable<S>, key: (x: S) => K, value: (x: S) => V, filter?: (x: S) => boolean): Map<K, V>,
+  // Math utilities
+  round(x: number, ndigits?: number): number,
+  divmod(a: number, b: number): [number, number],
+  hex(x: number): string,
+  oct(x: number): string,
+  bin(x: number): string,
+  ord(char: string): number,
+  chr(code: number): string,
 };
 ```
 
-## Externe Abhängigkeiten
-
-| Paket | Verwendung |
-|-------|------------|
-| `@lezer/python` | Python Parser |
-| `@lezer/common` | Lezer Utilities |
-| `lodash-es` | Utility-Funktionen (optional) |
-| `vitest` | Testing |
-| `typescript` | Compiler |
-| `tsup` | Bundling |
-| `@vitest/coverage-v8` | Code Coverage |
-
-## Projektstruktur
+## Project Structure
 
 ```
 python2ts/
 ├── src/
-│   ├── index.ts              # Haupt-Export
+│   ├── index.ts              # Main exports
 │   ├── parser/
-│   │   ├── index.ts          # Parser-Wrapper
-│   │   └── types.ts          # AST-Typen
+│   │   ├── index.ts          # Parser wrapper
+│   │   └── types.ts          # AST types
 │   ├── transformer/
-│   │   ├── index.ts          # Haupt-Transformer
-│   │   ├── expressions.ts    # Expression Handler
-│   │   ├── statements.ts     # Statement Handler
-│   │   └── visitors.ts       # AST Visitors
+│   │   └── index.ts          # Main transformer
 │   ├── generator/
-│   │   ├── index.ts          # Code Generator
-│   │   └── printer.ts        # Code Formatter
+│   │   └── index.ts          # Code generator
 │   └── runtime/
-│       ├── index.ts          # py.* Namespace
-│       ├── collections.ts    # list, dict, set, tuple
-│       ├── itertools.ts      # range, enumerate, zip
-│       ├── builtins.ts       # len, abs, min, max, etc.
-│       └── operators.ts      # //, **, %, in, is
+│       └── index.ts          # py.* namespace
 ├── tests/
 │   ├── parser.test.ts
 │   ├── transformer.test.ts
 │   ├── generator.test.ts
 │   ├── runtime.test.ts
+│   ├── integration.test.ts
 │   └── e2e/
 │       ├── literals.test.ts
 │       ├── operators.test.ts
 │       ├── control-flow.test.ts
-│       └── ...
+│       ├── functions.test.ts
+│       ├── advanced.test.ts
+│       ├── builtins.test.ts
+│       └── edge-cases.test.ts
+├── docs/
+│   └── adr/                  # Architecture Decision Records
 ├── package.json
 ├── tsconfig.json
 ├── vitest.config.ts
+├── README.md
 └── PLAN.md
 ```
 
-## Testing-Strategie
+## Testing Strategy
 
-### Unit Tests
-- Jede Komponente einzeln testen
-- Parser: Korrekte AST-Generierung
-- Transformer: Korrekte Node-Transformation
-- Generator: Korrekter TypeScript-Output
-- Runtime: Korrekte Python-Semantik
+See [ADR-0004](./docs/adr/0004-testing-strategy.md) for details.
 
-### Integration Tests (E2E)
-```typescript
-// Beispiel Test
-test('arithmetic operators', () => {
-  const python = `
-x = 10 // 3
-y = 2 ** 8
-z = -7 % 3
-`;
-  const result = transpile(python);
-  expect(result.code).toContain('py.floordiv(10, 3)');
-  expect(result.code).toContain('py.pow(2, 8)');
-  expect(result.code).toContain('py.mod(-7, 3)');
+- **Unit Tests**: Individual component testing
+- **Integration Tests**: Full pipeline testing
+- **E2E Tests**: Real Python code conversion verification
+- **Coverage Target**: 85%+ (currently at 89%)
 
-  // Ausführungstest
-  const output = eval(result.code);
-  expect(output.x).toBe(3);
-  expect(output.y).toBe(256);
-  expect(output.z).toBe(2); // Python % vs JS %
-});
-```
-
-### Coverage-Ziel
-- Minimum: 90% Line Coverage
-- Ziel: 95%+ für kritische Pfade (Transformer, Runtime)
-
-## Konventionen
+## Conventions
 
 ### Git Commits (Conventional Commits)
 ```
-feat: add slice operation support
-fix: handle negative indices in py.slice
-test: add comprehensive slice tests
-refactor: extract common visitor logic
-docs: update API documentation
+feat: add list comprehension support
+fix: handle nested slicing correctly
+test: add comprehension edge case tests
+refactor: extract visitor pattern for expressions
+docs: update README with new features
 chore: upgrade dependencies
 ```
 
 ### Code Style
-- ESLint mit TypeScript-Regeln
-- Prettier für Formatierung
-- Strenge TypeScript-Einstellungen (`strict: true`)
+- ESLint with TypeScript rules
+- Strict TypeScript settings (`strict: true`)
+- ESM-only distribution (see [ADR-0005](./docs/adr/0005-esm-only-distribution.md))
 
-## Nächste Schritte
+## Current Status
 
-1. **Projektsetup** - Package.json, TypeScript-Config, Vitest
-2. **Parser-Integration** - Lezer-Python einbinden und testen
-3. **Basis-Transformer** - Literale und einfache Ausdrücke
-4. **Code Generator** - TypeScript-Output generieren
-5. **Erste E2E-Tests** - Einfache Python → TS Konvertierung
+| Metric | Value |
+|--------|-------|
+| Tests | 412 |
+| Coverage | 89%+ |
+| Phase | 2 (Comprehensions) |
+
+## Next Steps
+
+1. ~~Project setup~~ ✅
+2. ~~Parser integration~~ ✅
+3. ~~Base transformer~~ ✅
+4. ~~Code generator~~ ✅
+5. ~~E2E tests~~ ✅
+6. **List comprehensions** ← Current
+7. Dict/Set comprehensions
+8. Generator expressions
+9. Tuple unpacking
 
 ---
 
-*Letztes Update: 2026-01-16*
+*Last updated: 2026-01-16*
