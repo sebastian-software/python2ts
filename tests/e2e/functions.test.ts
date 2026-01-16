@@ -290,5 +290,103 @@ describe("E2E: Functions", () => {
         py.chr(65);"
       `)
     })
+
+    it("should convert input", () => {
+      expect(transpile("input('prompt')")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.input('prompt');"
+      `)
+    })
+  })
+
+  describe("Variadic Arguments", () => {
+    it("should convert function with *args", () => {
+      const result = transpile("def fn(*args):\n    pass", { includeRuntime: false })
+      expect(result).toContain("...args")
+    })
+
+    it("should convert function with **kwargs", () => {
+      const result = transpile("def fn(**kwargs):\n    pass", { includeRuntime: false })
+      expect(result).toContain("kwargs")
+    })
+
+    it("should convert function with multiple default params", () => {
+      const result = transpile("def fn(a=1, b=2, c=3):\n    pass", { includeRuntime: false })
+      expect(result).toContain("a = 1")
+      expect(result).toContain("b = 2")
+      expect(result).toContain("c = 3")
+    })
+
+    it("should handle starred expression in call", () => {
+      const code = "fn(*args)"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("args")
+    })
+
+    it("should handle double starred expression in call", () => {
+      const code = "fn(**kwargs)"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("kwargs")
+    })
+
+    it("should handle keyword arguments in function call", () => {
+      const result = transpile("sorted(items, reverse=True)")
+      expect(result).toContain("reverse:")
+    })
+  })
+
+  describe("Lambda Expressions", () => {
+    it("should convert lambda with multiple params", () => {
+      const result = transpile("f = lambda a, b, c: a + b + c", { includeRuntime: false })
+      expect(result).toContain("=>")
+    })
+  })
+
+  describe("Decorators", () => {
+    it("should handle decorator with arguments", () => {
+      const code = "@decorator(arg1, arg2)\ndef fn():\n    pass"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("decorator")
+    })
+
+    it("should handle multiple decorators", () => {
+      const code = "@dec1\n@dec2\ndef fn():\n    pass"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("dec1")
+      expect(result).toContain("dec2")
+    })
+
+    it("should handle member expression decorator", () => {
+      const code = "@app.route('/home')\ndef home():\n    pass"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("route")
+    })
+  })
+
+  describe("Generator Functions", () => {
+    it("should handle yield expression", () => {
+      const code = "def gen():\n    yield 1"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("yield")
+    })
+
+    it("should handle yield from", () => {
+      const code = "def gen():\n    yield from other_gen()"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("yield")
+    })
+
+    it("should handle async generator", () => {
+      const code = "async def gen():\n    yield 1"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("async")
+      expect(result).toContain("yield")
+    })
+
+    it("should handle generator expression in function call", () => {
+      const result = transpile("sum(x * 2 for x in items)")
+      expect(result).toContain("function*")
+    })
   })
 })
