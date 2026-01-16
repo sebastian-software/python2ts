@@ -272,7 +272,7 @@ chore: upgrade dependencies
 
 | Metric   | Value      |
 | -------- | ---------- |
-| Tests    | 604        |
+| Tests    | 650        |
 | Coverage | 89%+       |
 | Phase    | 7 Complete |
 
