@@ -350,6 +350,11 @@ function transformBinaryExpression(node: SyntaxNode, ctx: TransformContext): str
       ctx.usesRuntime.add("pow")
       return `py.pow(${leftCode}, ${rightCode})`
     case "%":
+      // Check for string formatting (e.g., "Hello %s" % name)
+      if (left.name === "String" || left.name === "FormatString") {
+        ctx.usesRuntime.add("sprintf")
+        return `py.sprintf(${leftCode}, ${rightCode})`
+      }
       ctx.usesRuntime.add("mod")
       return `py.mod(${leftCode}, ${rightCode})`
     case "and":

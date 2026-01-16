@@ -33,6 +33,48 @@ export const py = {
     return ((a % b) + b) % b
   },
 
+  /**
+   * Python %-style string formatting
+   * Handles %s, %d, %i, %f, %r, %x, %o, etc.
+   */
+  sprintf(template: string, args: unknown): string {
+    // If args is not an array/tuple, wrap it
+    const values = Array.isArray(args) ? args : [args]
+    let index = 0
+    return template.replace(/%([+-]?\d*\.?\d*)([sdifxXorec%])/g, (match, flags, type) => {
+      if (type === "%") return "%"
+      if (index >= values.length) return match
+      const value = values[index++]
+      switch (type) {
+        case "s":
+          return String(value)
+        case "d":
+        case "i":
+          return String(Math.floor(Number(value)))
+        case "f":
+          if (flags && flags.includes(".")) {
+            const precision = parseInt(flags.split(".")[1] ?? "6", 10)
+            return Number(value).toFixed(precision)
+          }
+          return String(Number(value))
+        case "x":
+          return Math.floor(Number(value)).toString(16)
+        case "X":
+          return Math.floor(Number(value)).toString(16).toUpperCase()
+        case "o":
+          return Math.floor(Number(value)).toString(8)
+        case "r":
+          return JSON.stringify(value)
+        case "e":
+          return Number(value).toExponential()
+        case "c":
+          return String.fromCharCode(Number(value))
+        default:
+          return String(value)
+      }
+    })
+  },
+
   // ============================================================
   // Slicing
   // ============================================================
