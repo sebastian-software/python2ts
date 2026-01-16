@@ -249,7 +249,9 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
   // Check if all variables are already declared in accessible scopes
   const allDeclaredAtAccessibleScope = varNames.every((v) => isVariableDeclared(ctx, v))
   if (!allDeclaredAtAccessibleScope) {
-    varNames.forEach((v) => declareVariable(ctx, v))
+    varNames.forEach((v) => {
+      declareVariable(ctx, v)
+    })
   }
 
   if (values.length === 1) {

@@ -111,4 +111,21 @@ print(z)
       expect(ts).toContain("console.log(z)")
     })
   })
+
+  describe("Runtime Import Options", () => {
+    it("should use default runtime import path when includeRuntime is true but runtimeImportPath is not set", () => {
+      const result = transpile("print(len([1, 2, 3]))", { includeRuntime: true })
+      expect(result).toContain("import { py }")
+      expect(result).toContain("python2ts/runtime")
+    })
+
+    it("should use custom runtime import path when specified", () => {
+      const result = transpile("print(len([1, 2, 3]))", {
+        includeRuntime: true,
+        runtimeImportPath: "./my-runtime"
+      })
+      expect(result).toContain("import { py }")
+      expect(result).toContain("my-runtime")
+    })
+  })
 })
