@@ -53,6 +53,8 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformNumber(node, ctx)
     case "String":
       return transformString(node, ctx)
+    case "FormatString":
+      return transformFormatString(node, ctx)
     case "Boolean":
       return transformBoolean(node, ctx)
     case "True":
@@ -387,6 +389,95 @@ function transformString(node: SyntaxNode, ctx: TransformContext): string {
   // Regular strings - convert to JS format
   // Python uses same string syntax as JS for basic cases
   return text
+}
+
+function transformFormatString(node: SyntaxNode, ctx: TransformContext): string {
+  const text = getNodeText(node, ctx.source)
+  const children = getChildren(node)
+
+  // Find all FormatReplacement nodes
+  const replacements = children.filter((c) => c.name === "FormatReplacement")
+
+  // If no replacements, just convert to template literal
+  if (replacements.length === 0) {
+    // Handle escaped braces: {{ -> {, }} -> }
+    // Remove the 'f' prefix and convert quotes to backticks
+    let content: string
+    if (text.startsWith('f"""') || text.startsWith("f'''")) {
+      content = text.slice(4, -3)
+    } else {
+      content = text.slice(2, -1) // Remove f" and closing "
+    }
+    content = content.replace(/\{\{/g, "{").replace(/\}\}/g, "}")
+    content = content.replace(/`/g, "\\`")
+    return "`" + content + "`"
+  }
+
+  // Build template literal with replacements
+  let result = "`"
+  let pos = text.startsWith('f"""') || text.startsWith("f'''") ? 4 : 2 // Skip f" or f"""
+
+  for (const replacement of replacements) {
+    // Add static text before this replacement
+    const staticText = text.slice(pos, replacement.from - node.from)
+    // Handle escaped braces in static text
+    result += staticText.replace(/\{\{/g, "{").replace(/\}\}/g, "}").replace(/`/g, "\\`")
+
+    // Process the replacement
+    const replChildren = getChildren(replacement)
+    let expr: SyntaxNode | undefined
+    let formatSpec: string | undefined
+    let conversion: string | undefined
+
+    for (const child of replChildren) {
+      if (child.name === "{" || child.name === "}") continue
+      if (child.name === "FormatSpec") {
+        // Get the format spec without the leading colon
+        formatSpec = getNodeText(child, ctx.source).slice(1)
+      } else if (child.name === "FormatConversion") {
+        // Get the conversion character (r, s, or a)
+        conversion = getNodeText(child, ctx.source).slice(1) // Remove !
+      } else {
+        expr = child
+      }
+    }
+
+    if (expr) {
+      let exprCode = transformNode(expr, ctx)
+
+      // Apply conversion first (!r, !s, !a)
+      if (conversion === "r") {
+        exprCode = `py.repr(${exprCode})`
+        ctx.usesRuntime.add("repr")
+      } else if (conversion === "s") {
+        exprCode = `py.str(${exprCode})`
+        ctx.usesRuntime.add("str")
+      } else if (conversion === "a") {
+        exprCode = `py.ascii(${exprCode})`
+        ctx.usesRuntime.add("ascii")
+      }
+
+      // Apply format spec
+      if (formatSpec) {
+        ctx.usesRuntime.add("format")
+        result += `\${py.format(${exprCode}, "${formatSpec}")}`
+      } else {
+        // Simple case - just the expression (with optional conversion already applied)
+        result += `\${${exprCode}}`
+      }
+    }
+
+    pos = replacement.to - node.from
+  }
+
+  // Add remaining static text
+  const endPos =
+    text.startsWith('f"""') || text.startsWith("f'''") ? text.length - 3 : text.length - 1
+  const remainingText = text.slice(pos, endPos)
+  result += remainingText.replace(/\{\{/g, "{").replace(/\}\}/g, "}").replace(/`/g, "\\`")
+
+  result += "`"
+  return result
 }
 
 function transformBoolean(node: SyntaxNode, ctx: TransformContext): string {

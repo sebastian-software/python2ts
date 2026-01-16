@@ -200,6 +200,17 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `with open(f) as x:`    | `const x = open(f); try {...} finally {...}` | Context manager |
 | `async with expr as x:` | Same with `await` in finally                 | Async context   |
 
+### F-Strings
+
+| Python            | TypeScript                         | Notes            |
+| ----------------- | ---------------------------------- | ---------------- |
+| `f"Hello {name}"` | `` `Hello ${name}` ``              | Basic f-string   |
+| `f"{value:.2f}"`  | `` `${py.format(value, ".2f")}` `` | Format specifier |
+| `f"{name!r}"`     | `` `${py.repr(name)}` ``           | Repr conversion  |
+| `f"{value!s}"`    | `` `${py.str(value)}` ``           | Str conversion   |
+| `f"{text!a}"`     | `` `${py.ascii(text)}` ``          | ASCII conversion |
+| `f"{{escaped}}"`  | `` `{escaped}` ``                  | Escaped braces   |
+
 ### Built-in Functions
 
 | Python                                    | TypeScript                                            |
@@ -229,7 +240,8 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 - [x] **Phase 5**: Exception handling (`try`/`except`/`finally`, `raise`)
 - [x] **Phase 6**: Module imports (`import`, `from...import`, relative imports)
 - [x] **Phase 7**: Async/await, context managers (`with` statement)
-- [ ] **Future**: Type hints, f-strings, walrus operator
+- [x] **F-Strings**: Template literals with format specifiers and conversions
+- [ ] **Future**: Type hints, walrus operator
 
 See [PLAN.md](./PLAN.md) for detailed implementation plans.
 

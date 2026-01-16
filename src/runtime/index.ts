@@ -778,6 +778,164 @@ export const py = {
   bin(x: number): string {
     const prefix = x < 0 ? "-0b" : "0b"
     return prefix + Math.abs(Math.trunc(x)).toString(2)
+  },
+
+  /**
+   * Python ascii() - returns ASCII representation, escaping non-ASCII chars
+   */
+  ascii(x: unknown): string {
+    const s = py.repr(x)
+    let result = ""
+    for (const char of s) {
+      const code = char.charCodeAt(0)
+      if (code > 127) {
+        if (code > 0xffff) {
+          result += `\\U${code.toString(16).padStart(8, "0")}`
+        } else {
+          result += `\\u${code.toString(16).padStart(4, "0")}`
+        }
+      } else {
+        result += char
+      }
+    }
+    return result
+  },
+
+  /**
+   * Python format() - formats a value according to format spec
+   * Supports: [[fill]align][sign][#][0][width][,][.precision][type]
+   */
+  format(value: unknown, spec: string): string {
+    if (spec === "") {
+      return py.str(value)
+    }
+
+    // Parse format spec
+    const match = spec.match(
+      /^(.?[<>=^])?([+\- ])?([#])?(0)?(\d+)?([,_])?(?:\.(\d+))?([bcdeEfFgGnosxX%])?$/
+    )
+
+    if (!match) {
+      return py.str(value)
+    }
+
+    const [, alignPart, sign, hash, zero, widthStr, grouping, precisionStr, type] = match
+
+    let fill = " "
+    let align = ""
+    if (alignPart) {
+      if (alignPart.length === 2) {
+        fill = alignPart[0] as string
+        align = alignPart[1] as string
+      } else {
+        align = alignPart
+      }
+    }
+
+    const width = widthStr ? parseInt(widthStr, 10) : 0
+    const precision = precisionStr !== undefined ? parseInt(precisionStr, 10) : undefined
+
+    // Handle zero-padding
+    if (zero && !alignPart) {
+      fill = "0"
+      align = "="
+    }
+
+    // Format the value based on type
+    let result: string
+
+    if (type === "s" || (!type && typeof value === "string")) {
+      result = py.str(value)
+      if (precision !== undefined) {
+        result = result.slice(0, precision)
+      }
+    } else if (type === "d" || (!type && typeof value === "number" && Number.isInteger(value))) {
+      const num = typeof value === "number" ? value : py.int(value as string | number | boolean)
+      result = formatNumber(num, sign, "", grouping)
+    } else if (type === "f" || type === "F") {
+      const num = typeof value === "number" ? value : py.float(value as string | number)
+      const prec = precision ?? 6
+      result = formatNumber(num, sign, "", grouping, prec, false)
+      if (type === "F") result = result.toUpperCase()
+    } else if (type === "e" || type === "E") {
+      const num = typeof value === "number" ? value : py.float(value as string | number)
+      const prec = precision ?? 6
+      result = num.toExponential(prec)
+      if (sign === "+" && num >= 0) result = "+" + result
+      else if (sign === " " && num >= 0) result = " " + result
+      if (type === "E") result = result.toUpperCase()
+    } else if (type === "g" || type === "G") {
+      const num = typeof value === "number" ? value : py.float(value as string | number)
+      const prec = precision ?? 6
+      result = num.toPrecision(prec)
+      if (sign === "+" && num >= 0) result = "+" + result
+      else if (sign === " " && num >= 0) result = " " + result
+      if (type === "G") result = result.toUpperCase()
+    } else if (type === "x" || type === "X") {
+      const num =
+        typeof value === "number" ? Math.trunc(value) : py.int(value as string | number | boolean)
+      result = Math.abs(num).toString(16)
+      if (hash) result = "0x" + result
+      if (num < 0) result = "-" + result
+      else if (sign === "+") result = "+" + result
+      else if (sign === " ") result = " " + result
+      if (type === "X") result = result.toUpperCase()
+    } else if (type === "o") {
+      const num =
+        typeof value === "number" ? Math.trunc(value) : py.int(value as string | number | boolean)
+      result = Math.abs(num).toString(8)
+      if (hash) result = "0o" + result
+      if (num < 0) result = "-" + result
+      else if (sign === "+") result = "+" + result
+      else if (sign === " ") result = " " + result
+    } else if (type === "b") {
+      const num =
+        typeof value === "number" ? Math.trunc(value) : py.int(value as string | number | boolean)
+      result = Math.abs(num).toString(2)
+      if (hash) result = "0b" + result
+      if (num < 0) result = "-" + result
+      else if (sign === "+") result = "+" + result
+      else if (sign === " ") result = " " + result
+    } else if (type === "c") {
+      const code = typeof value === "number" ? value : py.int(value as string | number | boolean)
+      result = String.fromCharCode(code)
+    } else if (type === "%") {
+      const num = typeof value === "number" ? value : py.float(value as string | number)
+      const prec = precision ?? 6
+      result = (num * 100).toFixed(prec) + "%"
+      if (sign === "+" && num >= 0) result = "+" + result
+      else if (sign === " " && num >= 0) result = " " + result
+    } else if (type === "n") {
+      // Locale-aware number - simplified to just using grouping
+      const num = typeof value === "number" ? value : py.float(value as string | number)
+      result = num.toLocaleString()
+    } else {
+      result = py.str(value)
+    }
+
+    // Apply width and alignment
+    if (width > result.length) {
+      const padding = fill.repeat(width - result.length)
+      if (align === "<") {
+        result = result + padding
+      } else if (align === ">" || align === "") {
+        result = padding + result
+      } else if (align === "^") {
+        const leftPad = Math.floor((width - result.length) / 2)
+        const rightPad = width - result.length - leftPad
+        result = fill.repeat(leftPad) + result + fill.repeat(rightPad)
+      } else if (align === "=") {
+        // Pad after sign
+        const signMatch = result.match(/^([+\- ]|0[xXoObB])?(.*)$/)
+        if (signMatch) {
+          const signPart = signMatch[1] ?? ""
+          const numPart = signMatch[2] ?? ""
+          result = signPart + padding + numPart
+        }
+      }
+    }
+
+    return result
   }
 }
 
@@ -797,6 +955,46 @@ function normalizeIndex(index: number, length: number, forNegativeStep = false):
 
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+function formatNumber(
+  num: number,
+  sign: string | undefined,
+  _hash: string | undefined,
+  grouping: string | undefined,
+  precision?: number,
+  isInteger = true
+): string {
+  let result: string
+
+  if (isInteger) {
+    result = Math.trunc(num).toString()
+  } else {
+    result = num.toFixed(precision ?? 6)
+  }
+
+  // Add grouping (thousands separator)
+  if (grouping) {
+    const sep = grouping === "_" ? "_" : ","
+    const parts = result.split(".")
+    const intPart = parts[0] as string
+    const sign = intPart[0] === "-" ? "-" : ""
+    const digits = sign ? intPart.slice(1) : intPart
+    const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, sep)
+    parts[0] = sign + grouped
+    result = parts.join(".")
+  }
+
+  // Add sign
+  if (num >= 0) {
+    if (sign === "+") {
+      result = "+" + result
+    } else if (sign === " ") {
+      result = " " + result
+    }
+  }
+
+  return result
 }
 
 export default py
