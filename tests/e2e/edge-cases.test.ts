@@ -228,5 +228,235 @@ x = 1`
       const ts = transpile(python, { includeRuntime: false })
       expect(ts).toContain("`")
     })
+
+    it("should handle bytes literal", () => {
+      const result = transpile("x = b'hello'", { includeRuntime: false })
+      expect(result).toBeDefined()
+    })
+
+    it("should handle string with escape sequences", () => {
+      const result = transpile('"hello\\nworld"', { includeRuntime: false })
+      expect(result).toContain("hello\\nworld")
+    })
+  })
+
+  describe("Tuple operations", () => {
+    it("should handle tuple unpacking in assignment", () => {
+      const result = transpile("a, b = 1, 2", { includeRuntime: false })
+      expect(result).toContain("[a, b]")
+      expect(result).toContain("[1, 2]")
+    })
+
+    it("should handle nested tuple unpacking", () => {
+      const result = transpile("a, (b, c) = 1, (2, 3)", { includeRuntime: false })
+      expect(result).toContain("[a, [b, c]]")
+    })
+
+    it("should handle empty parentheses", () => {
+      const result = transpile("()", { includeRuntime: false })
+      expect(result).toBeDefined()
+    })
+
+    it("should handle empty tuple assignment", () => {
+      const result = transpile("x = ()", { includeRuntime: false })
+      expect(result).toBeDefined()
+    })
+
+    it("should handle single item tuple", () => {
+      const result = transpile("x = (1,)", { includeRuntime: false })
+      expect(result).toBeDefined()
+    })
+
+    it("should handle tuple expression", () => {
+      const result = transpile("(1, 2, 3)")
+      expect(result).toContain("py.tuple")
+    })
+  })
+
+  describe("Control statements", () => {
+    it("should handle delete statement", () => {
+      const result = transpile("del x", { includeRuntime: false })
+      expect(result).toBeDefined()
+    })
+
+    it("should handle global statement", () => {
+      const result = transpile("global x", { includeRuntime: false })
+      expect(result).toBeDefined()
+    })
+
+    it("should handle nonlocal statement", () => {
+      const result = transpile("nonlocal x", { includeRuntime: false })
+      expect(result).toBeDefined()
+    })
+
+    it("should handle assert statement", () => {
+      const result = transpile("assert x > 0, 'must be positive'", { includeRuntime: false })
+      expect(result).toBeDefined()
+    })
+
+    it("should handle for/else statement", () => {
+      const code = "for x in items:\n    pass\nelse:\n    print('done')"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toBeDefined()
+    })
+
+    it("should handle while/else statement", () => {
+      const code = "while True:\n    break\nelse:\n    print('done')"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toBeDefined()
+    })
+
+    it("should handle try/except/else", () => {
+      const code = "try:\n    x = 1\nexcept:\n    pass\nelse:\n    y = 2"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toBeDefined()
+    })
+  })
+
+  describe("Unary operations", () => {
+    it("should handle unary minus", () => {
+      const result = transpile("x = -5", { includeRuntime: false })
+      expect(result).toContain("-5")
+    })
+
+    it("should handle unary plus", () => {
+      const result = transpile("x = +5", { includeRuntime: false })
+      expect(result).toContain("+5")
+    })
+
+    it("should handle unary not", () => {
+      const result = transpile("x = not y", { includeRuntime: false })
+      expect(result).toContain("!")
+    })
+
+    it("should handle unary expression on parenthesized expression", () => {
+      const result = transpile("x = -(a + b)", { includeRuntime: false })
+      expect(result).toContain("-")
+    })
+  })
+
+  describe("Complex member and subscript expressions", () => {
+    it("should handle nested member expressions", () => {
+      const result = transpile("a.b.c.d", { includeRuntime: false })
+      expect(result).toBe("a.b.c.d;")
+    })
+
+    it("should handle chained method calls", () => {
+      const code = "x = obj.method1().method2().method3()"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("method1()")
+      expect(result).toContain("method2()")
+    })
+
+    it("should handle nested subscripts", () => {
+      const code = "x = matrix[i][j][k]"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("matrix[i][j][k]")
+    })
+
+    it("should handle subscript with expression", () => {
+      const result = transpile("arr[i + 1]", { includeRuntime: false })
+      expect(result).toBe("arr[(i + 1)];")
+    })
+
+    it("should handle subscript assignment", () => {
+      const code = "arr[0] = 10"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("arr[0]")
+      expect(result).toContain("10")
+    })
+
+    it("should handle method call on literal", () => {
+      const result = transpile("x = 'hello'.upper()")
+      expect(result).toBeDefined()
+    })
+
+    it("should handle chained subscript and method", () => {
+      const result = transpile("x = arr[0].method()")
+      expect(result).toBeDefined()
+    })
+  })
+
+  describe("Function and return edge cases", () => {
+    it("should handle empty function body", () => {
+      const code = "def empty():\n    pass"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("function empty()")
+    })
+
+    it("should handle function returning None", () => {
+      const code = "def returns_none():\n    return None"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("return null")
+    })
+
+    it("should handle function with return in middle", () => {
+      const code = "def fn():\n    x = 1\n    return x\n    y = 2"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("return x")
+    })
+  })
+
+  describe("Literals and collections", () => {
+    it("should handle simple number", () => {
+      const result = transpile("x = 42", { includeRuntime: false })
+      expect(result).toContain("42")
+    })
+
+    it("should handle float number", () => {
+      const result = transpile("x = 3.14", { includeRuntime: false })
+      expect(result).toContain("3.14")
+    })
+
+    it("should handle integer with underscores", () => {
+      const result = transpile("x = 1_000_000", { includeRuntime: false })
+      expect(result).toBeDefined()
+    })
+
+    it("should handle boolean True", () => {
+      const result = transpile("x = True", { includeRuntime: false })
+      expect(result).toContain("true")
+    })
+
+    it("should handle boolean False", () => {
+      const result = transpile("x = False", { includeRuntime: false })
+      expect(result).toContain("false")
+    })
+
+    it("should handle None literal", () => {
+      const result = transpile("x = None", { includeRuntime: false })
+      expect(result).toContain("null")
+    })
+
+    it("should handle empty list literal", () => {
+      const code = "x = []"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("[]")
+    })
+
+    it("should handle empty dict literal", () => {
+      const code = "x = {}"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("{")
+      expect(result).toContain("}")
+    })
+
+    it("should handle complex list literal", () => {
+      const code = "x = [1, 2, [3, 4], 5]"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("[1, 2, [3, 4], 5]")
+    })
+
+    it("should handle complex dict literal", () => {
+      const code = 'x = {"nested": {"key": "value"}}'
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("nested")
+      expect(result).toContain("key")
+    })
+
+    it("should handle set expression", () => {
+      const result = transpile("{1, 2, 3}")
+      expect(result).toContain("py.set")
+    })
   })
 })
