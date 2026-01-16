@@ -2056,6 +2056,8 @@ function transformClassMethod(
     prefix = "static "
   } else if (decorator === "property") {
     prefix = "get "
+  } else if (decorator === "setter") {
+    prefix = "set "
   }
 
   return `${indent}${prefix}${generatorStar}${methodName}(${params}) {\n${bodyCode}\n${indent}}`
@@ -2070,9 +2072,21 @@ function transformClassDecoratedMethod(node: SyntaxNode, ctx: TransformContext):
   for (const child of children) {
     if (child.name === "Decorator") {
       const decChildren = getChildren(child)
-      const nameNode = decChildren.find((c) => c.name === "VariableName")
-      if (nameNode) {
-        decorator = getNodeText(nameNode, ctx.source)
+      // Check for member expression pattern: @x.setter or @x.deleter
+      const varNames = decChildren.filter((c) => c.name === "VariableName")
+      const hasDot = decChildren.some((c) => c.name === ".")
+      if (varNames.length >= 2 && hasDot) {
+        // It's a member expression like @x.setter
+        const propName = varNames[varNames.length - 1]
+        if (propName) {
+          decorator = getNodeText(propName, ctx.source) // "setter" or "deleter"
+        }
+      } else {
+        // Simple decorator like @property or @staticmethod
+        const nameNode = varNames[0]
+        if (nameNode) {
+          decorator = getNodeText(nameNode, ctx.source)
+        }
       }
     } else if (child.name === "FunctionDefinition") {
       funcDef = child
