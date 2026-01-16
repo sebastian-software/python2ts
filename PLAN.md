@@ -56,7 +56,7 @@ namespace.
 - [x] Base transformer structure
 - [x] Code generator
 - [x] Runtime library foundation
-- [x] 412 tests with 89%+ coverage
+- [x] 944+ tests with 93%+ coverage
 
 **Supported Syntax:**
 
@@ -99,7 +99,9 @@ namespace.
 - [x] `super().__init__(...)` → `super(...)`
 - [x] `__str__`, `__repr__` → `toString()`
 - [x] `@property` decorator → `get` accessor
+- [x] `@x.setter` decorator → `set` accessor
 - [x] `@staticmethod`, `@classmethod` → `static` method
+- [x] Special attributes (`__name__` → `.name`)
 
 ### Phase 5: Exception Handling ✅ COMPLETED
 
@@ -127,12 +129,26 @@ namespace.
 - [x] Context managers (`with` statement) → `try/finally` with `Symbol.dispose`
 - [x] f-strings → template literals with format specifiers and conversions
 - [x] Walrus operator (`:=`) → assignment expressions
-- [ ] Type hints → TypeScript types
+- [x] Type hints → TypeScript types (configurable via `emitTypes` option)
+- [x] %-style string formatting (`"Hello %s" % name` → `py.sprintf(...)`)
+- [x] `.format()` method (`"{} {}".format(a, b)` → `py.strFormat(...)`)
+- [x] Generator functions (`yield` → `function*`)
+- [x] Match/case statements → `switch`/`case`
+- [x] Spread in calls (`fn(*args)` → `fn(...args)`)
 
 ## py.\* Runtime API
 
+The runtime is organized into namespaces for better organization. Each namespace is also callable as
+a constructor:
+
 ```typescript
 export const py = {
+  // Namespaced methods (also callable as constructors)
+  string: { join, split, strip, upper, lower, replace, ... },
+  list: { remove, sort, index, count, ... },      // py.list([1,2,3]) or py.list.remove(arr, x)
+  dict: { get, keys, values, items, ... },        // py.dict() or py.dict.get(obj, key)
+  set: { intersection, difference, union, ... },  // py.set() or py.set.intersection(a, b)
+
   // Arithmetic (Python semantics)
   floordiv(a: number, b: number): number,  // //
   pow(base: number, exp: number): number,   // **
@@ -143,63 +159,63 @@ export const py = {
 
   // Iterables
   range(stop: number): Iterable<number>,
-  range(start: number, stop: number, step?: number): Iterable<number>,
   enumerate<T>(iterable: Iterable<T>, start?: number): Iterable<[number, T]>,
   zip<T, U>(a: Iterable<T>, b: Iterable<U>): Iterable<[T, U]>,
-
-  // Collections
-  list<T>(iterable?: Iterable<T>): T[],
-  dict<K, V>(entries?: Iterable<[K, V]>): Map<K, V>,
-  set<T>(iterable?: Iterable<T>): Set<T>,
-  tuple<T extends any[]>(...items: T): Readonly<T>,
+  reversed<T>(iterable: Iterable<T>): Iterable<T>,
+  sorted<T>(iterable: Iterable<T>, options?: { key?, reverse? }): T[],
 
   // Built-ins
-  len(obj: string | any[] | Map<any, any> | Set<any>): number,
-  abs(x: number): number,
-  min<T>(...args: T[]): T,
-  max<T>(...args: T[]): T,
-  sum(iterable: Iterable<number>, start?: number): number,
-  sorted<T>(iterable: Iterable<T>, options?: { key?: (x: T) => any, reverse?: boolean }): T[],
-  reversed<T>(iterable: Iterable<T>): Iterable<T>,
-  all(iterable: Iterable<unknown>): boolean,
-  any(iterable: Iterable<unknown>): boolean,
-  map<T, U>(fn: (x: T) => U, iterable: Iterable<T>): Iterable<U>,
-  filter<T>(fn: ((x: T) => boolean) | null, iterable: Iterable<T>): Iterable<T>,
+  len, abs, min, max, sum, all, any, map, filter, round,
+  ord, chr, hex, oct, bin, divmod,
 
   // Type Conversions
-  int(x: string | number | boolean, base?: number): number,
-  float(x: string | number): number,
-  str(x: any): string,
-  bool(x: any): boolean,
-  repr(x: any): string,
+  int, float, str, bool, repr, ascii,
 
-  // String operations
-  string: {
-    join(sep: string, iterable: Iterable<string>): string,
-    split(s: string, sep?: string, maxsplit?: number): string[],
-    strip(s: string, chars?: string): string,
-    upper(s: string): string,
-    lower(s: string): string,
-    replace(s: string, old: string, new_: string, count?: number): string,
-    startswith(s: string, prefix: string): boolean,
-    endswith(s: string, suffix: string): boolean,
-    find(s: string, sub: string, start?: number, end?: number): number,
-    count(s: string, sub: string): number,
-    format(s: string, ...args: unknown[]): string,
-  },
+  // String Formatting
+  sprintf(format: string, args: unknown): string,   // %-style: "Hello %s" % name
+  strFormat(format: string, ...args): string,       // .format(): "{} {}".format(a, b)
 
   // Membership & Identity
   in<T>(item: T, container: Iterable<T> | string): boolean,
-
-  // Math utilities
-  round(x: number, ndigits?: number): number,
-  divmod(a: number, b: number): [number, number],
-  hex(x: number): string,
-  oct(x: number): string,
-  bin(x: number): string,
-  ord(char: string): number,
-  chr(code: number): string,
+  is(a: unknown, b: unknown): boolean,
 };
+```
+
+### Namespaced Methods
+
+```typescript
+// py.string.* - String methods
+py.string.join(sep, iterable)           // "sep".join(list)
+py.string.split(s, sep?, maxsplit?)     // s.split(sep)
+py.string.strip(s, chars?)              // s.strip()
+py.string.upper(s) / lower(s)           // s.upper() / s.lower()
+py.string.replace(s, old, new, count?)  // s.replace(old, new)
+py.string.find(s, sub) / rfind / index / rindex
+py.string.count(s, sub)
+py.string.startswith(s, prefix) / endswith(s, suffix)
+py.string.capitalize(s) / title(s) / swapcase(s)
+py.string.zfill(s, width) / center(s, width)
+py.string.partition(s, sep) / rpartition(s, sep)
+
+// py.list.* - List methods
+py.list.remove(arr, value)              // arr.remove(value)
+py.list.sort(arr, { key?, reverse? })   // arr.sort(key=..., reverse=...)
+py.list.index(arr, value)               // arr.index(value)
+py.list.count(arr, value)               // arr.count(value)
+py.list.append / extend / insert / pop / clear / copy / reverse
+
+// py.dict.* - Dict methods
+py.dict.get(obj, key, default?)         // obj.get(key, default)
+py.dict.setdefault(obj, key, default)   // obj.setdefault(key, default)
+py.dict.fromkeys(keys, value?)          // dict.fromkeys(keys, value)
+py.dict.keys / values / items / pop / popitem / update / clear / copy
+
+// py.set.* - Set methods
+py.set.intersection(a, b)               // a.intersection(b)
+py.set.difference(a, b)                 // a.difference(b)
+py.set.symmetricDifference(a, b)        // a.symmetric_difference(b)
+py.set.issubset(a, b) / issuperset(a, b)
+py.set.union / add / remove / discard / pop / clear / copy
 ```
 
 ## Project Structure
@@ -216,7 +232,13 @@ python2ts/
 │   ├── generator/
 │   │   └── index.ts          # Code generator
 │   └── runtime/
-│       └── index.ts          # py.* namespace
+│       ├── index.ts          # Main exports, composes py
+│       ├── core.ts           # Arithmetic, slice, formatting
+│       ├── builtins.ts       # len, range, enumerate, etc.
+│       ├── string.ts         # py.string.* methods
+│       ├── list.ts           # py.list.* methods
+│       ├── dict.ts           # py.dict.* methods
+│       └── set.ts            # py.set.* methods
 ├── tests/
 │   ├── parser.test.ts
 │   ├── transformer.test.ts
@@ -229,7 +251,18 @@ python2ts/
 │       ├── control-flow.test.ts
 │       ├── functions.test.ts
 │       ├── advanced.test.ts
+│       ├── advanced-functions.test.ts
 │       ├── builtins.test.ts
+│       ├── classes.test.ts
+│       ├── comprehensions.test.ts
+│       ├── exceptions.test.ts
+│       ├── fstrings.test.ts
+│       ├── imports.test.ts
+│       ├── async-with.test.ts
+│       ├── walrus.test.ts
+│       ├── methods.test.ts
+│       ├── new-features.test.ts
+│       ├── smoke.test.ts
 │       └── edge-cases.test.ts
 ├── docs/
 │   └── adr/                  # Architecture Decision Records
@@ -247,7 +280,7 @@ See [ADR-0004](./docs/adr/0004-testing-strategy.md) for details.
 - **Unit Tests**: Individual component testing
 - **Integration Tests**: Full pipeline testing
 - **E2E Tests**: Real Python code conversion verification
-- **Coverage Target**: 85%+ (currently at 89%)
+- **Coverage Target**: 90%+ (currently at ~93%)
 
 ## Conventions
 
@@ -272,8 +305,8 @@ chore: upgrade dependencies
 
 | Metric   | Value      |
 | -------- | ---------- |
-| Tests    | 650        |
-| Coverage | 89%+       |
+| Tests    | 944+       |
+| Coverage | 93%+       |
 | Phase    | 7 Complete |
 
 ## Next Steps
@@ -295,7 +328,10 @@ chore: upgrade dependencies
 15. ~~Phase 7: Advanced Features~~ ✅
 16. ~~F-Strings~~ ✅
 17. ~~Walrus Operator~~ ✅
-18. **Future**: Type hints
+18. ~~Type Hints~~ ✅ (stripped from output)
+19. ~~String Formatting~~ ✅ (%-style and .format())
+20. ~~Generators~~ ✅
+21. ~~Match/Case~~ ✅
 
 ---
 

@@ -12,7 +12,7 @@ We need a comprehensive testing strategy that:
 2. Ensures correct transformation to TypeScript
 3. Validates runtime function behavior (especially edge cases)
 4. Provides end-to-end verification of the full pipeline
-5. Maintains high code coverage (target: 85%+)
+5. Maintains high code coverage (target: 90%+, current: ~93%)
 
 Testing framework options:
 
@@ -35,13 +35,24 @@ tests/
 ├── runtime.test.ts      # Runtime library unit tests
 ├── integration.test.ts  # Full pipeline integration tests
 └── e2e/
-    ├── literals.test.ts     # End-to-end: literals
-    ├── operators.test.ts    # End-to-end: operators
-    ├── control-flow.test.ts # End-to-end: control flow
-    ├── functions.test.ts    # End-to-end: functions
-    ├── advanced.test.ts     # End-to-end: advanced features
-    ├── builtins.test.ts     # End-to-end: built-in functions
-    └── edge-cases.test.ts   # End-to-end: edge cases
+    ├── literals.test.ts          # End-to-end: literals
+    ├── operators.test.ts         # End-to-end: operators
+    ├── control-flow.test.ts      # End-to-end: control flow
+    ├── functions.test.ts         # End-to-end: functions
+    ├── advanced.test.ts          # End-to-end: advanced features
+    ├── advanced-functions.test.ts # *args, **kwargs, lambda, decorators
+    ├── builtins.test.ts          # End-to-end: built-in functions
+    ├── classes.test.ts           # Class definitions, inheritance
+    ├── comprehensions.test.ts    # List/dict/set comprehensions
+    ├── exceptions.test.ts        # try/except/finally, raise
+    ├── fstrings.test.ts          # F-string formatting
+    ├── imports.test.ts           # Module imports
+    ├── async-with.test.ts        # Async/await, context managers
+    ├── walrus.test.ts            # Assignment expressions (:=)
+    ├── methods.test.ts           # Method call transformations
+    ├── new-features.test.ts      # Generators, match/case, etc.
+    ├── smoke.test.ts             # Cross-Python verification
+    └── edge-cases.test.ts        # Edge cases
 ```
 
 ## Consequences

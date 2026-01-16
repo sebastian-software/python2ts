@@ -165,7 +165,9 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `def __str__(self):`     | `toString() {`                 | String representation |
 | `@staticmethod`          | `static`                       | Static methods        |
 | `@classmethod`           | `static`                       | Class methods         |
-| `@property`              | `get`                          | Property accessor     |
+| `@property`              | `get`                          | Property getter       |
+| `@x.setter`              | `set`                          | Property setter       |
+| `__name__`               | `.name`                        | Special attributes    |
 
 ### Phase 5 (Exception Handling)
 
@@ -220,6 +222,45 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `while (x := next()):`  | `while ((x = next()))`     | In while loops      |
 | `[y := f(x), y*2]`      | `[y = f(x), y * 2]`        | In list expressions |
 
+### String Formatting
+
+| Python                          | TypeScript                           | Notes                |
+| ------------------------------- | ------------------------------------ | -------------------- |
+| `"Hello %s" % name`             | `py.sprintf("Hello %s", name)`       | %-style formatting   |
+| `"%s is %d" % (name, age)`      | `py.sprintf("%s is %d", [...])`      | Multiple values      |
+| `"Hello {}".format(name)`       | `py.strFormat("Hello {}", name)`     | .format() method     |
+| `"{0} {1}".format(a, b)`        | `py.strFormat("{0} {1}", a, b)`      | Indexed placeholders |
+| `"{name}".format(name="World")` | `py.strFormat("{name}", {name:...})` | Named placeholders   |
+
+### Generators
+
+| Python               | TypeScript              | Notes              |
+| -------------------- | ----------------------- | ------------------ |
+| `def gen(): yield x` | `function* gen() {...}` | Generator function |
+| `yield value`        | `yield value`           | Yield expression   |
+
+### Match Statement (Python 3.10+)
+
+| Python          | TypeScript      | Notes            |
+| --------------- | --------------- | ---------------- |
+| `match x:`      | `switch (x) {`  | Match statement  |
+| `case 1:`       | `case 1:`       | Literal pattern  |
+| `case "hello":` | `case "hello":` | String pattern   |
+| `case _:`       | `default:`      | Wildcard pattern |
+
+### Type Hints
+
+| Python                   | TypeScript                       | Notes               |
+| ------------------------ | -------------------------------- | ------------------- |
+| `x: int = 5`             | `let x: number = 5`              | Basic types         |
+| `x: str = "hi"`          | `let x: string = "hi"`           | String type         |
+| `x: List[int]`           | `x: number[]`                    | Generic list        |
+| `x: Dict[str, int]`      | `x: Record<string, number>`      | Generic dict        |
+| `x: Optional[str]`       | `x: string \| null`              | Optional type       |
+| `def fn(x: int) -> str:` | `function fn(x: number): string` | Function signatures |
+
+Use `emitTypes: false` in options to strip type annotations (for JavaScript output).
+
 ### Built-in Functions
 
 | Python                                    | TypeScript                                            |
@@ -245,13 +286,16 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 - [x] **Phase 1**: Literals, operators, control flow, functions, built-ins
 - [x] **Phase 2**: List/dict/set comprehensions
 - [x] **Phase 3**: Advanced functions (`*args`, `**kwargs`, lambda, decorators)
-- [x] **Phase 4**: Classes, inheritance, `@staticmethod`, `@property`
+- [x] **Phase 4**: Classes, inheritance, `@staticmethod`, `@property`, `@setter`
 - [x] **Phase 5**: Exception handling (`try`/`except`/`finally`, `raise`)
 - [x] **Phase 6**: Module imports (`import`, `from...import`, relative imports)
 - [x] **Phase 7**: Async/await, context managers (`with` statement)
 - [x] **F-Strings**: Template literals with format specifiers and conversions
 - [x] **Walrus Operator**: Assignment expressions (`:=`)
-- [ ] **Future**: Type hints
+- [x] **String Formatting**: `%`-style and `.format()` method
+- [x] **Generators**: `function*` syntax with `yield`
+- [x] **Match Statement**: Python 3.10+ `match`/`case` to `switch`
+- [x] **Type Hints**: Python types → TypeScript types (configurable)
 
 See [PLAN.md](./PLAN.md) for detailed implementation plans.
 
