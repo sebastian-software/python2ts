@@ -23,7 +23,39 @@ A TypeScript-based Python to TypeScript transpiler using real AST transformation
 npm install python2ts
 ```
 
-## Usage
+## CLI
+
+Transpile Python files from the command line:
+
+```bash
+# Transpile and print to stdout
+npx python2ts input.py
+
+# Transpile to a file
+npx python2ts input.py -o output.ts
+
+# Read from stdin
+cat input.py | npx python2ts
+
+# Without runtime import
+npx python2ts input.py --no-runtime
+
+# Custom runtime path
+npx python2ts input.py --runtime-path ./my/runtime
+```
+
+### CLI Options
+
+| Option                  | Description                                     |
+| ----------------------- | ----------------------------------------------- |
+| `[file]`                | Input Python file (reads from stdin if omitted) |
+| `-o, --output <file>`   | Write output to file (stdout if omitted)        |
+| `--no-runtime`          | Don't include runtime import statement          |
+| `--runtime-path <path>` | Custom runtime import path                      |
+| `-h, --help`            | Show help message                               |
+| `-v, --version`         | Show version number                             |
+
+## Programmatic Usage
 
 ### Basic Transpilation
 
