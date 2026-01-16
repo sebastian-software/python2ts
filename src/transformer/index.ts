@@ -212,7 +212,10 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
   if (assignOpIndex === -1) return getNodeText(node, ctx.source)
 
   // Collect targets (before =) and values (after =)
-  const targets = children.slice(0, assignOpIndex).filter((c) => c.name !== ",")
+  // Filter out commas and TypeDef nodes (type annotations like `: int`)
+  const targets = children
+    .slice(0, assignOpIndex)
+    .filter((c) => c.name !== "," && c.name !== "TypeDef")
   const values = children.slice(assignOpIndex + 1).filter((c) => c.name !== ",")
 
   /* c8 ignore next 3 - defensive: empty targets/values can't occur with valid Python */
