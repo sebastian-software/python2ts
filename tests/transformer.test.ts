@@ -229,9 +229,10 @@ describe("Transformer", () => {
       expect(result.code).toContain("continue;")
     })
 
-    it("should transform pass to comment", () => {
+    it("should strip pass statement", () => {
       const result = transform("if x:\n    pass")
-      expect(result.code).toContain("/* pass */")
+      expect(result.code).toContain("if (x) {")
+      expect(result.code).not.toContain("pass")
     })
   })
 

@@ -129,7 +129,7 @@ describe("E2E: With Statement", () => {
         try {
           const b = open('b.txt');
           try {
-          /* pass */;
+
           } finally {
             b[Symbol.dispose]?.() ?? b.close?.();
           }

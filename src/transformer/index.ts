@@ -9,6 +9,8 @@ export interface TransformContext {
   scopeStack: Set<string>[]
   /** Set of class names defined in this module (for adding 'new' on instantiation) */
   definedClasses: Set<string>
+  /** Whether currently processing an abstract class (ABC) */
+  isAbstractClass?: boolean
 }
 
 export interface TransformResult {
@@ -561,7 +563,7 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
     case "ForStatement":
       return transformForStatement(node, ctx)
     case "PassStatement":
-      return "/* pass */"
+      return ""
     case "BreakStatement":
       return "break"
     case "ContinueStatement":
@@ -609,6 +611,10 @@ function transformScript(node: SyntaxNode, ctx: TransformContext): string {
     .filter((child) => child.name !== "Comment" || getNodeText(child, ctx.source).trim() !== "")
     .map((child) => {
       const transformed = transformNode(child, ctx)
+      // Skip empty transformations (e.g., pass, TypeVar declarations)
+      if (transformed === "") {
+        return ""
+      }
       if (
         child.name === "ExpressionStatement" ||
         child.name === "AssignStatement" ||
@@ -656,6 +662,27 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
   /* c8 ignore next 3 - defensive: empty targets/values can't occur with valid Python */
   if (targets.length === 0 || values.length === 0) {
     return getNodeText(node, ctx.source)
+  }
+
+  // Strip TypeVar declarations - they're only needed for Python type checking
+  if (values.length === 1 && values[0]?.name === "CallExpression") {
+    const callChildren = getChildren(values[0])
+    const funcNode = callChildren.find((c) => c.name === "VariableName")
+    if (funcNode && getNodeText(funcNode, ctx.source) === "TypeVar") {
+      return ""
+    }
+  }
+
+  // Handle TypeAlias: Name: TypeAlias = Type → type Name = Type
+  if (typeDef && targets.length === 1 && values.length === 1) {
+    const typeDefText = getNodeText(typeDef, ctx.source)
+    const target = targets[0]
+    const value = values[0]
+    if (typeDefText.includes("TypeAlias") && target && value) {
+      const aliasName = getNodeText(target, ctx.source)
+      const aliasType = transformPythonType(value, ctx)
+      return `type ${aliasName} = ${aliasType}`
+    }
   }
 
   // Single target assignment
@@ -2546,7 +2573,13 @@ function transformSimpleImport(children: SyntaxNode[], ctx: TransformContext): s
 }
 
 /** Modules whose imports should be ignored (type-only modules) */
-const TYPING_MODULES = new Set(["typing", "typing_extensions", "collections.abc", "__future__"])
+const TYPING_MODULES = new Set([
+  "typing",
+  "typing_extensions",
+  "collections.abc",
+  "__future__",
+  "abc"
+])
 
 function transformFromImport(children: SyntaxNode[], ctx: TransformContext): string {
   // from os import path -> import { path } from "os"
@@ -2569,9 +2602,9 @@ function transformFromImport(children: SyntaxNode[], ctx: TransformContext): str
     }
   }
 
-  // Ignore typing module imports - TypeScript has its own type system
+  // Strip typing module imports entirely - TypeScript has its own type system
   if (TYPING_MODULES.has(preCheckModule)) {
-    return "/* typing imports removed - TypeScript has native types */"
+    return ""
   }
 
   let moduleName = ""
@@ -2813,6 +2846,10 @@ function transformBody(
   const statements = filteredChildren
     .map((child) => {
       const transformed = transformNode(child, ctx)
+      // Skip empty transformations (e.g., pass, TypeVar declarations)
+      if (transformed === "") {
+        return ""
+      }
       if (
         child.name === "ExpressionStatement" ||
         child.name === "AssignStatement" ||
@@ -2955,6 +2992,16 @@ function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): stri
       return transformTypedDict(className, body, totalFalse, ctx)
     }
 
+    // Special handling for Protocol
+    if (firstParent === "Protocol") {
+      return transformProtocol(className, parentClasses, body, ctx)
+    }
+
+    // Special handling for ABC (Abstract Base Class)
+    if (firstParent === "ABC" || parentClasses.includes("ABC")) {
+      return transformAbstractClass(className, parentClasses, body, ctx, jsdoc)
+    }
+
     // Check for Generic[T] in parent classes
     const genericParams = extractGenericParams(parentClasses)
     if (genericParams.length > 0) {
@@ -3078,10 +3125,30 @@ function transformClassMethod(
     prefix = "get "
   } else if (decorator === "setter") {
     prefix = "set "
+  } else if (decorator === "abstractmethod") {
+    // Abstract method: no body, just signature with return type and typed params
+    const typedParams = paramList ? transformMethodParamListWithTypes(paramList, ctx) : ""
+    const returnType = extractMethodReturnType(node, ctx)
+    const returnTypeStr = returnType ? `: ${returnType === "null" ? "void" : returnType}` : ""
+    const methodDecl = `${indent}abstract ${methodName}(${typedParams})${returnTypeStr}`
+    return jsdoc ? `${jsdoc}\n${methodDecl}` : methodDecl
   }
 
   const methodDecl = `${indent}${prefix}${generatorStar}${methodName}(${params}) {\n${bodyCode}\n${indent}}`
   return jsdoc ? `${jsdoc}\n${methodDecl}` : methodDecl
+}
+
+/**
+ * Extract return type from a method's TypeDef (-> ReturnType)
+ */
+function extractMethodReturnType(node: SyntaxNode, ctx: TransformContext): string | null {
+  const children = getChildren(node)
+  for (const child of children) {
+    if (child.name === "TypeDef") {
+      return extractTypeAnnotation(child, ctx)
+    }
+  }
+  return null
 }
 
 function transformClassDecoratedMethod(node: SyntaxNode, ctx: TransformContext): string {
@@ -3122,6 +3189,21 @@ function transformClassDecoratedMethod(node: SyntaxNode, ctx: TransformContext):
 }
 
 function transformMethodParamList(node: SyntaxNode, ctx: TransformContext): string {
+  return transformMethodParamListImpl(node, ctx, false)
+}
+
+/**
+ * Transform method parameter list with type annotations (for abstract methods)
+ */
+function transformMethodParamListWithTypes(node: SyntaxNode, ctx: TransformContext): string {
+  return transformMethodParamListImpl(node, ctx, true)
+}
+
+function transformMethodParamListImpl(
+  node: SyntaxNode,
+  ctx: TransformContext,
+  includeTypes: boolean
+): string {
   const children = getChildren(node)
   const params: string[] = []
   let i = 0
@@ -3177,21 +3259,39 @@ function transformMethodParamList(node: SyntaxNode, ctx: TransformContext): stri
       continue
     }
 
-    // Check for parameter with default value
+    // Check for parameter with default value or type annotation
     if (child.name === "VariableName") {
+      const nameCode = getNodeText(child, ctx.source)
+      let typeStr = ""
+      let defaultStr = ""
+      let consumed = 1
+
+      // Check for type annotation
       const nextChild = children[i + 1]
-      if (nextChild && nextChild.name === "AssignOp") {
+      if (nextChild?.name === "TypeDef" && includeTypes) {
+        const t = extractTypeAnnotation(nextChild, ctx)
+        if (t) typeStr = `: ${t}`
+        consumed++
+
+        // Check for default after type
+        const afterType = children[i + 2]
+        if (afterType?.name === "AssignOp") {
+          const defaultVal = children[i + 3]
+          if (defaultVal) {
+            defaultStr = ` = ${transformNode(defaultVal, ctx)}`
+            consumed += 2
+          }
+        }
+      } else if (nextChild?.name === "AssignOp") {
         const defaultValChild = children[i + 2]
         if (defaultValChild) {
-          const nameCode = getNodeText(child, ctx.source)
-          const defaultCode = transformNode(defaultValChild, ctx)
-          params.push(`${nameCode} = ${defaultCode}`)
-          i += 3
-          continue
+          defaultStr = ` = ${transformNode(defaultValChild, ctx)}`
+          consumed += 2
         }
       }
-      params.push(getNodeText(child, ctx.source))
-      i++
+
+      params.push(`${nameCode}${typeStr}${defaultStr}`)
+      i += consumed
       continue
     }
 
@@ -3226,6 +3326,11 @@ function transformClassMethodBody(
         transformed = transformNode(child, ctx)
       }
 
+      // Skip empty transformations (e.g., pass, TypeVar declarations)
+      if (transformed === "") {
+        return ""
+      }
+
       // Replace self. and cls. with this.
       transformed = transformed.replace(/\bself\./g, "this.")
       transformed = transformed.replace(/\bcls\./g, "this.")
@@ -3248,7 +3353,7 @@ function transformClassMethodBody(
       }
       return indent + transformed
     })
-    .filter((s) => s.trim() !== "" && s.trim() !== "/* pass */;")
+    .filter((s) => s.trim() !== "")
 
   ctx.indentLevel--
   return statements.join("\n")
@@ -3388,6 +3493,14 @@ function transformDecoratedStatement(node: SyntaxNode, ctx: TransformContext): s
   }
 
   const params = paramList ? transformParamList(paramList, ctx) : ""
+
+  // Handle @overload: generate only function signature (no body)
+  if (decorators.length === 1 && decorators[0]?.name === "overload") {
+    const returnType = extractMethodReturnType(funcDef, ctx)
+    const returnTypeStr = returnType ? `: ${returnType === "null" ? "void" : returnType}` : ""
+    return `function ${funcName}(${params})${returnTypeStr}`
+  }
+
   const bodyCode = body ? transformBody(body, ctx) : ""
 
   // Build the decorated function
@@ -4111,6 +4224,167 @@ function transformTypedDict(
   }
 
   return `interface ${className} {\n${members.join("\n")}\n}`
+}
+
+// ============================================================================
+// Abstract Class Transformation
+// ============================================================================
+
+/**
+ * Transform an ABC (Abstract Base Class) to a TypeScript abstract class
+ */
+function transformAbstractClass(
+  className: string,
+  parentClasses: string[],
+  body: SyntaxNode | null,
+  ctx: TransformContext,
+  jsdoc: string | null
+): string {
+  // Filter out ABC from parent classes
+  const filteredParents = parentClasses.filter((p) => p !== "ABC")
+
+  // Build class header
+  let classHeader = `abstract class ${className}`
+  const firstParent = filteredParents[0]
+  if (firstParent) {
+    classHeader += ` extends ${firstParent}`
+  }
+
+  // Transform class body with abstract method support
+  ctx.isAbstractClass = true
+  const bodyCode = body ? transformClassBody(body, ctx, false) : ""
+  ctx.isAbstractClass = false
+
+  const classDecl = `${classHeader} {\n${bodyCode}\n}`
+  return jsdoc ? `${jsdoc}\n${classDecl}` : classDecl
+}
+
+// ============================================================================
+// Protocol Transformation
+// ============================================================================
+
+/**
+ * Transform a Protocol class to a TypeScript interface
+ */
+function transformProtocol(
+  className: string,
+  parentClasses: string[],
+  body: SyntaxNode | null,
+  ctx: TransformContext
+): string {
+  const memberIndent = "  "
+  const members: string[] = []
+
+  // Check for Generic[T] in parent classes
+  const genericParams = extractGenericParams(parentClasses)
+  const genericStr = genericParams.length > 0 ? `<${genericParams.join(", ")}>` : ""
+
+  // Find other parent protocols (excluding Protocol and Generic[...])
+  const otherParents = parentClasses.filter((p) => p !== "Protocol" && !p.startsWith("Generic["))
+
+  if (body) {
+    const children = getChildren(body)
+    for (const child of children) {
+      if (child.name === ":") continue
+      if (child.name === "PassStatement") continue
+
+      // Handle method definitions
+      if (child.name === "FunctionDefinition") {
+        const sig = extractProtocolMethodSignature(child, ctx)
+        if (sig) {
+          members.push(`${memberIndent}${sig}`)
+        }
+      }
+      // Handle typed fields
+      else if (child.name === "ExpressionStatement" || child.name === "AssignStatement") {
+        const field =
+          parseDataclassFieldFromExpression(child, ctx) ||
+          parseDataclassFieldFromAssignment(child, ctx)
+        if (field) {
+          members.push(`${memberIndent}${field.name}: ${field.tsType}`)
+        }
+      }
+    }
+  }
+
+  // Build interface header
+  let header = `interface ${className}${genericStr}`
+  if (otherParents.length > 0) {
+    header += ` extends ${otherParents.join(", ")}`
+  }
+
+  if (members.length === 0) {
+    return `${header} {}`
+  }
+
+  return `${header} {\n${members.join("\n")}\n}`
+}
+
+/**
+ * Extract method signature from a FunctionDefinition for Protocol interface
+ */
+function extractProtocolMethodSignature(node: SyntaxNode, ctx: TransformContext): string | null {
+  const children = getChildren(node)
+  let methodName = ""
+  let params: string[] = []
+  let returnType = "void"
+
+  for (const child of children) {
+    if (child.name === "def") continue
+
+    if (child.name === "VariableName" && !methodName) {
+      methodName = getNodeText(child, ctx.source)
+    } else if (child.name === "ParamList") {
+      params = extractProtocolParams(child, ctx)
+    } else if (child.name === "TypeDef") {
+      const rt = extractTypeAnnotation(child, ctx)
+      if (rt) returnType = rt === "null" ? "void" : rt
+    }
+  }
+
+  if (!methodName || methodName === "__init__") return null
+
+  return `${methodName}(${params.join(", ")}): ${returnType}`
+}
+
+/**
+ * Extract parameter list for Protocol method (excluding self)
+ */
+function extractProtocolParams(node: SyntaxNode, ctx: TransformContext): string[] {
+  const children = getChildren(node)
+  const params: string[] = []
+
+  let i = 0
+  while (i < children.length) {
+    const child = children[i]
+    if (!child || child.name === "(" || child.name === ")" || child.name === ",") {
+      i++
+      continue
+    }
+
+    if (child.name === "VariableName") {
+      const paramName = getNodeText(child, ctx.source)
+      // Skip self/cls
+      if (paramName === "self" || paramName === "cls") {
+        i++
+        continue
+      }
+
+      // Check for type annotation
+      let paramType = "unknown"
+      const nextChild = children[i + 1]
+      if (nextChild?.name === "TypeDef") {
+        const t = extractTypeAnnotation(nextChild, ctx)
+        if (t) paramType = t
+        i++
+      }
+
+      params.push(`${paramName}: ${paramType}`)
+    }
+    i++
+  }
+
+  return params
 }
 
 // ============================================================================

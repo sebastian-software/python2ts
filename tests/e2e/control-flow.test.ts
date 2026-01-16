@@ -227,7 +227,7 @@ else:
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "if (x) {
-          /* pass */;
+
         }"
       `)
     })
@@ -237,7 +237,7 @@ else:
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "function foo() {
-          /* pass */;
+
         }"
       `)
     })

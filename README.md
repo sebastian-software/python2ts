@@ -280,6 +280,11 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `Literal["a", "b"]`                       | `"a" \| "b"`                                          | Literal types          |
 | `class Config(TypedDict):`                | `interface Config { ... }`                            | TypedDict → interface  |
 | `class Box(Generic[T]):`                  | `class Box<T> { ... }`                                | Generic classes        |
+| `Vector: TypeAlias = list[float]`         | `type Vector = number[]`                              | Type alias             |
+| `class Drawable(Protocol):`               | `interface Drawable { ... }`                          | Protocol → interface   |
+| `class Shape(ABC):`                       | `abstract class Shape { ... }`                        | Abstract base class    |
+| `@abstractmethod def area():`             | `abstract area(): ...`                                | Abstract method        |
+| `@overload def fn(x: int) -> int:`        | `function fn(x: number): number`                      | Function overloads     |
 | **F-Strings**                             |                                                       |                        |
 | `f"Hello {name}"`                         | `` `Hello ${name}` ``                                 | Basic f-string         |
 | `f"{value:.2f}"`                          | `` `${py.format(value, ".2f")}` ``                    | Format specifier       |
@@ -391,6 +396,10 @@ class Person {
 - [x] **Enum**: Type-safe enums → string unions or `as const` objects
 - [x] **TypedDict**: TypedDict classes → TypeScript interfaces
 - [x] **Generic[T]**: Generic classes with type parameters
+- [x] **TypeAlias**: Type aliases → TypeScript type declarations
+- [x] **Protocol**: Protocol classes → TypeScript interfaces
+- [x] **ABC/@abstractmethod**: Abstract base classes → TypeScript abstract classes
+- [x] **@overload**: Function overloads → TypeScript function signatures
 
 ## Architecture
 

@@ -48,7 +48,7 @@ describe("E2E: Advanced Functions", () => {
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "function process(data, callback = null) {
-          /* pass */;
+
         }"
       `)
     })
@@ -58,7 +58,7 @@ describe("E2E: Advanced Functions", () => {
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "function fetch(url, cache = true) {
-          /* pass */;
+
         }"
       `)
     })
@@ -68,7 +68,7 @@ describe("E2E: Advanced Functions", () => {
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "function append_to(item, target = []) {
-          /* pass */;
+
         }"
       `)
     })
@@ -149,7 +149,7 @@ describe("E2E: Advanced Functions", () => {
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "function greet(greeting, ...names) {
-          /* pass */;
+
         }"
       `)
     })
@@ -159,7 +159,7 @@ describe("E2E: Advanced Functions", () => {
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "function log(level = "INFO", ...messages) {
-          /* pass */;
+
         }"
       `)
     })
@@ -171,7 +171,7 @@ describe("E2E: Advanced Functions", () => {
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "function config(kwargs: Record<string, unknown> = {}) {
-          /* pass */;
+
         }"
       `)
     })
@@ -181,7 +181,7 @@ describe("E2E: Advanced Functions", () => {
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "function create(name, options: Record<string, unknown> = {}) {
-          /* pass */;
+
         }"
       `)
     })
@@ -191,7 +191,7 @@ describe("E2E: Advanced Functions", () => {
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "function flexible(...args) {
-          /* pass */;
+
         }"
       `)
     })
@@ -203,7 +203,7 @@ describe("E2E: Advanced Functions", () => {
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "function complex_func(a, b = 1, ...args) {
-          /* pass */;
+
         }"
       `)
     })
@@ -225,7 +225,7 @@ def func():
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "const func = my_decorator(function func() {
-          /* pass */;
+
         })"
       `)
     })
@@ -236,7 +236,7 @@ def func():
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "const func = my_decorator(arg1, arg2)(function func() {
-          /* pass */;
+
         })"
       `)
     })
@@ -248,7 +248,7 @@ def func():
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "const func = decorator1(decorator2(function func() {
-          /* pass */;
+
         }))"
       `)
     })
@@ -270,7 +270,7 @@ def expensive():
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "const expensive = cache({ maxsize: 100 })(function expensive() {
-          /* pass */;
+
         })"
       `)
     })
@@ -281,7 +281,7 @@ def process(data, timeout=30):
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "const process = validate(function process(data, timeout = 30) {
-          /* pass */;
+
         })"
       `)
     })

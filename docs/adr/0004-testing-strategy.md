@@ -59,6 +59,10 @@ tests/
     ├── enum.test.ts              # Enum transformation
     ├── typeddict.test.ts         # TypedDict transformation
     ├── generics.test.ts          # Generic[T] transformation
+    ├── typealias.test.ts         # TypeAlias transformation
+    ├── protocol.test.ts          # Protocol transformation
+    ├── abstract.test.ts          # ABC/@abstractmethod transformation
+    ├── overload.test.ts          # @overload transformation
     ├── smoke.test.ts             # Cross-Python verification
     └── edge-cases.test.ts        # Edge cases
 ```
