@@ -1,0 +1,55 @@
+{
+  "name": "python2ts",
+  "version": "0.1.0",
+  "description": "AST-based Python to TypeScript transpiler",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./runtime": {
+      "import": "./dist/runtime/index.js",
+      "types": "./dist/runtime/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src tests",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "python",
+    "typescript",
+    "transpiler",
+    "ast",
+    "converter"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^2.1.0",
+    "eslint": "^9.0.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^2.1.0"
+  },
+  "dependencies": {
+    "@lezer/common": "^1.2.0",
+    "@lezer/python": "^1.1.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
