@@ -77,6 +77,45 @@ py.slice([0, 1, 2, 3, 4], undefined, undefined, -1) // [4, 3, 2, 1, 0]
 ;[...py.zip([1, 2], ["a", "b"])] // [[1, 'a'], [2, 'b']]
 ```
 
+### Runtime Namespaces
+
+The runtime is organized into namespaces for better organization:
+
+```typescript
+// py.string.* - String methods
+py.string.join(", ", ["a", "b", "c"]) // "a, b, c"
+py.string.split("a,b,c", ",") // ["a", "b", "c"]
+py.string.strip("  hello  ") // "hello"
+py.string.upper("hello") // "HELLO"
+py.string.replace("hello", "l", "L") // "heLLo"
+py.string.startswith("hello", "he") // true
+py.string.find("hello", "ll") // 2
+
+// py.list.* - List methods
+const arr = [3, 1, 2]
+py.list.sort(arr) // arr is now [1, 2, 3]
+py.list.reverse(arr) // arr is now [3, 2, 1]
+py.list.append(arr, 4) // arr is now [3, 2, 1, 4]
+py.list.remove(arr, 2) // arr is now [3, 1, 4]
+py.list.index(arr, 1) // 1
+py.list.count([1, 1, 2], 1) // 2
+
+// py.dict.* - Dict methods
+const obj = { a: 1, b: 2 }
+py.dict.get(obj, "a") // 1
+py.dict.get(obj, "c", 0) // 0 (default)
+py.dict.keys(obj) // ["a", "b"]
+py.dict.values(obj) // [1, 2]
+py.dict.items(obj) // [["a", 1], ["b", 2]]
+
+// py.set.* - Set methods
+const s1 = new Set([1, 2, 3])
+const s2 = new Set([2, 3, 4])
+py.set.intersection(s1, s2) // Set {2, 3}
+py.set.union(s1, s2) // Set {1, 2, 3, 4}
+py.set.difference(s1, s2) // Set {1}
+```
+
 ### Advanced API
 
 ```typescript
@@ -293,9 +332,7 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 - [x] **String Formatting**: `%`-style and `.format()` method
 - [x] **Generators**: `function*` syntax with `yield`
 - [x] **Match Statement**: Python 3.10+ `match`/`case` to `switch`
-- [x] **Type Hints**: Python types → TypeScript types (configurable)
-
-See [PLAN.md](./PLAN.md) for detailed implementation plans.
+- [x] **Type Hints**: Python types → TypeScript types
 
 ## Architecture
 
