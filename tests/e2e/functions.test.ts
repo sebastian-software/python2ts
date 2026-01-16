@@ -6,38 +6,51 @@ describe("E2E: Functions", () => {
     it("should convert simple function", () => {
       const python = `def greet():
     print("Hello")`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("function greet()")
-      expect(ts).toContain('console.log("Hello")')
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function greet() {
+          console.log("Hello");
+        }"
+      `)
     })
 
     it("should convert function with parameters", () => {
       const python = `def add(a, b):
     return a + b`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("function add(a, b)")
-      expect(ts).toContain("return (a + b);")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function add(a, b) {
+          return (a + b);
+        }"
+      `)
     })
 
     it("should convert function with default parameters", () => {
       const python = `def greet(name, greeting = "Hello"):
     print(greeting, name)`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain('function greet(name, greeting = "Hello")')
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function greet(name, greeting = "Hello") {
+          console.log(greeting, name);
+        }"
+      `)
     })
 
     it("should convert function with return", () => {
       const python = `def square(x):
     return x * x`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("return (x * x);")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function square(x) {
+          return (x * x);
+        }"
+      `)
     })
 
     it("should convert function with empty return", () => {
       const python = `def early_return():
     return`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("return;")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function early_return() {
+          return;
+        }"
+      `)
     })
 
     it("should convert function with multiple statements", () => {
@@ -45,189 +58,237 @@ describe("E2E: Functions", () => {
     y = x + 1
     z = y * 2
     return z`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("let y = (x + 1);")
-      expect(ts).toContain("let z = (y * 2);")
-      expect(ts).toContain("return z;")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function process(x) {
+          let y = (x + 1);
+          let z = (y * 2);
+          return z;
+        }"
+      `)
     })
   })
 
   describe("Function Calls", () => {
     it("should convert simple function call", () => {
-      const python = "greet()"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toBe("greet();")
+      expect(transpile("greet()", { includeRuntime: false })).toMatchInlineSnapshot(`"greet();"`)
     })
 
     it("should convert function call with arguments", () => {
-      const python = "add(1, 2)"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toBe("add(1, 2);")
+      expect(transpile("add(1, 2)", { includeRuntime: false })).toMatchInlineSnapshot(
+        `"add(1, 2);"`
+      )
     })
 
     it("should convert nested function calls", () => {
-      const python = "outer(inner(x))"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toBe("outer(inner(x));")
+      expect(transpile("outer(inner(x))", { includeRuntime: false })).toMatchInlineSnapshot(
+        `"outer(inner(x));"`
+      )
     })
 
     it("should convert chained method calls", () => {
-      const python = "obj.method1().method2()"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("obj.method1().method2()")
+      expect(transpile("obj.method1().method2()", { includeRuntime: false })).toMatchInlineSnapshot(
+        `"obj.method1().method2();"`
+      )
     })
   })
 
   describe("Built-in Functions", () => {
     it("should convert print with multiple arguments", () => {
-      const python = 'print("Hello", name, "!")'
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toBe('console.log("Hello", name, "!");')
+      expect(
+        transpile('print("Hello", name, "!")', { includeRuntime: false })
+      ).toMatchInlineSnapshot(`"console.log("Hello", name, "!");"`)
     })
 
     it("should convert len", () => {
-      const python = "n = len(items)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.len(items)")
+      expect(transpile("n = len(items)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let n = py.len(items);"
+      `)
     })
 
     it("should convert range with one argument", () => {
-      const python = "r = range(10)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.range(10)")
+      expect(transpile("r = range(10)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let r = py.range(10);"
+      `)
     })
 
     it("should convert range with two arguments", () => {
-      const python = "r = range(1, 10)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.range(1, 10)")
+      expect(transpile("r = range(1, 10)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let r = py.range(1, 10);"
+      `)
     })
 
     it("should convert range with three arguments", () => {
-      const python = "r = range(0, 10, 2)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.range(0, 10, 2)")
+      expect(transpile("r = range(0, 10, 2)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let r = py.range(0, 10, 2);"
+      `)
     })
 
     it("should convert enumerate", () => {
-      const python = "e = enumerate(items)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.enumerate(items)")
+      expect(transpile("e = enumerate(items)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let e = py.enumerate(items);"
+      `)
     })
 
     it("should convert zip", () => {
-      const python = "z = zip(a, b)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.zip(a, b)")
+      expect(transpile("z = zip(a, b)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let z = py.zip(a, b);"
+      `)
     })
 
     it("should convert sorted", () => {
-      const python = "s = sorted(items)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.sorted(items)")
+      expect(transpile("s = sorted(items)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let s = py.sorted(items);"
+      `)
     })
 
     it("should convert reversed", () => {
-      const python = "r = reversed(items)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.reversed(items)")
+      expect(transpile("r = reversed(items)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let r = py.reversed(items);"
+      `)
     })
 
     it("should convert abs", () => {
-      const python = "a = abs(-5)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.abs(")
-      expect(ts).toContain("-5")
+      expect(transpile("a = abs(-5)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let a = py.abs((-5));"
+      `)
     })
 
     it("should convert min", () => {
-      const python = "m = min(1, 2, 3)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.min(1, 2, 3)")
+      expect(transpile("m = min(1, 2, 3)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let m = py.min(1, 2, 3);"
+      `)
     })
 
     it("should convert max", () => {
-      const python = "m = max(1, 2, 3)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.max(1, 2, 3)")
+      expect(transpile("m = max(1, 2, 3)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let m = py.max(1, 2, 3);"
+      `)
     })
 
     it("should convert sum", () => {
-      const python = "s = sum(numbers)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.sum(numbers)")
+      expect(transpile("s = sum(numbers)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let s = py.sum(numbers);"
+      `)
     })
 
     it("should convert int", () => {
-      const python = 'i = int("42")'
-      const ts = transpile(python)
-      expect(ts).toContain('py.int("42")')
+      expect(transpile('i = int("42")')).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let i = py.int("42");"
+      `)
     })
 
     it("should convert float", () => {
-      const python = 'f = float("3.14")'
-      const ts = transpile(python)
-      expect(ts).toContain('py.float("3.14")')
+      expect(transpile('f = float("3.14")')).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let f = py.float("3.14");"
+      `)
     })
 
     it("should convert str", () => {
-      const python = "s = str(42)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.str(42)")
+      expect(transpile("s = str(42)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let s = py.str(42);"
+      `)
     })
 
     it("should convert bool", () => {
-      const python = "b = bool(x)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.bool(x)")
+      expect(transpile("b = bool(x)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let b = py.bool(x);"
+      `)
     })
 
     it("should convert list", () => {
-      const python = "l = list(items)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.list(items)")
+      expect(transpile("l = list(items)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let l = py.list(items);"
+      `)
     })
 
     it("should convert dict", () => {
-      const python = "d = dict(entries)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.dict(entries)")
+      expect(transpile("d = dict(entries)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let d = py.dict(entries);"
+      `)
     })
 
     it("should convert set", () => {
-      const python = "s = set(items)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.set(items)")
+      expect(transpile("s = set(items)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let s = py.set(items);"
+      `)
     })
 
     it("should convert tuple", () => {
-      const python = "t = tuple(items)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.tuple(items)")
+      expect(transpile("t = tuple(items)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let t = py.tuple(items);"
+      `)
     })
 
     it("should convert isinstance", () => {
-      const python = "isinstance(x, int)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.isinstance(x, int)")
+      expect(transpile("isinstance(x, int)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.isinstance(x, int);"
+      `)
     })
 
     it("should convert type", () => {
-      const python = "type(x)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.type(x)")
+      expect(transpile("type(x)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.type(x);"
+      `)
     })
 
     it("should convert ord", () => {
-      const python = 'ord("A")'
-      const ts = transpile(python)
-      expect(ts).toContain('py.ord("A")')
+      expect(transpile('ord("A")')).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.ord("A");"
+      `)
     })
 
     it("should convert chr", () => {
-      const python = "chr(65)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.chr(65)")
+      expect(transpile("chr(65)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.chr(65);"
+      `)
     })
   })
 })

@@ -6,9 +6,11 @@ describe("E2E: Control Flow", () => {
     it("should convert simple if", () => {
       const python = `if x > 0:
     y = 1`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("if ((x > 0))")
-      expect(ts).toContain("let y = 1;")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "if ((x > 0)) {
+          let y = 1;
+        }"
+      `)
     })
 
     it("should convert if-else", () => {
@@ -16,9 +18,13 @@ describe("E2E: Control Flow", () => {
     y = 1
 else:
     y = -1`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("if ((x > 0))")
-      expect(ts).toContain("else")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "if ((x > 0)) {
+          let y = 1;
+        } else {
+          let y = (-1);
+        }"
+      `)
     })
 
     it("should convert if-elif-else", () => {
@@ -28,19 +34,28 @@ elif x < 0:
     y = -1
 else:
     y = 0`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("if ((x > 0))")
-      expect(ts).toContain("else if ((x < 0))")
-      expect(ts).toContain("else")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "if ((x > 0)) {
+          let y = 1;
+        } else if ((x < 0)) {
+          let y = (-1);
+        } else {
+          let y = 0;
+        }"
+      `)
     })
 
     it("should handle nested if statements", () => {
       const python = `if x > 0:
     if y > 0:
         z = 1`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("if ((x > 0))")
-      expect(ts).toContain("if ((y > 0))")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "if ((x > 0)) {
+          if ((y > 0)) {
+            let z = 1;
+        }
+        }"
+      `)
     })
   })
 
@@ -48,33 +63,47 @@ else:
     it("should convert while loop", () => {
       const python = `while x > 0:
     x = x - 1`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("while ((x > 0))")
-      expect(ts).toContain("let x = (x - 1);")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "while ((x > 0)) {
+          let x = (x - 1);
+        }"
+      `)
     })
 
     it("should convert while True", () => {
       const python = `while True:
     break`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("while (true)")
-      expect(ts).toContain("break;")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "while (true) {
+          break;
+        }"
+      `)
     })
 
     it("should handle break statement", () => {
       const python = `while True:
     if done:
         break`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("break;")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "while (true) {
+          if (done) {
+            break;
+        }
+        }"
+      `)
     })
 
     it("should handle continue statement", () => {
       const python = `while True:
     if skip:
         continue`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("continue;")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "while (true) {
+          if (skip) {
+            continue;
+        }
+        }"
+      `)
     })
   })
 
@@ -82,73 +111,113 @@ else:
     it("should convert for-in loop", () => {
       const python = `for item in items:
     print(item)`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("for (const item of items)")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "for (const item of items) {
+          console.log(item);
+        }"
+      `)
     })
 
     it("should convert for-range loop", () => {
       const python = `for i in range(10):
     print(i)`
-      const ts = transpile(python)
-      expect(ts).toContain("for (const i of py.range(10))")
+      expect(transpile(python)).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        for (const i of py.range(10)) {
+          console.log(i);
+        }"
+      `)
     })
 
     it("should convert for-enumerate loop", () => {
       const python = `for i, item in enumerate(items):
     print(i, item)`
-      const ts = transpile(python)
-      expect(ts).toContain("for (const [i, item] of py.enumerate(items))")
+      expect(transpile(python)).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        for (const [i, item] of py.enumerate(items)) {
+          console.log(i, item);
+        }"
+      `)
     })
 
     it("should handle tuple unpacking in for loop", () => {
       const python = `for x, y in pairs:
     print(x, y)`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("for (const [x, y] of pairs)")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "for (const [x, y] of pairs) {
+          console.log(x, y);
+        }"
+      `)
     })
 
     it("should handle nested tuple unpacking in for loop", () => {
       const python = `for i, (a, b) in items:
     print(i, a, b)`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("for (const [i, [a, b]] of items)")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "for (const [i, [a, b]] of items) {
+          console.log(i, a, b);
+        }"
+      `)
     })
 
     it("should handle triple unpacking", () => {
       const python = `for a, b, c in triples:
     print(a, b, c)`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("for (const [a, b, c] of triples)")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "for (const [a, b, c] of triples) {
+          console.log(a, b, c);
+        }"
+      `)
     })
 
     it("should handle dict.items() unpacking", () => {
       const python = `for key, value in d.items():
     print(key, value)`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("for (const [key, value] of d.items())")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "for (const [key, value] of d.items()) {
+          console.log(key, value);
+        }"
+      `)
     })
 
     it("should handle zip unpacking", () => {
       const python = `for a, b in zip(list1, list2):
     print(a, b)`
-      const ts = transpile(python)
-      expect(ts).toContain("for (const [a, b] of py.zip(list1, list2))")
+      expect(transpile(python)).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        for (const [a, b] of py.zip(list1, list2)) {
+          console.log(a, b);
+        }"
+      `)
     })
 
     it("should handle break in for loop", () => {
       const python = `for i in items:
     if found:
         break`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("break;")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "for (const i of items) {
+          if (found) {
+            break;
+        }
+        }"
+      `)
     })
 
     it("should handle continue in for loop", () => {
       const python = `for i in items:
     if skip:
         continue`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("continue;")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "for (const i of items) {
+          if (skip) {
+            continue;
+        }
+        }"
+      `)
     })
   })
 
@@ -156,24 +225,30 @@ else:
     it("should convert pass to comment", () => {
       const python = `if x:
     pass`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("/* pass */")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "if (x) {
+          /* pass */;
+        }"
+      `)
     })
 
     it("should convert pass in function", () => {
       const python = `def foo():
     pass`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("/* pass */")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function foo() {
+          /* pass */;
+        }"
+      `)
     })
   })
 
   describe("Conditional Expressions (Ternary)", () => {
     it("should convert conditional expression", () => {
       const python = "y = 1 if x > 0 else -1"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("?")
-      expect(ts).toContain(":")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
+        `"let y = ((x > 0) ? 1 : (-1));"`
+      )
     })
   })
 
@@ -182,27 +257,41 @@ else:
       const python = `for i in range(3):
     for j in range(3):
         print(i, j)`
-      const ts = transpile(python)
-      expect(ts).toContain("for (const i of py.range(3))")
-      expect(ts).toContain("for (const j of py.range(3))")
+      expect(transpile(python)).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        for (const i of py.range(3)) {
+          for (const j of py.range(3)) {
+            console.log(i, j);
+        }
+        }"
+      `)
     })
 
     it("should handle loop inside if", () => {
       const python = `if items:
     for item in items:
         print(item)`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("if (items)")
-      expect(ts).toContain("for (const item of items)")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "if (items) {
+          for (const item of items) {
+            console.log(item);
+        }
+        }"
+      `)
     })
 
     it("should handle if inside loop", () => {
       const python = `for item in items:
     if item > 0:
         print(item)`
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("for (const item of items)")
-      expect(ts).toContain("if ((item > 0))")
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "for (const item of items) {
+          if ((item > 0)) {
+            console.log(item);
+        }
+        }"
+      `)
     })
   })
 })

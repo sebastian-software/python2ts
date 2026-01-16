@@ -4,253 +4,267 @@ import { transpile } from "../../src/generator/index.js"
 describe("E2E: Comprehensions", () => {
   describe("List Comprehensions", () => {
     it("should transform simple list comprehension", () => {
-      const python = "[x * 2 for x in items]"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toBe("items.map((x) => (x * 2));")
+      expect(transpile("[x * 2 for x in items]", { includeRuntime: false })).toMatchInlineSnapshot(
+        `"items.map((x) => (x * 2));"`
+      )
     })
 
     it("should transform list comprehension with variable expression", () => {
-      const python = "[x for x in items]"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toBe("items.map((x) => x);")
+      expect(transpile("[x for x in items]", { includeRuntime: false })).toMatchInlineSnapshot(
+        `"items.map((x) => x);"`
+      )
     })
 
     it("should transform list comprehension with condition", () => {
-      const python = "[x for x in items if x > 0]"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain(".filter((x) => (x > 0))")
-      expect(ts).toContain(".map((x) => x)")
+      expect(
+        transpile("[x for x in items if x > 0]", { includeRuntime: false })
+      ).toMatchInlineSnapshot(`"items.filter((x) => (x > 0)).map((x) => x);"`)
     })
 
     it("should transform list comprehension with multiple conditions", () => {
-      const python = "[x for x in items if x > 0 if x < 10]"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain(".filter")
-      expect(ts).toContain(".map")
+      expect(
+        transpile("[x for x in items if x > 0 if x < 10]", { includeRuntime: false })
+      ).toMatchInlineSnapshot(
+        `"items.filter((x) => (x > 0)).filter((x) => (x < 10)).map((x) => x);"`
+      )
     })
 
     it("should transform nested list comprehension (two for clauses)", () => {
-      const python = "[x + y for x in a for y in b]"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain(".flatMap")
-      expect(ts).toContain(".map")
+      expect(
+        transpile("[x + y for x in a for y in b]", { includeRuntime: false })
+      ).toMatchInlineSnapshot(`"a.flatMap((x) => b.map((y) => (x + y)));"`)
     })
 
     it("should transform list comprehension with function call", () => {
-      const python = "[len(x) for x in items]"
-      const ts = transpile(python)
-      expect(ts).toContain("py.len(x)")
-      expect(ts).toContain(".map")
+      expect(transpile("[len(x) for x in items]")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        items.map((x) => py.len(x));"
+      `)
     })
 
     it("should transform list comprehension with range", () => {
-      const python = "[x ** 2 for x in range(10)]"
-      const ts = transpile(python)
-      expect(ts).toContain("py.range(10)")
-      expect(ts).toContain(".map")
-      expect(ts).toContain("py.pow(x, 2)")
+      expect(transpile("[x ** 2 for x in range(10)]")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.range(10).map((x) => py.pow(x, 2));"
+      `)
     })
 
     it("should transform list comprehension assigned to variable", () => {
-      const python = "squares = [x * x for x in numbers]"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("let squares = numbers.map((x) => (x * x))")
+      expect(
+        transpile("squares = [x * x for x in numbers]", { includeRuntime: false })
+      ).toMatchInlineSnapshot(`"let squares = numbers.map((x) => (x * x));"`)
     })
 
     it("should transform list comprehension with complex expression", () => {
-      const python = "[x + 1 for x in items if x % 2 == 0]"
-      const ts = transpile(python)
-      expect(ts).toContain(".filter")
-      expect(ts).toContain(".map")
+      expect(transpile("[x + 1 for x in items if x % 2 == 0]")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        items.filter((x) => (py.mod(x, 2) == 0)).map((x) => (x + 1));"
+      `)
     })
   })
 
   describe("Dict Comprehensions", () => {
     it("should transform simple dict comprehension", () => {
-      const python = "{x: x * 2 for x in items}"
-      const ts = transpile(python)
-      expect(ts).toContain("py.dict(")
-      expect(ts).toContain(".map((x) => [x, (x * 2)])")
+      expect(transpile("{x: x * 2 for x in items}")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.dict(items.map((x) => [x, (x * 2)]));"
+      `)
     })
 
     it("should transform dict comprehension with condition", () => {
-      const python = "{x: x ** 2 for x in items if x > 0}"
-      const ts = transpile(python)
-      expect(ts).toContain("py.dict(")
-      expect(ts).toContain(".filter((x) => (x > 0))")
-      expect(ts).toContain(".map")
+      expect(transpile("{x: x ** 2 for x in items if x > 0}")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.dict(items.filter((x) => (x > 0)).map((x) => [x, py.pow(x, 2)]));"
+      `)
     })
 
     it("should transform dict comprehension with range", () => {
-      const python = "{i: i * i for i in range(5)}"
-      const ts = transpile(python)
-      expect(ts).toContain("py.dict(")
-      expect(ts).toContain("py.range(5)")
+      expect(transpile("{i: i * i for i in range(5)}")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.dict(py.range(5).map((i) => [i, (i * i)]));"
+      `)
     })
   })
 
   describe("Set Comprehensions", () => {
     it("should transform simple set comprehension", () => {
-      const python = "{x * 2 for x in items}"
-      const ts = transpile(python)
-      expect(ts).toContain("py.set(")
-      expect(ts).toContain(".map((x) => (x * 2))")
+      expect(transpile("{x * 2 for x in items}")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.set(items.map((x) => (x * 2)));"
+      `)
     })
 
     it("should transform set comprehension with condition", () => {
-      const python = "{x for x in items if x > 0}"
-      const ts = transpile(python)
-      expect(ts).toContain("py.set(")
-      expect(ts).toContain(".filter((x) => (x > 0))")
+      expect(transpile("{x for x in items if x > 0}")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.set(items.filter((x) => (x > 0)).map((x) => x));"
+      `)
     })
 
     it("should transform set comprehension with function", () => {
-      const python = "{len(s) for s in strings}"
-      const ts = transpile(python)
-      expect(ts).toContain("py.set(")
-      expect(ts).toContain("py.len(s)")
+      expect(transpile("{len(s) for s in strings}")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.set(strings.map((s) => py.len(s)));"
+      `)
     })
   })
 
   describe("Set Expressions", () => {
     it("should transform set literal", () => {
-      const python = "{1, 2, 3}"
-      const ts = transpile(python)
-      expect(ts).toContain("py.set([1, 2, 3])")
+      expect(transpile("{1, 2, 3}")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.set([1, 2, 3]);"
+      `)
     })
 
     it("should transform empty set constructor", () => {
-      const python = "s = set()"
-      const ts = transpile(python)
-      expect(ts).toContain("py.set()")
+      expect(transpile("s = set()")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let s = py.set();"
+      `)
     })
   })
 
   describe("Comprehension Edge Cases", () => {
     it("should handle comprehension with method call on item", () => {
-      const python = "[s.strip() for s in strings]"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain(".map")
-      expect(ts).toContain("s.strip()")
+      expect(
+        transpile("[s.strip() for s in strings]", { includeRuntime: false })
+      ).toMatchInlineSnapshot(`"strings.map((s) => s.strip());"`)
     })
 
     it("should handle comprehension with nested function calls", () => {
-      const python = "[str(int(x)) for x in items]"
-      const ts = transpile(python)
-      expect(ts).toContain("py.str(py.int(x))")
+      expect(transpile("[str(int(x)) for x in items]")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        items.map((x) => py.str(py.int(x)));"
+      `)
     })
 
     it("should handle comprehension with arithmetic in condition", () => {
-      const python = "[x for x in items if x + 1 > 5]"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain(".filter")
-      expect(ts).toContain("(x + 1) > 5")
+      expect(
+        transpile("[x for x in items if x + 1 > 5]", { includeRuntime: false })
+      ).toMatchInlineSnapshot(`"items.filter((x) => ((x + 1) > 5)).map((x) => x);"`)
     })
   })
 
   describe("Real-world Examples", () => {
     it("should transform filtering even numbers", () => {
-      const python = "evens = [x for x in numbers if x % 2 == 0]"
-      const ts = transpile(python)
-      expect(ts).toContain(".filter")
-      expect(ts).toContain("py.mod(x, 2)")
+      expect(transpile("evens = [x for x in numbers if x % 2 == 0]")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let evens = numbers.filter((x) => (py.mod(x, 2) == 0)).map((x) => x);"
+      `)
     })
 
     it("should transform mapping with transformation", () => {
-      const python = "upper_words = [word.upper() for word in words]"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain(".map")
-      expect(ts).toContain("word.upper()")
+      expect(
+        transpile("upper_words = [word.upper() for word in words]", { includeRuntime: false })
+      ).toMatchInlineSnapshot(`"let upper_words = words.map((word) => word.upper());"`)
     })
 
     it("should transform flattening nested lists", () => {
-      const python = "flat = [item for sublist in nested for item in sublist]"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain(".flatMap")
+      expect(
+        transpile("flat = [item for sublist in nested for item in sublist]", {
+          includeRuntime: false
+        })
+      ).toMatchInlineSnapshot(
+        `"let flat = nested.flatMap((sublist) => sublist.map((item) => item));"`
+      )
     })
 
     it("should transform creating pairs", () => {
-      const python = "pairs = [(x, y) for x in a for y in b]"
-      const ts = transpile(python)
-      expect(ts).toContain(".flatMap")
-      expect(ts).toContain("py.tuple")
+      expect(transpile("pairs = [(x, y) for x in a for y in b]")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        let pairs = a.flatMap((x) => b.map((y) => py.tuple(x, y)));"
+      `)
     })
   })
 
   describe("Generator Expressions", () => {
     it("should transform simple generator expression", () => {
-      const python = "(x for x in items)"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("function*()")
-      expect(ts).toContain("yield x")
-      expect(ts).toContain("for (const x of items)")
+      expect(transpile("(x for x in items)", { includeRuntime: false })).toMatchInlineSnapshot(
+        `"(function*() { for (const x of items) yield x; })();"`
+      )
     })
 
     it("should transform generator with expression", () => {
-      const python = "(x * 2 for x in items)"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("function*()")
-      expect(ts).toContain("yield (x * 2)")
+      expect(transpile("(x * 2 for x in items)", { includeRuntime: false })).toMatchInlineSnapshot(
+        `"(function*() { for (const x of items) yield (x * 2); })();"`
+      )
     })
 
     it("should transform generator with condition", () => {
-      const python = "(x for x in items if x > 0)"
-      const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("function*()")
-      expect(ts).toContain("if ((x > 0))")
-      expect(ts).toContain("yield x")
+      expect(
+        transpile("(x for x in items if x > 0)", { includeRuntime: false })
+      ).toMatchInlineSnapshot(`"(function*() { for (const x of items) if ((x > 0)) yield x; })();"`)
     })
 
     it("should transform generator inside sum()", () => {
-      const python = "sum(x for x in items)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.sum(")
-      expect(ts).toContain("function*()")
+      expect(transpile("sum(x for x in items)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.sum((function*() { for (const x of items) yield x; })());"
+      `)
     })
 
     it("should transform generator inside any()", () => {
-      const python = "any(x > 0 for x in items)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.any(")
-      expect(ts).toContain("yield (x > 0)")
+      expect(transpile("any(x > 0 for x in items)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.any((function*() { for (const x of items) yield (x > 0); })());"
+      `)
     })
 
     it("should transform generator inside all()", () => {
-      const python = "all(x > 0 for x in items)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.all(")
-      expect(ts).toContain("yield (x > 0)")
+      expect(transpile("all(x > 0 for x in items)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.all((function*() { for (const x of items) yield (x > 0); })());"
+      `)
     })
 
     it("should transform generator with nested loops", () => {
-      const python = "((x, y) for x in a for y in b)"
-      const ts = transpile(python)
-      expect(ts).toContain("function*()")
-      expect(ts).toContain("for (const x of a)")
-      expect(ts).toContain("for (const y of b)")
-      expect(ts).toContain("py.tuple(x, y)")
+      expect(transpile("((x, y) for x in a for y in b)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        (function*() { for (const x of a)   for (const y of b) yield py.tuple(x, y); })();"
+      `)
     })
 
     it("should transform generator with range", () => {
-      const python = "sum(x ** 2 for x in range(10))"
-      const ts = transpile(python)
-      expect(ts).toContain("py.sum(")
-      expect(ts).toContain("py.range(10)")
-      expect(ts).toContain("py.pow(x, 2)")
+      expect(transpile("sum(x ** 2 for x in range(10))")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.sum((function*() { for (const x of py.range(10)) yield py.pow(x, 2); })());"
+      `)
     })
 
     it("should transform max with generator", () => {
-      const python = "max(len(s) for s in strings)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.max(")
-      expect(ts).toContain("py.len(s)")
+      expect(transpile("max(len(s) for s in strings)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.max((function*() { for (const s of strings) yield py.len(s); })());"
+      `)
     })
 
     it("should transform min with generator and condition", () => {
-      const python = "min(x for x in numbers if x > 0)"
-      const ts = transpile(python)
-      expect(ts).toContain("py.min(")
-      expect(ts).toContain("if ((x > 0))")
+      expect(transpile("min(x for x in numbers if x > 0)")).toMatchInlineSnapshot(`
+        "import { py } from 'python2ts/runtime';
+
+        py.min((function*() { for (const x of numbers) if ((x > 0)) yield x; })());"
+      `)
     })
   })
 })
