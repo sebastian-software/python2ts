@@ -57,6 +57,8 @@ tests/
     ├── dataclass.test.ts         # @dataclass transformation
     ├── namedtuple.test.ts        # NamedTuple transformation
     ├── enum.test.ts              # Enum transformation
+    ├── typeddict.test.ts         # TypedDict transformation
+    ├── generics.test.ts          # Generic[T] transformation
     ├── smoke.test.ts             # Cross-Python verification
     └── edge-cases.test.ts        # Edge cases
 ```

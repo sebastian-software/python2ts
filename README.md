@@ -277,6 +277,9 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `x: Dict[str, int]`                       | `x: Record<string, number>`                           | Generic dict           |
 | `x: Optional[str]`                        | `x: string \| null`                                   | Optional type          |
 | `def fn(x: int) -> str:`                  | `function fn(x: number): string`                      | Function signatures    |
+| `Literal["a", "b"]`                       | `"a" \| "b"`                                          | Literal types          |
+| `class Config(TypedDict):`                | `interface Config { ... }`                            | TypedDict → interface  |
+| `class Box(Generic[T]):`                  | `class Box<T> { ... }`                                | Generic classes        |
 | **F-Strings**                             |                                                       |                        |
 | `f"Hello {name}"`                         | `` `Hello ${name}` ``                                 | Basic f-string         |
 | `f"{value:.2f}"`                          | `` `${py.format(value, ".2f")}` ``                    | Format specifier       |
@@ -386,6 +389,8 @@ class Person {
 - [x] **@dataclass**: Automatic constructor generation with typed fields
 - [x] **NamedTuple**: Immutable classes with readonly fields and Object.freeze
 - [x] **Enum**: Type-safe enums → string unions or `as const` objects
+- [x] **TypedDict**: TypedDict classes → TypeScript interfaces
+- [x] **Generic[T]**: Generic classes with type parameters
 
 ## Architecture
 

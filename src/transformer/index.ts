@@ -167,9 +167,23 @@ function transformPythonType(node: SyntaxNode, ctx: TransformContext): string {
           return typeArgs.length > 0
             ? `new (...args: unknown[]) => ${first}`
             : "new (...args: unknown[]) => unknown"
-        case "Literal":
+        case "Literal": {
           // Literal["a", "b"] -> "a" | "b"
-          return typeArgs.join(" | ")
+          // Literal[1, 2, 3] -> 1 | 2 | 3
+          const literalValues = typeArgs.map((arg) => {
+            // If it's a number, keep as-is
+            if (/^-?\d+(\.\d+)?$/.test(arg)) {
+              return arg
+            }
+            // If it's already quoted, keep as-is
+            if (arg.startsWith('"') || arg.startsWith("'")) {
+              return arg
+            }
+            // Otherwise wrap in quotes (it was a string literal)
+            return `"${arg}"`
+          })
+          return literalValues.join(" | ")
+        }
         default:
           // Generic class type: MyClass[T] -> MyClass<T>
           return typeArgs.length > 0 ? `${baseName}<${typeArgs.join(", ")}>` : baseName
@@ -2898,11 +2912,15 @@ function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): stri
       // Track class name for 'new' keyword on instantiation
       ctx.definedClasses.add(className)
     } else if (child.name === "ArgList") {
-      // Inheritance: class Child(Parent) or class Child(A, B, C)
+      // Inheritance: class Child(Parent) or class Child(A, B, C) or class Child(Generic[T])
       const argChildren = getChildren(child)
-      const parentNodes = argChildren.filter((c) => c.name === "VariableName")
-      for (const parentNode of parentNodes) {
-        parentClasses.push(getNodeText(parentNode, ctx.source))
+      for (const argChild of argChildren) {
+        if (argChild.name === "VariableName") {
+          parentClasses.push(getNodeText(argChild, ctx.source))
+        } else if (argChild.name === "MemberExpression") {
+          // Handle Generic[T], Generic[K, V] etc.
+          parentClasses.push(getNodeText(argChild, ctx.source))
+        }
       }
     } else if (child.name === "Body") {
       body = child
@@ -2929,6 +2947,20 @@ function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): stri
     // Special handling for Enum types
     if (firstParent === "Enum" || firstParent === "IntEnum" || firstParent === "StrEnum") {
       return transformEnum(className, firstParent, body, ctx)
+    }
+
+    // Special handling for TypedDict
+    if (firstParent === "TypedDict") {
+      const totalFalse = checkTypedDictTotalFalse(node, ctx)
+      return transformTypedDict(className, body, totalFalse, ctx)
+    }
+
+    // Check for Generic[T] in parent classes
+    const genericParams = extractGenericParams(parentClasses)
+    if (genericParams.length > 0) {
+      // Filter out Generic[...] from extends
+      const filteredParents = parentClasses.filter((p) => !p.startsWith("Generic["))
+      return transformGenericClass(className, genericParams, filteredParents, body, ctx, jsdoc)
     }
 
     // Use first parent for extends
@@ -4034,6 +4066,100 @@ function generateNameUnionEnum(className: string, members: EnumMember[]): string
 function generateConstObjectEnum(className: string, members: EnumMember[]): string {
   const entries = members.map((m) => `  ${m.name}: ${m.value}`).join(",\n")
   return `const ${className} = {\n${entries}\n} as const\ntype ${className} = typeof ${className}[keyof typeof ${className}]`
+}
+
+// ============================================================================
+// TypedDict Transformation
+// ============================================================================
+
+/**
+ * Check if TypedDict has total=False in parent list
+ */
+function checkTypedDictTotalFalse(node: SyntaxNode, ctx: TransformContext): boolean {
+  const children = getChildren(node)
+  for (const child of children) {
+    if (child.name === "ArgList") {
+      const argText = getNodeText(child, ctx.source)
+      // Check for total=False or total: False
+      if (argText.includes("total=False") || argText.includes("total: False")) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
+/**
+ * Transform a TypedDict class to a TypeScript interface
+ */
+function transformTypedDict(
+  className: string,
+  body: SyntaxNode | null,
+  totalFalse: boolean,
+  ctx: TransformContext
+): string {
+  const fields = body ? extractDataclassFields(body, ctx) : []
+  const memberIndent = "  "
+
+  const members = fields.map((f) => {
+    const optional = totalFalse ? "?" : ""
+    return `${memberIndent}${f.name}${optional}: ${f.tsType}`
+  })
+
+  if (members.length === 0) {
+    return `interface ${className} {}`
+  }
+
+  return `interface ${className} {\n${members.join("\n")}\n}`
+}
+
+// ============================================================================
+// Generic Class Transformation
+// ============================================================================
+
+/**
+ * Extract generic type parameters from parent classes
+ * e.g., ["Generic[T, V]"] -> ["T", "V"]
+ */
+function extractGenericParams(parentClasses: string[]): string[] {
+  for (const parent of parentClasses) {
+    if (parent.startsWith("Generic[") && parent.endsWith("]")) {
+      // Extract "T, V" from "Generic[T, V]"
+      const inner = parent.slice(8, -1) // Remove "Generic[" and "]"
+      return inner.split(",").map((p) => p.trim())
+    }
+  }
+  return []
+}
+
+/**
+ * Transform a generic class (class Foo(Generic[T])) to TypeScript
+ */
+function transformGenericClass(
+  className: string,
+  genericParams: string[],
+  parentClasses: string[],
+  body: SyntaxNode | null,
+  ctx: TransformContext,
+  jsdoc: string | null
+): string {
+  // Build generic parameters string
+  const genericStr = `<${genericParams.join(", ")}>`
+
+  // Build class header
+  let classHeader = `class ${className}${genericStr}`
+
+  // Add extends if there are other parent classes
+  const firstParent = parentClasses[0]
+  if (firstParent) {
+    classHeader += ` extends ${firstParent}`
+  }
+
+  // Transform class body
+  const bodyCode = body ? transformClassBody(body, ctx, false) : ""
+
+  const classDecl = `${classHeader} {\n${bodyCode}\n}`
+  return jsdoc ? `${jsdoc}\n${classDecl}` : classDecl
 }
 
 function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
