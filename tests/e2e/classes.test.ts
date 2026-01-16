@@ -301,4 +301,39 @@ describe("E2E: Classes", () => {
       `)
     })
   })
+
+  describe("Method Variations", () => {
+    it("should handle method with *args", () => {
+      const code = "class Foo:\n    def method(self, *args):\n        pass"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("...args")
+    })
+
+    it("should handle method with **kwargs", () => {
+      const code = "class Foo:\n    def method(self, **kwargs):\n        pass"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("kwargs")
+    })
+
+    it("should handle method with default params", () => {
+      const code = "class Foo:\n    def method(self, x=10, y=20):\n        pass"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("= 10")
+      expect(result).toContain("= 20")
+    })
+
+    it("should handle classmethod with cls parameter", () => {
+      const code = "class Foo:\n    @classmethod\n    def create(cls, x):\n        pass"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toContain("static")
+    })
+  })
+
+  describe("Multiple Inheritance", () => {
+    it("should handle class with multiple bases", () => {
+      const code = "class C(A, B):\n    pass"
+      const result = transpile(code, { includeRuntime: false })
+      expect(result).toBeDefined()
+    })
+  })
 })
