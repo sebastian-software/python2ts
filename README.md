@@ -211,6 +211,15 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `f"{text!a}"`     | `` `${py.ascii(text)}` ``          | ASCII conversion |
 | `f"{{escaped}}"`  | `` `{escaped}` ``                  | Escaped braces   |
 
+### Walrus Operator
+
+| Python                  | TypeScript                 | Notes               |
+| ----------------------- | -------------------------- | ------------------- |
+| `(n := expr)`           | `(n = expr)`               | Assignment expr     |
+| `if (n := len(a)) > 0:` | `if ((n = py.len(a)) > 0)` | In conditionals     |
+| `while (x := next()):`  | `while ((x = next()))`     | In while loops      |
+| `[y := f(x), y*2]`      | `[y = f(x), y * 2]`        | In list expressions |
+
 ### Built-in Functions
 
 | Python                                    | TypeScript                                            |
@@ -241,7 +250,8 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 - [x] **Phase 6**: Module imports (`import`, `from...import`, relative imports)
 - [x] **Phase 7**: Async/await, context managers (`with` statement)
 - [x] **F-Strings**: Template literals with format specifiers and conversions
-- [ ] **Future**: Type hints, walrus operator
+- [x] **Walrus Operator**: Assignment expressions (`:=`)
+- [ ] **Future**: Type hints
 
 See [PLAN.md](./PLAN.md) for detailed implementation plans.
 

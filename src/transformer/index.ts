@@ -47,6 +47,8 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformCompareOp(node, ctx)
     case "ParenthesizedExpression":
       return transformParenthesizedExpression(node, ctx)
+    case "NamedExpression":
+      return transformNamedExpression(node, ctx)
     case "ConditionalExpression":
       return transformConditionalExpression(node, ctx)
     case "Number":
@@ -337,6 +339,22 @@ function transformParenthesizedExpression(node: SyntaxNode, ctx: TransformContex
   const inner = children.find((c) => c.name !== "(" && c.name !== ")")
   if (!inner) return "()"
   return `(${transformNode(inner, ctx)})`
+}
+
+function transformNamedExpression(node: SyntaxNode, ctx: TransformContext): string {
+  // Walrus operator: (name := expr) → (name = expr)
+  const children = getChildren(node)
+  const varName = children.find((c) => c.name === "VariableName")
+  const value = children.find((c) => c.name !== "VariableName" && c.name !== "AssignOp")
+
+  if (!varName || !value) {
+    return getNodeText(node, ctx.source)
+  }
+
+  const name = getNodeText(varName, ctx.source)
+  const valueCode = transformNode(value, ctx)
+
+  return `${name} = ${valueCode}`
 }
 
 function transformConditionalExpression(node: SyntaxNode, ctx: TransformContext): string {

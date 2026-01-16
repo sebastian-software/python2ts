@@ -126,8 +126,8 @@ namespace.
 - [x] `async with` statement
 - [x] Context managers (`with` statement) → `try/finally` with `Symbol.dispose`
 - [x] f-strings → template literals with format specifiers and conversions
+- [x] Walrus operator (`:=`) → assignment expressions
 - [ ] Type hints → TypeScript types
-- [ ] Walrus operator (`:=`)
 
 ## py.\* Runtime API
 
@@ -272,7 +272,7 @@ chore: upgrade dependencies
 
 | Metric   | Value      |
 | -------- | ---------- |
-| Tests    | 593        |
+| Tests    | 604        |
 | Coverage | 89%+       |
 | Phase    | 7 Complete |
 
@@ -294,7 +294,8 @@ chore: upgrade dependencies
 14. ~~Phase 6: Modules & Imports~~ ✅
 15. ~~Phase 7: Advanced Features~~ ✅
 16. ~~F-Strings~~ ✅
-17. **Future**: Type hints, walrus operator
+17. ~~Walrus Operator~~ ✅
+18. **Future**: Type hints
 
 ---
 
