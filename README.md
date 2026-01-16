@@ -454,7 +454,15 @@ The transpiler consists of four main components:
 3. **Generator** (`src/generator/`) - Produces TypeScript code output
 4. **Runtime** (`src/runtime/`) - `py.*` helper functions for Python semantics
 
-See [docs/adr/](./docs/adr/) for architecture decision records.
+### Architecture Decision Records
+
+- [ADR-0001](./docs/adr/0001-use-lezer-python-parser.md) - Use @lezer/python as Parser
+- [ADR-0002](./docs/adr/0002-runtime-namespace-design.md) - Runtime Namespace Design (py.\*)
+- [ADR-0003](./docs/adr/0003-python-operator-semantics.md) - Preserve Python Operator Semantics
+- [ADR-0004](./docs/adr/0004-testing-strategy.md) - Testing Strategy with Vitest
+- [ADR-0005](./docs/adr/0005-esm-only-distribution.md) - ESM-Only Distribution
+- [ADR-0006](./docs/adr/0006-type-hints-to-typescript.md) - Python Type Hints to TypeScript
+- [ADR-0007](./docs/adr/0007-dataclass-transformation.md) - @dataclass Transformation Strategy
 
 ## Development
 
