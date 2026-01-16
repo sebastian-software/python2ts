@@ -65,14 +65,14 @@ An AST-based transpiler that converts Python code to TypeScript. The parser is b
 - [x] Slicing with `py.slice()`
 - [x] Built-in functions: `print`, `len`, `range`, `enumerate`, `zip`, etc.
 
-### Phase 2: Comprehensions & Advanced Data Structures 🔄 IN PROGRESS
+### Phase 2: Comprehensions & Advanced Data Structures ✅ COMPLETED
 
-- [ ] List comprehensions → inline or `py.listComp()`
-- [ ] Dict comprehensions
-- [ ] Set comprehensions
-- [ ] Generator expressions
-- [ ] Tuple unpacking in for loops
-- [ ] Multiple assignment (`a, b = 1, 2`)
+- [x] List comprehensions → `.map()` / `.filter()` / `.flatMap()`
+- [x] Dict comprehensions → `py.dict()`
+- [x] Set comprehensions → `py.set()`
+- [x] Generator expressions → `(function*() { ... })()`
+- [x] Tuple unpacking in for loops → `for (const [x, y] of ...)`
+- [x] Multiple assignment (`a, b = 1, 2`) → `let [a, b] = [1, 2]`
 
 ### Phase 3: Advanced Functions
 
@@ -257,9 +257,9 @@ chore: upgrade dependencies
 
 | Metric | Value |
 |--------|-------|
-| Tests | 412 |
+| Tests | 459 |
 | Coverage | 89%+ |
-| Phase | 2 (Comprehensions) |
+| Phase | 2 Complete |
 
 ## Next Steps
 
@@ -268,10 +268,12 @@ chore: upgrade dependencies
 3. ~~Base transformer~~ ✅
 4. ~~Code generator~~ ✅
 5. ~~E2E tests~~ ✅
-6. **List comprehensions** ← Current
-7. Dict/Set comprehensions
-8. Generator expressions
-9. Tuple unpacking
+6. ~~List comprehensions~~ ✅
+7. ~~Dict/Set comprehensions~~ ✅
+8. ~~Generator expressions~~ ✅
+9. ~~Tuple unpacking~~ ✅
+10. ~~Multiple assignment~~ ✅
+11. **Phase 3: Advanced Functions** ← Next
 
 ---
 

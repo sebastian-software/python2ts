@@ -79,6 +79,8 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformSetExpression(node, ctx);
     case 'SetComprehensionExpression':
       return transformSetComprehension(node, ctx);
+    case 'ComprehensionExpression':
+      return transformGeneratorExpression(node, ctx);
     case 'TupleExpression':
       return transformTupleExpression(node, ctx);
     case 'SubscriptExpression':
@@ -141,15 +143,64 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
   const children = getChildren(node);
   if (children.length < 3) return getNodeText(node, ctx.source);
 
-  const target = children[0];
-  const value = children[children.length - 1];
+  // Find the assignment operator
+  const assignOpIndex = children.findIndex((c) => c.name === 'AssignOp' || c.name === '=');
+  if (assignOpIndex === -1) return getNodeText(node, ctx.source);
 
-  if (!target || !value) return getNodeText(node, ctx.source);
+  // Collect targets (before =) and values (after =)
+  const targets = children.slice(0, assignOpIndex).filter((c) => c.name !== ',');
+  const values = children.slice(assignOpIndex + 1).filter((c) => c.name !== ',');
 
-  const targetCode = transformNode(target, ctx);
-  const valueCode = transformNode(value, ctx);
+  if (targets.length === 0 || values.length === 0) {
+    return getNodeText(node, ctx.source);
+  }
 
-  return `let ${targetCode} = ${valueCode}`;
+  // Single target assignment
+  if (targets.length === 1) {
+    const target = targets[0];
+    if (!target) return getNodeText(node, ctx.source);
+
+    const targetCode = transformNode(target, ctx);
+
+    if (values.length === 1) {
+      const value = values[0];
+      if (!value) return getNodeText(node, ctx.source);
+      return `let ${targetCode} = ${transformNode(value, ctx)}`;
+    } else {
+      // Multiple values into single target (creates array)
+      const valuesCodes = values.map((v) => transformNode(v, ctx));
+      return `let ${targetCode} = [${valuesCodes.join(', ')}]`;
+    }
+  }
+
+  // Multiple target assignment (destructuring)
+  const targetCodes = targets.map((t) => transformAssignTarget(t, ctx));
+  const targetPattern = `[${targetCodes.join(', ')}]`;
+
+  if (values.length === 1) {
+    // Unpacking from single value: a, b = point
+    const value = values[0];
+    if (!value) return getNodeText(node, ctx.source);
+    return `let ${targetPattern} = ${transformNode(value, ctx)}`;
+  } else {
+    // Multiple values: a, b = 1, 2
+    const valuesCodes = values.map((v) => transformNode(v, ctx));
+    return `let ${targetPattern} = [${valuesCodes.join(', ')}]`;
+  }
+}
+
+function transformAssignTarget(node: SyntaxNode, ctx: TransformContext): string {
+  if (node.name === 'VariableName') {
+    return getNodeText(node, ctx.source);
+  } else if (node.name === 'TupleExpression') {
+    // Nested destructuring: (a, b) -> [a, b]
+    const children = getChildren(node);
+    const elements = children.filter(
+      (c) => c.name !== '(' && c.name !== ')' && c.name !== ','
+    );
+    return '[' + elements.map((e) => transformAssignTarget(e, ctx)).join(', ') + ']';
+  }
+  return transformNode(node, ctx);
 }
 
 function transformBinaryExpression(node: SyntaxNode, ctx: TransformContext): string {
@@ -413,6 +464,36 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
     case 'chr':
       ctx.usesRuntime.add('chr');
       return `py.chr(${args})`;
+    case 'all':
+      ctx.usesRuntime.add('all');
+      return `py.all(${args})`;
+    case 'any':
+      ctx.usesRuntime.add('any');
+      return `py.any(${args})`;
+    case 'map':
+      ctx.usesRuntime.add('map');
+      return `py.map(${args})`;
+    case 'filter':
+      ctx.usesRuntime.add('filter');
+      return `py.filter(${args})`;
+    case 'repr':
+      ctx.usesRuntime.add('repr');
+      return `py.repr(${args})`;
+    case 'round':
+      ctx.usesRuntime.add('round');
+      return `py.round(${args})`;
+    case 'divmod':
+      ctx.usesRuntime.add('divmod');
+      return `py.divmod(${args})`;
+    case 'hex':
+      ctx.usesRuntime.add('hex');
+      return `py.hex(${args})`;
+    case 'oct':
+      ctx.usesRuntime.add('oct');
+      return `py.oct(${args})`;
+    case 'bin':
+      ctx.usesRuntime.add('bin');
+      return `py.bin(${args})`;
     default:
       // Regular function call
       return `${transformNode(callee, ctx)}(${args})`;
@@ -421,10 +502,24 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
 
 function transformArgList(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node);
-  const args = children.filter(
-    (c) => c.name !== '(' && c.name !== ')' && c.name !== ',' && c.name !== 'ArgList'
+  const items = children.filter(
+    (c) => c.name !== '(' && c.name !== ')' && c.name !== 'ArgList'
   );
 
+  // Check if this is a generator expression inside the arglist (e.g., sum(x for x in items))
+  const hasForKeyword = items.some(
+    (c) => c.name === 'for' || (c.name === 'Keyword' && getNodeText(c, ctx.source) === 'for')
+  );
+
+  if (hasForKeyword) {
+    // This is a generator expression - parse it
+    const nonCommaItems = items.filter((c) => c.name !== ',');
+    const { outputExpr, clauses } = parseComprehensionClauses(nonCommaItems, ctx);
+    return buildGeneratorChain(outputExpr, clauses);
+  }
+
+  // Regular argument list
+  const args = items.filter((c) => c.name !== ',');
   return args.map((arg) => transformNode(arg, ctx)).join(', ');
 }
 
@@ -692,8 +787,8 @@ function transformWhileStatement(node: SyntaxNode, ctx: TransformContext): strin
 function transformForStatement(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node);
 
-  // Find the variable (after 'for'), iterable (after 'in'), and body
-  let varNode: SyntaxNode | null = null;
+  // Find the variables (between 'for' and 'in'), iterable (after 'in'), and body
+  const varNodes: SyntaxNode[] = [];
   let iterableNode: SyntaxNode | null = null;
   let bodyNode: SyntaxNode | null = null;
 
@@ -707,24 +802,47 @@ function transformForStatement(node: SyntaxNode, ctx: TransformContext): string 
       foundIn = true;
     } else if (child.name === 'Body') {
       bodyNode = child;
-    } else if (child.name !== ':' && child.name !== 'Keyword') {
+    } else if (child.name !== ':' && child.name !== 'Keyword' && child.name !== ',') {
       if (foundFor && !foundIn) {
-        varNode = child;
+        varNodes.push(child);
       } else if (foundIn && !bodyNode) {
         iterableNode = child;
       }
     }
   }
 
-  if (!varNode || !iterableNode || !bodyNode) {
+  if (varNodes.length === 0 || !iterableNode || !bodyNode) {
     return getNodeText(node, ctx.source);
   }
 
-  const varCode = transformNode(varNode, ctx);
+  // Build the variable pattern
+  let varCode: string;
+  if (varNodes.length === 1 && varNodes[0]) {
+    // Single variable
+    varCode = transformNode(varNodes[0], ctx);
+  } else {
+    // Tuple unpacking: [x, y] or [i, [a, b]]
+    varCode = '[' + varNodes.map((v) => transformForLoopVar(v, ctx)).join(', ') + ']';
+  }
+
   const iterableCode = transformNode(iterableNode, ctx);
   const bodyCode = transformBody(bodyNode, ctx);
 
   return `for (const ${varCode} of ${iterableCode}) {\n${bodyCode}\n}`;
+}
+
+function transformForLoopVar(node: SyntaxNode, ctx: TransformContext): string {
+  if (node.name === 'VariableName') {
+    return getNodeText(node, ctx.source);
+  } else if (node.name === 'TupleExpression') {
+    // Nested tuple: (a, b) -> [a, b]
+    const children = getChildren(node);
+    const elements = children.filter(
+      (c) => c.name !== '(' && c.name !== ')' && c.name !== ','
+    );
+    return '[' + elements.map((e) => transformForLoopVar(e, ctx)).join(', ') + ']';
+  }
+  return transformNode(node, ctx);
 }
 
 function transformBody(node: SyntaxNode, ctx: TransformContext): string {
@@ -1008,6 +1126,67 @@ function transformSetComprehension(node: SyntaxNode, ctx: TransformContext): str
   ctx.usesRuntime.add('set');
   const arrayComp = buildComprehensionChain(outputExpr, clauses, 'array');
   return `py.set(${arrayComp})`;
+}
+
+function transformGeneratorExpression(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node);
+  // Filter out parentheses
+  const items = children.filter((c) => c.name !== '(' && c.name !== ')');
+  const { outputExpr, clauses } = parseComprehensionClauses(items, ctx);
+
+  if (clauses.length === 0) {
+    return outputExpr;
+  }
+
+  // Build generator function: (function*() { for (const x of items) if (cond) yield expr })()
+  return buildGeneratorChain(outputExpr, clauses);
+}
+
+function buildGeneratorChain(outputExpr: string, clauses: ComprehensionClause[]): string {
+  // Separate for-clauses and their associated if-clauses
+  const forClauses: { variable: string; iterable: string; conditions: string[] }[] = [];
+
+  for (const clause of clauses) {
+    if (clause.type === 'for' && clause.variable && clause.iterable) {
+      forClauses.push({
+        variable: clause.variable,
+        iterable: clause.iterable,
+        conditions: [],
+      });
+    } else if (clause.type === 'if' && clause.condition && forClauses.length > 0) {
+      const lastFor = forClauses[forClauses.length - 1];
+      if (lastFor) {
+        lastFor.conditions.push(clause.condition);
+      }
+    }
+  }
+
+  if (forClauses.length === 0) {
+    return `(function*() { yield ${outputExpr}; })()`;
+  }
+
+  // Build nested for loops with conditions
+  // (function*() { for (const x of items) if (cond) yield expr })()
+  let body = '';
+  let indent = '';
+  const indentStep = '  ';
+
+  // Open for loops
+  for (const fc of forClauses) {
+    body += `${indent}for (const ${fc.variable} of ${fc.iterable}) `;
+
+    if (fc.conditions.length > 0) {
+      const combinedCond = fc.conditions.join(' && ');
+      body += `if (${combinedCond}) `;
+    }
+
+    indent += indentStep;
+  }
+
+  // Add yield
+  body += `yield ${outputExpr};`;
+
+  return `(function*() { ${body} })()`;
 }
 
 function buildComprehensionChain(

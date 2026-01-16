@@ -117,6 +117,22 @@ console.log(generated.usedRuntimeFunctions); // ['range', 'len', ...]
 | `{"a": 1}` | `{ "a": 1 }` | |
 | `# comment` | `// comment` | |
 
+### Phase 2 (Comprehensions & Destructuring)
+
+| Python | TypeScript | Notes |
+|--------|------------|-------|
+| `[x for x in items]` | `items.map((x) => x)` | List comprehension |
+| `[x for x in items if x > 0]` | `items.filter(...).map(...)` | With condition |
+| `[x + y for x in a for y in b]` | `a.flatMap((x) => b.map(...))` | Nested comprehension |
+| `{x: x * 2 for x in items}` | `py.dict(items.map(...))` | Dict comprehension |
+| `{x * 2 for x in items}` | `py.set(items.map(...))` | Set comprehension |
+| `{1, 2, 3}` | `py.set([1, 2, 3])` | Set literal |
+| `(x for x in items)` | `(function*() { ... })()` | Generator expression |
+| `sum(x for x in items)` | `py.sum((function*() {...})())` | Generator in function |
+| `for x, y in items:` | `for (const [x, y] of items)` | Tuple unpacking |
+| `a, b = 1, 2` | `let [a, b] = [1, 2]` | Multiple assignment |
+| `a, b = b, a` | `let [a, b] = [b, a]` | Swap pattern |
+
 ### Built-in Functions
 
 | Python | TypeScript |
@@ -140,11 +156,12 @@ console.log(generated.usedRuntimeFunctions); // ['range', 'len', ...]
 ## Roadmap
 
 - [x] **Phase 1**: Literals, operators, control flow, functions, built-ins
-- [ ] **Phase 2**: List/dict/set comprehensions
-- [ ] **Phase 3**: Classes, inheritance, decorators
-- [ ] **Phase 4**: `*args`, `**kwargs`, lambda expressions
+- [x] **Phase 2**: List/dict/set comprehensions ✓
+- [ ] **Phase 3**: Advanced functions (`*args`, `**kwargs`, lambda, decorators)
+- [ ] **Phase 4**: Classes, inheritance
 - [ ] **Phase 5**: Exception handling (`try`/`except`/`finally`)
 - [ ] **Phase 6**: Module imports
+- [ ] **Phase 7**: Async/await, type hints
 
 See [PLAN.md](./PLAN.md) for detailed implementation plans.
 

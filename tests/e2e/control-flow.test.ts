@@ -97,7 +97,42 @@ else:
       const python = `for i, item in enumerate(items):
     print(i, item)`;
       const ts = transpile(python);
-      expect(ts).toContain('py.enumerate(items)');
+      expect(ts).toContain('for (const [i, item] of py.enumerate(items))');
+    });
+
+    it('should handle tuple unpacking in for loop', () => {
+      const python = `for x, y in pairs:
+    print(x, y)`;
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toContain('for (const [x, y] of pairs)');
+    });
+
+    it('should handle nested tuple unpacking in for loop', () => {
+      const python = `for i, (a, b) in items:
+    print(i, a, b)`;
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toContain('for (const [i, [a, b]] of items)');
+    });
+
+    it('should handle triple unpacking', () => {
+      const python = `for a, b, c in triples:
+    print(a, b, c)`;
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toContain('for (const [a, b, c] of triples)');
+    });
+
+    it('should handle dict.items() unpacking', () => {
+      const python = `for key, value in d.items():
+    print(key, value)`;
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toContain('for (const [key, value] of d.items())');
+    });
+
+    it('should handle zip unpacking', () => {
+      const python = `for a, b in zip(list1, list2):
+    print(a, b)`;
+      const ts = transpile(python);
+      expect(ts).toContain('for (const [a, b] of py.zip(list1, list2))');
     });
 
     it('should handle break in for loop', () => {

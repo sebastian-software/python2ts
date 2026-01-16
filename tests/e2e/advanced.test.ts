@@ -125,6 +125,56 @@ describe('E2E: Advanced Features', () => {
     });
   });
 
+  describe('Multiple Assignment (Destructuring)', () => {
+    it('should transform simple multiple assignment', () => {
+      const python = 'a, b = 1, 2';
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toBe('let [a, b] = [1, 2];');
+    });
+
+    it('should transform swap pattern', () => {
+      const python = 'a, b = b, a';
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toBe('let [a, b] = [b, a];');
+    });
+
+    it('should transform unpacking from variable', () => {
+      const python = 'x, y = point';
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toBe('let [x, y] = point;');
+    });
+
+    it('should transform triple assignment', () => {
+      const python = 'x, y, z = 1, 2, 3';
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toBe('let [x, y, z] = [1, 2, 3];');
+    });
+
+    it('should transform nested tuple unpacking', () => {
+      const python = 'a, (b, c) = item';
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toBe('let [a, [b, c]] = item;');
+    });
+
+    it('should transform unpacking from function call', () => {
+      const python = 'x, y = get_point()';
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toBe('let [x, y] = get_point();');
+    });
+
+    it('should transform single target with multiple values (tuple)', () => {
+      const python = 'point = 1, 2';
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toBe('let point = [1, 2];');
+    });
+
+    it('should transform unpacking with expressions', () => {
+      const python = 'a, b = x + 1, y + 2';
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toBe('let [a, b] = [(x + 1), (y + 2)];');
+    });
+  });
+
   describe('Multiple Elif Branches', () => {
     it('should handle multiple elif branches', () => {
       const python = `if a:

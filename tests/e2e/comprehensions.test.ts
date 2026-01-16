@@ -176,4 +176,81 @@ describe('E2E: Comprehensions', () => {
       expect(ts).toContain('py.tuple');
     });
   });
+
+  describe('Generator Expressions', () => {
+    it('should transform simple generator expression', () => {
+      const python = '(x for x in items)';
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toContain('function*()');
+      expect(ts).toContain('yield x');
+      expect(ts).toContain('for (const x of items)');
+    });
+
+    it('should transform generator with expression', () => {
+      const python = '(x * 2 for x in items)';
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toContain('function*()');
+      expect(ts).toContain('yield (x * 2)');
+    });
+
+    it('should transform generator with condition', () => {
+      const python = '(x for x in items if x > 0)';
+      const ts = transpile(python, { includeRuntime: false });
+      expect(ts).toContain('function*()');
+      expect(ts).toContain('if ((x > 0))');
+      expect(ts).toContain('yield x');
+    });
+
+    it('should transform generator inside sum()', () => {
+      const python = 'sum(x for x in items)';
+      const ts = transpile(python);
+      expect(ts).toContain('py.sum(');
+      expect(ts).toContain('function*()');
+    });
+
+    it('should transform generator inside any()', () => {
+      const python = 'any(x > 0 for x in items)';
+      const ts = transpile(python);
+      expect(ts).toContain('py.any(');
+      expect(ts).toContain('yield (x > 0)');
+    });
+
+    it('should transform generator inside all()', () => {
+      const python = 'all(x > 0 for x in items)';
+      const ts = transpile(python);
+      expect(ts).toContain('py.all(');
+      expect(ts).toContain('yield (x > 0)');
+    });
+
+    it('should transform generator with nested loops', () => {
+      const python = '((x, y) for x in a for y in b)';
+      const ts = transpile(python);
+      expect(ts).toContain('function*()');
+      expect(ts).toContain('for (const x of a)');
+      expect(ts).toContain('for (const y of b)');
+      expect(ts).toContain('py.tuple(x, y)');
+    });
+
+    it('should transform generator with range', () => {
+      const python = 'sum(x ** 2 for x in range(10))';
+      const ts = transpile(python);
+      expect(ts).toContain('py.sum(');
+      expect(ts).toContain('py.range(10)');
+      expect(ts).toContain('py.pow(x, 2)');
+    });
+
+    it('should transform max with generator', () => {
+      const python = 'max(len(s) for s in strings)';
+      const ts = transpile(python);
+      expect(ts).toContain('py.max(');
+      expect(ts).toContain('py.len(s)');
+    });
+
+    it('should transform min with generator and condition', () => {
+      const python = 'min(x for x in numbers if x > 0)';
+      const ts = transpile(python);
+      expect(ts).toContain('py.min(');
+      expect(ts).toContain('if ((x > 0))');
+    });
+  });
 });
