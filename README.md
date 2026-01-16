@@ -178,6 +178,19 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `raise ValueError("msg")` | `throw new Error("msg")`    | Raise exception    |
 | `raise`                   | `throw`                     | Re-throw           |
 
+### Phase 6 (Modules & Imports)
+
+| Python                        | TypeScript                          | Notes           |
+| ----------------------------- | ----------------------------------- | --------------- |
+| `import os`                   | `import * as os from "os"`          | Module import   |
+| `import numpy as np`          | `import * as np from "numpy"`       | Import alias    |
+| `from os import path`         | `import { path } from "os"`         | Named import    |
+| `from os import path, getcwd` | `import { path, getcwd } from "os"` | Multiple        |
+| `from x import y as z`        | `import { y as z } from "x"`        | Import alias    |
+| `from math import *`          | `import * as math from "math"`      | Star import     |
+| `from . import utils`         | `import * as utils from "./utils"`  | Relative        |
+| `from ..utils import helper`  | `import { helper } from "../utils"` | Parent relative |
+
 ### Built-in Functions
 
 | Python                                    | TypeScript                                            |
@@ -205,7 +218,7 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 - [x] **Phase 3**: Advanced functions (`*args`, `**kwargs`, lambda, decorators)
 - [x] **Phase 4**: Classes, inheritance, `@staticmethod`, `@property`
 - [x] **Phase 5**: Exception handling (`try`/`except`/`finally`, `raise`)
-- [ ] **Phase 6**: Module imports
+- [x] **Phase 6**: Module imports (`import`, `from...import`, relative imports)
 - [ ] **Phase 7**: Async/await, type hints
 
 See [PLAN.md](./PLAN.md) for detailed implementation plans.

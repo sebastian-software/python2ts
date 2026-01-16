@@ -113,6 +113,8 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformTryStatement(node, ctx)
     case "RaiseStatement":
       return transformRaiseStatement(node, ctx)
+    case "ImportStatement":
+      return transformImportStatement(node, ctx)
     default:
       return getNodeText(node, ctx.source)
   }
@@ -1141,6 +1143,186 @@ function isExceptionType(name: string): boolean {
     "ModuleNotFoundError"
   ]
   return exceptionTypes.includes(name)
+}
+
+function transformImportStatement(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+
+  // Determine if this is a "from X import Y" or "import X" style
+  const hasFrom = children.some((c) => c.name === "from")
+
+  if (hasFrom) {
+    return transformFromImport(children, ctx)
+  } else {
+    return transformSimpleImport(children, ctx)
+  }
+}
+
+function transformSimpleImport(children: SyntaxNode[], ctx: TransformContext): string {
+  // import os -> import * as os from "os"
+  // import numpy as np -> import * as np from "numpy"
+
+  const names: { module: string; alias: string | null }[] = []
+  let i = 0
+
+  while (i < children.length) {
+    const child = children[i]
+    if (!child) {
+      i++
+      continue
+    }
+
+    if (child.name === "import" || child.name === ",") {
+      i++
+      continue
+    }
+
+    if (child.name === "VariableName") {
+      const moduleName = getNodeText(child, ctx.source)
+      let alias: string | null = null
+
+      // Check for "as" alias
+      const nextChild = children[i + 1]
+      if (nextChild && nextChild.name === "as") {
+        const aliasChild = children[i + 2]
+        if (aliasChild && aliasChild.name === "VariableName") {
+          alias = getNodeText(aliasChild, ctx.source)
+          i += 3
+          names.push({ module: moduleName, alias })
+          continue
+        }
+      }
+
+      names.push({ module: moduleName, alias: null })
+      i++
+      continue
+    }
+
+    i++
+  }
+
+  // Generate import statements
+  return names
+    .map(({ module, alias }) => {
+      const importName = alias || module
+      return `import * as ${importName} from "${module}"`
+    })
+    .join("\n")
+}
+
+function transformFromImport(children: SyntaxNode[], ctx: TransformContext): string {
+  // from os import path -> import { path } from "os"
+  // from os import path, getcwd -> import { path, getcwd } from "os"
+  // from collections import defaultdict as dd -> import { defaultdict as dd } from "collections"
+  // from math import * -> import * from "math"
+  // from . import utils -> import * as utils from "./utils"
+  // from ..utils import helper -> import { helper } from "../utils"
+
+  let moduleName = ""
+  let relativeDots = 0
+  const imports: { name: string; alias: string | null }[] = []
+  let hasStar = false
+
+  let phase: "from" | "module" | "import" | "names" = "from"
+
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i]
+    if (!child) continue
+
+    if (child.name === "from") {
+      phase = "module"
+      continue
+    }
+
+    if (child.name === ".") {
+      relativeDots++
+      continue
+    }
+
+    if (child.name === "Ellipsis") {
+      // ... is parsed as Ellipsis, treat as 3 dots
+      relativeDots += 3
+      continue
+    }
+
+    if (child.name === "import") {
+      phase = "names"
+      continue
+    }
+
+    if (phase === "module" && child.name === "VariableName") {
+      moduleName = getNodeText(child, ctx.source)
+      continue
+    }
+
+    if (phase === "names") {
+      if (child.name === "*") {
+        hasStar = true
+        continue
+      }
+
+      if (child.name === "VariableName") {
+        const name = getNodeText(child, ctx.source)
+
+        // Check for "as" alias
+        const nextChild = children[i + 1]
+        if (nextChild && nextChild.name === "as") {
+          const aliasChild = children[i + 2]
+          if (aliasChild && aliasChild.name === "VariableName") {
+            imports.push({ name, alias: getNodeText(aliasChild, ctx.source) })
+            i += 2
+            continue
+          }
+        }
+
+        imports.push({ name, alias: null })
+        continue
+      }
+
+      if (child.name === ",") {
+        continue
+      }
+    }
+  }
+
+  // Build module path
+  let modulePath = ""
+  if (relativeDots > 0) {
+    // Relative import
+    if (relativeDots === 1) {
+      modulePath = "./"
+    } else {
+      modulePath = "../".repeat(relativeDots - 1)
+    }
+    if (moduleName) {
+      modulePath += moduleName
+    } else if (imports.length > 0) {
+      // from . import utils -> import from "./utils"
+      modulePath += imports[0]?.name || ""
+    }
+  } else {
+    modulePath = moduleName
+  }
+
+  // Generate import statement
+  if (hasStar) {
+    return `import * as ${moduleName || "_"} from "${modulePath}"`
+  }
+
+  if (relativeDots > 0 && !moduleName && imports.length === 1) {
+    // from . import utils -> import * as utils from "./utils"
+    const imp = imports[0]
+    if (imp) {
+      const importName = imp.alias || imp.name
+      return `import * as ${importName} from "${modulePath}"`
+    }
+  }
+
+  const importNames = imports
+    .map(({ name, alias }) => (alias ? `${name} as ${alias}` : name))
+    .join(", ")
+
+  return `import { ${importNames} } from "${modulePath}"`
 }
 
 function transformBody(node: SyntaxNode, ctx: TransformContext): string {

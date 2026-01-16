@@ -110,13 +110,14 @@ namespace.
 - [x] `raise ExceptionType("message")` → `throw new Error("message")`
 - [x] Exception types mapping (ValueError, TypeError, etc. → Error)
 
-### Phase 6: Modules & Imports
+### Phase 6: Modules & Imports ✅ COMPLETED
 
-- [ ] `import module`
-- [ ] `from module import name`
-- [ ] `from module import *`
-- [ ] Relative imports
-- [ ] Module aliasing (`import x as y`)
+- [x] `import module` → `import * as module from "module"`
+- [x] `from module import name` → `import { name } from "module"`
+- [x] `from module import name as alias` → `import { name as alias } from "module"`
+- [x] `from module import *` → `import * as module from "module"`
+- [x] Relative imports (`from . import`, `from .. import`, `from ...`)
+- [x] Module aliasing (`import x as y` → `import * as y from "x"`)
 
 ### Phase 7: Advanced Features
 
@@ -269,9 +270,9 @@ chore: upgrade dependencies
 
 | Metric   | Value      |
 | -------- | ---------- |
-| Tests    | 521        |
+| Tests    | 538        |
 | Coverage | 89%+       |
-| Phase    | 5 Complete |
+| Phase    | 6 Complete |
 
 ## Next Steps
 
@@ -288,7 +289,8 @@ chore: upgrade dependencies
 11. ~~Phase 3: Advanced Functions~~ ✅
 12. ~~Phase 4: Classes~~ ✅
 13. ~~Phase 5: Exception Handling~~ ✅
-14. **Phase 6: Modules & Imports** ← Next
+14. ~~Phase 6: Modules & Imports~~ ✅
+15. **Phase 7: Advanced Features** ← Next
 
 ---
 
