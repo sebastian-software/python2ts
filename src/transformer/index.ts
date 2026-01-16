@@ -5,6 +5,8 @@ export interface TransformContext {
   source: string
   indentLevel: number
   usesRuntime: Set<string>
+  /** Stack of scopes - each scope is a set of variable names declared in that scope */
+  scopeStack: Set<string>[]
 }
 
 export interface TransformResult {
@@ -16,7 +18,36 @@ function createContext(source: string): TransformContext {
   return {
     source,
     indentLevel: 0,
-    usesRuntime: new Set()
+    usesRuntime: new Set(),
+    scopeStack: [new Set()] // Start with one global scope
+  }
+}
+
+/** Push a new scope onto the stack */
+function pushScope(ctx: TransformContext): void {
+  ctx.scopeStack.push(new Set())
+}
+
+/** Pop the current scope from the stack */
+function popScope(ctx: TransformContext): void {
+  if (ctx.scopeStack.length > 1) {
+    ctx.scopeStack.pop()
+  }
+}
+
+/** Check if a variable is declared in any accessible scope */
+function isVariableDeclared(ctx: TransformContext, name: string): boolean {
+  for (const scope of ctx.scopeStack) {
+    if (scope.has(name)) return true
+  }
+  return false
+}
+
+/** Declare a variable in the current (top) scope */
+function declareVariable(ctx: TransformContext, name: string): void {
+  const currentScope = ctx.scopeStack[ctx.scopeStack.length - 1]
+  if (currentScope) {
+    currentScope.add(name)
   }
 }
 
@@ -183,14 +214,29 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
 
     const targetCode = transformNode(target, ctx)
 
+    // Determine if we need 'let' or not
+    // - MemberExpression (obj.attr) and SubscriptExpression (arr[i]) never need 'let'
+    // - VariableName needs 'let' only if not already declared in an accessible scope
+    let needsLet = false
+    if (target.name === "VariableName") {
+      const varName = getNodeText(target, ctx.source)
+      if (!isVariableDeclared(ctx, varName)) {
+        needsLet = true
+        declareVariable(ctx, varName)
+      }
+    }
+
     if (values.length === 1) {
       const value = values[0]
       if (!value) return getNodeText(node, ctx.source)
-      return `let ${targetCode} = ${transformNode(value, ctx)}`
+      const valueCode = transformNode(value, ctx)
+      return needsLet ? `let ${targetCode} = ${valueCode}` : `${targetCode} = ${valueCode}`
     } else {
       // Multiple values into single target (creates array)
       const valuesCodes = values.map((v) => transformNode(v, ctx))
-      return `let ${targetCode} = [${valuesCodes.join(", ")}]`
+      return needsLet
+        ? `let ${targetCode} = [${valuesCodes.join(", ")}]`
+        : `${targetCode} = [${valuesCodes.join(", ")}]`
     }
   }
 
@@ -198,16 +244,47 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
   const targetCodes = targets.map((t) => transformAssignTarget(t, ctx))
   const targetPattern = `[${targetCodes.join(", ")}]`
 
+  // Track all variables in destructuring pattern
+  const varNames = extractVariableNames(targets, ctx.source)
+  // Check if all variables are already declared in accessible scopes
+  const allDeclaredAtAccessibleScope = varNames.every((v) => isVariableDeclared(ctx, v))
+  if (!allDeclaredAtAccessibleScope) {
+    varNames.forEach((v) => declareVariable(ctx, v))
+  }
+
   if (values.length === 1) {
     // Unpacking from single value: a, b = point
     const value = values[0]
     if (!value) return getNodeText(node, ctx.source)
-    return `let ${targetPattern} = ${transformNode(value, ctx)}`
+    const valueCode = transformNode(value, ctx)
+    return allDeclaredAtAccessibleScope
+      ? `${targetPattern} = ${valueCode}`
+      : `let ${targetPattern} = ${valueCode}`
   } else {
     // Multiple values: a, b = 1, 2
     const valuesCodes = values.map((v) => transformNode(v, ctx))
-    return `let ${targetPattern} = [${valuesCodes.join(", ")}]`
+    return allDeclaredAtAccessibleScope
+      ? `${targetPattern} = [${valuesCodes.join(", ")}]`
+      : `let ${targetPattern} = [${valuesCodes.join(", ")}]`
   }
+}
+
+function extractVariableNames(nodes: SyntaxNode[], source: string): string[] {
+  const names: string[] = []
+  for (const node of nodes) {
+    if (node.name === "VariableName") {
+      names.push(getNodeText(node, source))
+    } else if (node.name === "TupleExpression") {
+      const children = getChildren(node)
+      names.push(
+        ...extractVariableNames(
+          children.filter((c) => c.name !== "(" && c.name !== ")" && c.name !== ","),
+          source
+        )
+      )
+    }
+  }
+  return names
 }
 
 function transformAssignTarget(node: SyntaxNode, ctx: TransformContext): string {
@@ -232,9 +309,18 @@ function transformBinaryExpression(node: SyntaxNode, ctx: TransformContext): str
 
   if (!left || !op || !right) return getNodeText(node, ctx.source)
 
+  const opText = getNodeText(op, ctx.source)
+
+  // Handle chained comparisons (e.g., 1 < 2 < 3 -> (1 < 2) && (2 < 3))
+  if (isComparisonOperator(opText) && isChainedComparison(left)) {
+    const leftComparison = transformNode(left, ctx)
+    const middleValue = extractRightOperand(left, ctx)
+    const rightCode = transformNode(right, ctx)
+    return `(${leftComparison} && (${middleValue} ${opText} ${rightCode}))`
+  }
+
   const leftCode = transformNode(left, ctx)
   const rightCode = transformNode(right, ctx)
-  const opText = getNodeText(op, ctx.source)
 
   switch (opText) {
     case "//":
@@ -260,9 +346,59 @@ function transformBinaryExpression(node: SyntaxNode, ctx: TransformContext): str
       return `(${leftCode} === ${rightCode})`
     case "is not":
       return `(${leftCode} !== ${rightCode})`
+    case "+":
+      // Check for array concatenation
+      if (isArrayLiteral(left) && isArrayLiteral(right)) {
+        return `[...${leftCode}, ...${rightCode}]`
+      }
+      return `(${leftCode} + ${rightCode})`
+    case "*":
+      // Check for string/array repetition (e.g., 'ab' * 3 or [1, 2] * 3)
+      if (isStringOrArrayLiteral(left) && isNumberLiteral(right)) {
+        ctx.usesRuntime.add("repeat")
+        return `py.repeat(${leftCode}, ${rightCode})`
+      }
+      if (isNumberLiteral(left) && isStringOrArrayLiteral(right)) {
+        ctx.usesRuntime.add("repeat")
+        return `py.repeat(${rightCode}, ${leftCode})`
+      }
+      return `(${leftCode} * ${rightCode})`
     default:
       return `(${leftCode} ${opText} ${rightCode})`
   }
+}
+
+function isArrayLiteral(node: SyntaxNode): boolean {
+  return node.name === "ArrayExpression"
+}
+
+function isStringOrArrayLiteral(node: SyntaxNode): boolean {
+  return node.name === "String" || node.name === "ArrayExpression"
+}
+
+function isNumberLiteral(node: SyntaxNode): boolean {
+  return node.name === "Number"
+}
+
+function isComparisonOperator(op: string): boolean {
+  return ["<", ">", "<=", ">=", "==", "!="].includes(op)
+}
+
+function isChainedComparison(node: SyntaxNode): boolean {
+  // Check if node is a BinaryExpression with a comparison operator
+  if (node.name !== "BinaryExpression") return false
+  const children = getChildren(node)
+  const op = children[1]
+  if (!op || op.name !== "CompareOp") return false
+  return true
+}
+
+function extractRightOperand(node: SyntaxNode, ctx: TransformContext): string {
+  // Extract the right operand from a BinaryExpression
+  const children = getChildren(node)
+  const right = children[2]
+  if (!right) return ""
+  return transformNode(right, ctx)
 }
 
 function transformUnaryExpression(node: SyntaxNode, ctx: TransformContext): string {
@@ -713,6 +849,13 @@ function transformMemberExpression(node: SyntaxNode, ctx: TransformContext): str
     if (!index) return `${objCode}[]`
 
     const indexCode = transformNode(index, ctx)
+
+    // Check if the index is a negative number literal (for py.at() support)
+    if (isNegativeIndexLiteral(index, ctx)) {
+      ctx.usesRuntime.add("at")
+      return `py.at(${objCode}, ${indexCode})`
+    }
+
     return `${objCode}[${indexCode}]`
   } else {
     // Dot access: obj.attr
@@ -849,7 +992,27 @@ function transformSubscriptExpression(node: SyntaxNode, ctx: TransformContext): 
   if (!index) return `${objCode}[]`
 
   const indexCode = transformNode(index, ctx)
+
+  // Check if the index is a negative number literal (for py.at() support)
+  if (isNegativeIndexLiteral(index, ctx)) {
+    ctx.usesRuntime.add("at")
+    return `py.at(${objCode}, ${indexCode})`
+  }
+
   return `${objCode}[${indexCode}]`
+}
+
+function isNegativeIndexLiteral(node: SyntaxNode, ctx: TransformContext): boolean {
+  // Check for a UnaryExpression with - operator and a Number
+  if (node.name === "UnaryExpression") {
+    const children = getChildren(node)
+    const hasMinusOp = children.some(
+      (c) => c.name === "ArithOp" && getNodeText(c, ctx.source) === "-"
+    )
+    const hasNumber = children.some((c) => c.name === "Number")
+    return hasMinusOp && hasNumber
+  }
+  return false
 }
 
 function hasSliceSyntax(node: SyntaxNode, ctx: TransformContext): boolean {
@@ -1554,6 +1717,7 @@ function transformWithStatement(node: SyntaxNode, ctx: TransformContext): string
 
 function transformBody(node: SyntaxNode, ctx: TransformContext): string {
   ctx.indentLevel++
+  pushScope(ctx) // Each block body gets its own scope
   const children = getChildren(node)
   const indent = "  ".repeat(ctx.indentLevel)
 
@@ -1576,6 +1740,7 @@ function transformBody(node: SyntaxNode, ctx: TransformContext): string {
     })
     .filter((s) => s.trim() !== "")
 
+  popScope(ctx)
   ctx.indentLevel--
   return statements.join("\n")
 }
@@ -2429,6 +2594,26 @@ function buildGeneratorChain(outputExpr: string, clauses: ComprehensionClause[])
   return `(function*() { ${body} })()`
 }
 
+/**
+ * Wrap iterables that don't have array methods (like py.range()) with spread syntax
+ * to convert them to arrays that have .map(), .filter(), .flatMap()
+ */
+function wrapIterableIfNeeded(iterable: string): string {
+  // Check if iterable is py.range(), py.enumerate(), py.zip(), py.reversed(), py.filter(), py.map()
+  // These return Iterables, not Arrays
+  if (
+    iterable.startsWith("py.range(") ||
+    iterable.startsWith("py.enumerate(") ||
+    iterable.startsWith("py.zip(") ||
+    iterable.startsWith("py.reversed(") ||
+    iterable.startsWith("py.filter(") ||
+    iterable.startsWith("py.map(")
+  ) {
+    return `[...${iterable}]`
+  }
+  return iterable
+}
+
 function buildComprehensionChain(
   outputExpr: string,
   clauses: ComprehensionClause[],
@@ -2468,7 +2653,8 @@ function buildComprehensionChain(
     const fc = forClauses[0]
     if (!fc) return `[${outputExpr}]`
 
-    let chain = fc.iterable
+    // Wrap iterables that are not arrays (like py.range()) with spread syntax
+    let chain = wrapIterableIfNeeded(fc.iterable)
 
     // Add filters
     for (const cond of fc.conditions) {
@@ -2491,7 +2677,8 @@ function buildComprehensionChain(
 
     const isLast = i === forClauses.length - 1
 
-    let inner = fc.iterable
+    // Wrap iterables that are not arrays (like py.range()) with spread syntax
+    let inner = wrapIterableIfNeeded(fc.iterable)
 
     // Add filters
     for (const cond of fc.conditions) {
@@ -2512,7 +2699,8 @@ function buildComprehensionChain(
       const outerFc = forClauses[j]
       if (!outerFc) continue
 
-      let outerChain = outerFc.iterable
+      // Wrap iterables that are not arrays (like py.range()) with spread syntax
+      let outerChain = wrapIterableIfNeeded(outerFc.iterable)
       for (const cond of outerFc.conditions) {
         outerChain = `${outerChain}.filter((${outerFc.variable}) => ${cond})`
       }

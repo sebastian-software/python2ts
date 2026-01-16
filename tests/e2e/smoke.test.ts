@@ -160,10 +160,7 @@ describe("Smoke Tests: Python ↔ TypeScript Equivalence", () => {
       verifyEquivalence("print(5 >= 5)")
     })
 
-    // TODO: Chained comparisons need special handling
-    // Python: 1 < 5 < 3 means (1 < 5) and (5 < 3)
-    // Current: transpiles to (1 < 5) < 3 which is wrong
-    it.skip("chained comparisons", () => {
+    it("chained comparisons", () => {
       verifyEquivalence("print(1 < 2 < 3)")
       verifyEquivalence("print(1 < 2 > 0)")
       verifyEquivalence("print(1 < 5 < 3)")
@@ -238,8 +235,7 @@ describe("Smoke Tests: Python ↔ TypeScript Equivalence", () => {
       verifyEquivalence("print('hello' + ' ' + 'world')")
     })
 
-    // TODO: String repetition needs py.repeat() runtime helper
-    it.skip("repetition", () => {
+    it("repetition", () => {
       verifyEquivalence("print('ab' * 3)")
     })
 
@@ -248,8 +244,7 @@ describe("Smoke Tests: Python ↔ TypeScript Equivalence", () => {
       verifyEquivalence("print('hello'[1])")
     })
 
-    // TODO: Negative indexing needs py.at() runtime helper
-    it.skip("negative indexing", () => {
+    it("negative indexing", () => {
       verifyEquivalence("print('hello'[-1])")
     })
 
@@ -266,8 +261,7 @@ describe("Smoke Tests: Python ↔ TypeScript Equivalence", () => {
       verifyEquivalence("print([1, 2, 3][1])")
     })
 
-    // TODO: Negative indexing needs py.at() runtime helper
-    it.skip("negative indexing", () => {
+    it("negative indexing", () => {
       verifyEquivalence("print([1, 2, 3][-1])")
     })
 
@@ -282,8 +276,7 @@ describe("Smoke Tests: Python ↔ TypeScript Equivalence", () => {
       verifyEquivalence("print(5 in [1, 2, 3])")
     })
 
-    // TODO: List concatenation needs py.concat() or spread syntax
-    it.skip("concatenation", () => {
+    it("concatenation", () => {
       verifyEquivalence("print([1, 2] + [3, 4])")
     })
   })
@@ -303,8 +296,7 @@ for x in [10, 20, 30]:
 `)
     })
 
-    // TODO: Variable reassignment in loops generates "let x = x - 1" instead of "x = x - 1"
-    it.skip("while loop with reassignment", () => {
+    it("while loop with reassignment", () => {
       verifyEquivalence(`
 x = 3
 while x > 0:
@@ -365,17 +357,15 @@ print(factorial(5))
   })
 
   describe("List Comprehensions", () => {
-    // TODO: py.range() returns Iterable, not Array, so .map()/.filter() don't work
-    // Need to wrap with [...py.range()] or use Array.from()
-    it.skip("comprehension with range", () => {
+    it("comprehension with range", () => {
       verifyEquivalence("print([x * 2 for x in range(5)])")
     })
 
-    it.skip("comprehension with condition", () => {
+    it("comprehension with condition", () => {
       verifyEquivalence("print([x for x in range(10) if x % 2 == 0])")
     })
 
-    it.skip("nested comprehension", () => {
+    it("nested comprehension", () => {
       verifyEquivalence("print([x * y for x in range(1, 4) for y in range(1, 4)])")
     })
 

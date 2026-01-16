@@ -33,8 +33,7 @@ describe("E2E: Advanced Features", () => {
     it("should convert negative subscript", () => {
       const python = "x = arr[-1]"
       const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("arr[")
-      expect(ts).toContain("-1")
+      expect(ts).toContain("py.at(arr, (-1))")
     })
 
     it("should convert variable subscript", () => {

@@ -84,6 +84,41 @@ export const py = {
     return result
   },
 
+  /**
+   * Python-style index access with support for negative indices
+   * @param obj - Array or string to access
+   * @param index - Index (can be negative to count from end)
+   * @returns Element at the specified index
+   */
+  at<T>(obj: string | T[], index: number): T | string {
+    const len = obj.length
+    const normalizedIndex = index < 0 ? len + index : index
+    if (normalizedIndex < 0 || normalizedIndex >= len) {
+      throw new Error("IndexError: list index out of range")
+    }
+    return (obj as T[])[normalizedIndex] as T
+  },
+
+  /**
+   * Python-style string/array repetition
+   * @param obj - String or array to repeat
+   * @param count - Number of times to repeat
+   * @returns Repeated string or array
+   */
+  repeat<T>(obj: string | T[], count: number): string | T[] {
+    if (count <= 0) {
+      return typeof obj === "string" ? "" : []
+    }
+    if (typeof obj === "string") {
+      return obj.repeat(count)
+    }
+    const result: T[] = []
+    for (let i = 0; i < count; i++) {
+      result.push(...obj)
+    }
+    return result
+  },
+
   // ============================================================
   // Iterables
   // ============================================================

@@ -47,7 +47,7 @@ describe("E2E: Comprehensions", () => {
       expect(transpile("[x ** 2 for x in range(10)]")).toMatchInlineSnapshot(`
         "import { py } from 'python2ts/runtime';
 
-        py.range(10).map((x) => py.pow(x, 2));"
+        [...py.range(10)].map((x) => py.pow(x, 2));"
       `)
     })
 
@@ -87,7 +87,7 @@ describe("E2E: Comprehensions", () => {
       expect(transpile("{i: i * i for i in range(5)}")).toMatchInlineSnapshot(`
         "import { py } from 'python2ts/runtime';
 
-        py.dict(py.range(5).map((i) => [i, (i * i)]));"
+        py.dict([...py.range(5)].map((i) => [i, (i * i)]));"
       `)
     })
   })
