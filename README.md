@@ -191,6 +191,15 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `from . import utils`         | `import * as utils from "./utils"`  | Relative        |
 | `from ..utils import helper`  | `import { helper } from "../utils"` | Parent relative |
 
+### Phase 7 (Async/Await & Context Managers)
+
+| Python                  | TypeScript                                   | Notes           |
+| ----------------------- | -------------------------------------------- | --------------- |
+| `async def fn():`       | `async function fn() {`                      | Async function  |
+| `await expr`            | `await expr`                                 | Await           |
+| `with open(f) as x:`    | `const x = open(f); try {...} finally {...}` | Context manager |
+| `async with expr as x:` | Same with `await` in finally                 | Async context   |
+
 ### Built-in Functions
 
 | Python                                    | TypeScript                                            |
@@ -219,7 +228,8 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 - [x] **Phase 4**: Classes, inheritance, `@staticmethod`, `@property`
 - [x] **Phase 5**: Exception handling (`try`/`except`/`finally`, `raise`)
 - [x] **Phase 6**: Module imports (`import`, `from...import`, relative imports)
-- [ ] **Phase 7**: Async/await, type hints
+- [x] **Phase 7**: Async/await, context managers (`with` statement)
+- [ ] **Future**: Type hints, f-strings, walrus operator
 
 See [PLAN.md](./PLAN.md) for detailed implementation plans.
 

@@ -115,6 +115,10 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformRaiseStatement(node, ctx)
     case "ImportStatement":
       return transformImportStatement(node, ctx)
+    case "AwaitExpression":
+      return transformAwaitExpression(node, ctx)
+    case "WithStatement":
+      return transformWithStatement(node, ctx)
     default:
       return getNodeText(node, ctx.source)
   }
@@ -1325,6 +1329,120 @@ function transformFromImport(children: SyntaxNode[], ctx: TransformContext): str
   return `import { ${importNames} } from "${modulePath}"`
 }
 
+function transformAwaitExpression(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+
+  // Find the expression after 'await'
+  const exprNode = children.find((c) => c.name !== "await")
+
+  if (!exprNode) {
+    return "await"
+  }
+
+  return `await ${transformNode(exprNode, ctx)}`
+}
+
+function transformWithStatement(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+
+  // Check if this is an async with
+  const isAsync = children.some((c) => c.name === "async")
+
+  // Parse context managers: with expr as name, expr2 as name2:
+  const contextManagers: { expr: SyntaxNode; varName: string | null }[] = []
+  let body: SyntaxNode | null = null
+
+  let i = 0
+  while (i < children.length) {
+    const child = children[i]
+    if (!child) {
+      i++
+      continue
+    }
+
+    // Skip keywords
+    if (child.name === "with" || child.name === "async" || child.name === ",") {
+      i++
+      continue
+    }
+
+    // Body marks the end of context managers
+    if (child.name === "Body") {
+      body = child
+      break
+    }
+
+    // This should be an expression (the context manager)
+    if (child.name !== "as" && child.name !== ":" && child.name !== "VariableName") {
+      const expr = child
+      let varName: string | null = null
+
+      // Check if next is 'as' followed by variable name
+      const nextChild = children[i + 1]
+      if (nextChild && nextChild.name === "as") {
+        const varChild = children[i + 2]
+        if (varChild && varChild.name === "VariableName") {
+          varName = getNodeText(varChild, ctx.source)
+          i += 3
+        } else {
+          i++
+        }
+      } else {
+        i++
+      }
+
+      contextManagers.push({ expr, varName })
+      continue
+    }
+
+    i++
+  }
+
+  if (contextManagers.length === 0 || !body) {
+    return getNodeText(node, ctx.source)
+  }
+
+  // Generate try/finally structure
+  // For multiple context managers, we nest them
+  const bodyCode = transformBody(body, ctx)
+
+  // Build from inside out for multiple context managers
+  let result = bodyCode
+
+  for (let j = contextManagers.length - 1; j >= 0; j--) {
+    const cm = contextManagers[j]
+    if (!cm) continue
+
+    const exprCode = transformNode(cm.expr, ctx)
+    const innerIndent = "  ".repeat(ctx.indentLevel + j)
+    const innerIndent2 = "  ".repeat(ctx.indentLevel + j + 1)
+
+    if (cm.varName) {
+      // with expr as name: -> const name = expr; try { ... } finally { name.close?.() }
+      const assignment = `${innerIndent}const ${cm.varName} = ${exprCode};\n`
+      const tryBlock = `${innerIndent}try {\n${result}\n${innerIndent}}`
+      const finallyBlock = ` finally {\n${innerIndent2}${cm.varName}[Symbol.dispose]?.() ?? ${cm.varName}.close?.();\n${innerIndent}}`
+
+      if (isAsync && j === 0) {
+        // For async with, use await on dispose
+        const asyncFinallyBlock = ` finally {\n${innerIndent2}await (${cm.varName}[Symbol.asyncDispose]?.() ?? ${cm.varName}[Symbol.dispose]?.() ?? ${cm.varName}.close?.());\n${innerIndent}}`
+        result = assignment + tryBlock + asyncFinallyBlock
+      } else {
+        result = assignment + tryBlock + finallyBlock
+      }
+    } else {
+      // with expr: (no variable) -> const _resource = expr; try { ... } finally { _resource.close?.() }
+      const tempVar = j > 0 ? `_resource${String(j)}` : "_resource"
+      const assignment = `${innerIndent}const ${tempVar} = ${exprCode};\n`
+      const tryBlock = `${innerIndent}try {\n${result}\n${innerIndent}}`
+      const finallyBlock = ` finally {\n${innerIndent2}${tempVar}[Symbol.dispose]?.() ?? ${tempVar}.close?.();\n${innerIndent}}`
+      result = assignment + tryBlock + finallyBlock
+    }
+  }
+
+  return result
+}
+
 function transformBody(node: SyntaxNode, ctx: TransformContext): string {
   ctx.indentLevel++
   const children = getChildren(node)
@@ -1367,12 +1485,15 @@ function transformReturnStatement(node: SyntaxNode, ctx: TransformContext): stri
 function transformFunctionDefinition(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
 
+  let isAsync = false
   let funcName = ""
   let paramList: SyntaxNode | null = null
   let body: SyntaxNode | null = null
 
   for (const child of children) {
-    if (child.name === "VariableName") {
+    if (child.name === "async") {
+      isAsync = true
+    } else if (child.name === "VariableName") {
       funcName = getNodeText(child, ctx.source)
     } else if (child.name === "ParamList") {
       paramList = child
@@ -1384,7 +1505,8 @@ function transformFunctionDefinition(node: SyntaxNode, ctx: TransformContext): s
   const params = paramList ? transformParamList(paramList, ctx) : ""
   const bodyCode = body ? transformBody(body, ctx) : ""
 
-  return `function ${funcName}(${params}) {\n${bodyCode}\n}`
+  const asyncPrefix = isAsync ? "async " : ""
+  return `${asyncPrefix}function ${funcName}(${params}) {\n${bodyCode}\n}`
 }
 
 function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): string {

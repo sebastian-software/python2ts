@@ -119,10 +119,12 @@ namespace.
 - [x] Relative imports (`from . import`, `from .. import`, `from ...`)
 - [x] Module aliasing (`import x as y` → `import * as y from "x"`)
 
-### Phase 7: Advanced Features
+### Phase 7: Advanced Features ✅ COMPLETED
 
-- [ ] Context managers (`with` statement)
-- [ ] Async/await
+- [x] `async def` → `async function`
+- [x] `await` expression
+- [x] `async with` statement
+- [x] Context managers (`with` statement) → `try/finally` with `Symbol.dispose`
 - [ ] Type hints → TypeScript types
 - [ ] f-strings → template literals
 - [ ] Walrus operator (`:=`)
@@ -270,9 +272,9 @@ chore: upgrade dependencies
 
 | Metric   | Value      |
 | -------- | ---------- |
-| Tests    | 538        |
+| Tests    | 552        |
 | Coverage | 89%+       |
-| Phase    | 6 Complete |
+| Phase    | 7 Complete |
 
 ## Next Steps
 
@@ -290,7 +292,8 @@ chore: upgrade dependencies
 12. ~~Phase 4: Classes~~ ✅
 13. ~~Phase 5: Exception Handling~~ ✅
 14. ~~Phase 6: Modules & Imports~~ ✅
-15. **Phase 7: Advanced Features** ← Next
+15. ~~Phase 7: Advanced Features~~ ✅
+16. **Future**: Type hints, f-strings, walrus operator
 
 ---
 
