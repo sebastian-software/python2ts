@@ -1,4 +1,4 @@
-# ADR-0002: Runtime Namespace Design (py.*)
+# ADR-0002: Runtime Namespace Design (py.\*)
 
 ## Status
 
@@ -38,9 +38,9 @@ We will use a **single namespace object** called `py` that contains all Python-c
 ```typescript
 import { py } from 'python2ts/runtime';
 
-py.floordiv(10, 3);  // 3
+py.floordiv(10, 3); // 3
 py.slice(arr, 1, 4); // Slicing
-py.range(10);        // Iterable
+py.range(10); // Iterable
 ```
 
 Design principles:

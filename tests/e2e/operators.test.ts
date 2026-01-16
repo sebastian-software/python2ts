@@ -198,7 +198,10 @@ describe('E2E: Operators', () => {
       });
 
       it('map key membership', () => {
-        const m = new Map([['a', 1], ['b', 2]]);
+        const m = new Map([
+          ['a', 1],
+          ['b', 2],
+        ]);
         expect(py.in('a', m)).toBe(true);
         expect(py.in('c', m)).toBe(false);
       });

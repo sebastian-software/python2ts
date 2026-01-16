@@ -265,14 +265,22 @@ else:
 
     it('enumerate should start from specified index', () => {
       const result = [...py.enumerate(['a', 'b', 'c'], 10)];
-      expect(result).toEqual([[10, 'a'], [11, 'b'], [12, 'c']]);
+      expect(result).toEqual([
+        [10, 'a'],
+        [11, 'b'],
+        [12, 'c'],
+      ]);
     });
 
     it('zip should handle multiple iterables', () => {
       const a = [1, 2, 3];
       const b = ['a', 'b', 'c'];
       const result = [...py.zip(a, b)];
-      expect(result).toEqual([[1, 'a'], [2, 'b'], [3, 'c']]);
+      expect(result).toEqual([
+        [1, 'a'],
+        [2, 'b'],
+        [3, 'c'],
+      ]);
     });
   });
 

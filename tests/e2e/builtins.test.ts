@@ -249,7 +249,10 @@ describe('E2E: Built-in Functions Execution', () => {
     });
 
     it('should convert map with entries', () => {
-      const m = new Map([['a', 1], ['b', 2]]);
+      const m = new Map([
+        ['a', 1],
+        ['b', 2],
+      ]);
       expect(py.str(m)).toContain("'a': 1");
       expect(py.str(m)).toContain("'b': 2");
     });

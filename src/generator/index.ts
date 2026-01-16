@@ -28,7 +28,8 @@ export function generate(
 
   let runtimeImport: string | null = null;
   if (opts.includeRuntime && usedRuntimeFunctions.length > 0) {
-    runtimeImport = `import { py } from '${opts.runtimeImportPath}';`;
+    const importPath = opts.runtimeImportPath ?? 'python2ts/runtime';
+    runtimeImport = `import { py } from '${importPath}';`;
   }
 
   let code = result.code;

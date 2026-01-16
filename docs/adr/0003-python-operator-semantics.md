@@ -18,9 +18,9 @@ Several Python operators behave differently from their JavaScript counterparts:
 
 ```javascript
 // JavaScript
-Math.floor(10 / 3)   // = 3
-Math.floor(-10 / 3)  // = -4 (same, but coincidental)
-Math.trunc(-10 / 3)  // = -3 (what // would mean if rounding toward zero)
+Math.floor(10 / 3); // = 3
+Math.floor(-10 / 3); // = -4 (same, but coincidental)
+Math.trunc(-10 / 3); // = -3 (what // would mean if rounding toward zero)
 ```
 
 ### Modulo (`%`)
@@ -33,8 +33,8 @@ Math.trunc(-10 / 3)  // = -3 (what // would mean if rounding toward zero)
 
 ```javascript
 // JavaScript - result has sign of dividend
--7 % 3   // = -1
-7 % -3   // = 1
+-7 % 3; // = -1
+7 % -3; // = 1
 ```
 
 We must decide: Should we prioritize **JavaScript idioms** or **Python correctness**?
@@ -85,12 +85,12 @@ pow(base: number, exp: number): number {
 
 ### Operators Affected
 
-| Python | JavaScript | Our Solution |
-|--------|------------|--------------|
-| `//` | `Math.floor(a/b)` | `py.floordiv(a, b)` |
-| `%` | `a % b` | `py.mod(a, b)` |
-| `**` | `Math.pow(a, b)` or `a ** b` | `py.pow(a, b)` |
-| `in` | N/A | `py.in(item, container)` |
+| Python | JavaScript                   | Our Solution             |
+| ------ | ---------------------------- | ------------------------ |
+| `//`   | `Math.floor(a/b)`            | `py.floordiv(a, b)`      |
+| `%`    | `a % b`                      | `py.mod(a, b)`           |
+| `**`   | `Math.pow(a, b)` or `a ** b` | `py.pow(a, b)`           |
+| `in`   | N/A                          | `py.in(item, container)` |
 
 ### Not Affected (Same Semantics)
 

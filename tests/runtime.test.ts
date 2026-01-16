@@ -112,21 +112,35 @@ describe('Runtime Library (py.*)', () => {
 
     describe('enumerate()', () => {
       it('should enumerate items', () => {
-        expect([...py.enumerate(['a', 'b', 'c'])]).toEqual([[0, 'a'], [1, 'b'], [2, 'c']]);
+        expect([...py.enumerate(['a', 'b', 'c'])]).toEqual([
+          [0, 'a'],
+          [1, 'b'],
+          [2, 'c'],
+        ]);
       });
 
       it('should support start parameter', () => {
-        expect([...py.enumerate(['a', 'b'], 1)]).toEqual([[1, 'a'], [2, 'b']]);
+        expect([...py.enumerate(['a', 'b'], 1)]).toEqual([
+          [1, 'a'],
+          [2, 'b'],
+        ]);
       });
     });
 
     describe('zip()', () => {
       it('should zip two arrays', () => {
-        expect([...py.zip([1, 2, 3], ['a', 'b', 'c'])]).toEqual([[1, 'a'], [2, 'b'], [3, 'c']]);
+        expect([...py.zip([1, 2, 3], ['a', 'b', 'c'])]).toEqual([
+          [1, 'a'],
+          [2, 'b'],
+          [3, 'c'],
+        ]);
       });
 
       it('should stop at shortest iterable', () => {
-        expect([...py.zip([1, 2], ['a', 'b', 'c'])]).toEqual([[1, 'a'], [2, 'b']]);
+        expect([...py.zip([1, 2], ['a', 'b', 'c'])]).toEqual([
+          [1, 'a'],
+          [2, 'b'],
+        ]);
       });
     });
   });
@@ -148,7 +162,10 @@ describe('Runtime Library (py.*)', () => {
       });
 
       it('should create dict from entries', () => {
-        const d = py.dict([['a', 1], ['b', 2]] as [string, number][]);
+        const d = py.dict([
+          ['a', 1],
+          ['b', 2],
+        ] as [string, number][]);
         expect(d.get('a')).toBe(1);
         expect(d.get('b')).toBe(2);
       });
@@ -185,7 +202,14 @@ describe('Runtime Library (py.*)', () => {
       });
 
       it('should return size of Map', () => {
-        expect(py.len(new Map([['a', 1], ['b', 2]]))).toBe(2);
+        expect(
+          py.len(
+            new Map([
+              ['a', 1],
+              ['b', 2],
+            ])
+          )
+        ).toBe(2);
       });
 
       it('should return size of Set', () => {

@@ -195,9 +195,7 @@ function transformAssignTarget(node: SyntaxNode, ctx: TransformContext): string 
   } else if (node.name === 'TupleExpression') {
     // Nested destructuring: (a, b) -> [a, b]
     const children = getChildren(node);
-    const elements = children.filter(
-      (c) => c.name !== '(' && c.name !== ')' && c.name !== ','
-    );
+    const elements = children.filter((c) => c.name !== '(' && c.name !== ')' && c.name !== ',');
     return '[' + elements.map((e) => transformAssignTarget(e, ctx)).join(', ') + ']';
   }
   return transformNode(node, ctx);
@@ -502,9 +500,7 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
 
 function transformArgList(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node);
-  const items = children.filter(
-    (c) => c.name !== '(' && c.name !== ')' && c.name !== 'ArgList'
-  );
+  const items = children.filter((c) => c.name !== '(' && c.name !== ')' && c.name !== 'ArgList');
 
   // Check if this is a generator expression inside the arglist (e.g., sum(x for x in items))
   const hasForKeyword = items.some(
@@ -544,9 +540,7 @@ function transformMemberExpression(node: SyntaxNode, ctx: TransformContext): str
     }
 
     // Simple index access
-    const indexElements = children.filter(
-      (c) => c.name !== '[' && c.name !== ']' && c !== obj
-    );
+    const indexElements = children.filter((c) => c.name !== '[' && c.name !== ']' && c !== obj);
     const index = indexElements[0];
 
     if (!index) return `${objCode}[]`;
@@ -565,7 +559,11 @@ function transformMemberExpression(node: SyntaxNode, ctx: TransformContext): str
   }
 }
 
-function transformSliceFromMember(obj: SyntaxNode, children: SyntaxNode[], ctx: TransformContext): string {
+function transformSliceFromMember(
+  obj: SyntaxNode,
+  children: SyntaxNode[],
+  ctx: TransformContext
+): string {
   ctx.usesRuntime.add('slice');
   const objCode = transformNode(obj, ctx);
 
@@ -616,9 +614,7 @@ function transformSliceFromMember(obj: SyntaxNode, children: SyntaxNode[], ctx: 
 
 function transformArrayExpression(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node);
-  const elements = children.filter(
-    (c) => c.name !== '[' && c.name !== ']' && c.name !== ','
-  );
+  const elements = children.filter((c) => c.name !== '[' && c.name !== ']' && c.name !== ',');
 
   const elementCodes = elements.map((el) => transformNode(el, ctx));
   return `[${elementCodes.join(', ')}]`;
@@ -656,9 +652,7 @@ function transformDictionaryExpression(node: SyntaxNode, ctx: TransformContext):
 
 function transformTupleExpression(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node);
-  const elements = children.filter(
-    (c) => c.name !== '(' && c.name !== ')' && c.name !== ','
-  );
+  const elements = children.filter((c) => c.name !== '(' && c.name !== ')' && c.name !== ',');
 
   ctx.usesRuntime.add('tuple');
   const elementCodes = elements.map((el) => transformNode(el, ctx));
@@ -682,9 +676,7 @@ function transformSubscriptExpression(node: SyntaxNode, ctx: TransformContext): 
   }
 
   // Simple index access
-  const indexChildren = children.filter(
-    (c) => c.name !== '[' && c.name !== ']' && c !== obj
-  );
+  const indexChildren = children.filter((c) => c.name !== '[' && c.name !== ']' && c !== obj);
   const index = indexChildren[0];
 
   if (!index) return `${objCode}[]`;
@@ -697,7 +689,7 @@ function hasSliceSyntax(node: SyntaxNode, ctx: TransformContext): boolean {
   const text = getNodeText(node, ctx.source);
   // Check if there's a colon in the subscript
   const match = text.match(/\[([^\]]*)\]/);
-  return match ? match[1]?.includes(':') ?? false : false;
+  return match ? (match[1]?.includes(':') ?? false) : false;
 }
 
 function transformSlice(obj: SyntaxNode, subscriptNode: SyntaxNode, ctx: TransformContext): string {
@@ -738,7 +730,10 @@ function transformIfStatement(node: SyntaxNode, ctx: TransformContext): string {
       continue;
     }
 
-    if (child.name === 'if' || (child.name === 'Keyword' && getNodeText(child, ctx.source) === 'if')) {
+    if (
+      child.name === 'if' ||
+      (child.name === 'Keyword' && getNodeText(child, ctx.source) === 'if')
+    ) {
       // Main if
       const condition = children[i + 1];
       const body = children.find((c, idx) => idx > i && c.name === 'Body');
@@ -748,7 +743,10 @@ function transformIfStatement(node: SyntaxNode, ctx: TransformContext): string {
         const bodyCode = transformBody(body, ctx);
         parts.push(`if (${condCode}) {\n${bodyCode}\n}`);
       }
-    } else if (child.name === 'elif' || (child.name === 'Keyword' && getNodeText(child, ctx.source) === 'elif')) {
+    } else if (
+      child.name === 'elif' ||
+      (child.name === 'Keyword' && getNodeText(child, ctx.source) === 'elif')
+    ) {
       const condition = children[i + 1];
       const body = children.find((c, idx) => idx > i + 1 && c.name === 'Body');
 
@@ -757,7 +755,10 @@ function transformIfStatement(node: SyntaxNode, ctx: TransformContext): string {
         const bodyCode = transformBody(body, ctx);
         parts.push(` else if (${condCode}) {\n${bodyCode}\n}`);
       }
-    } else if (child.name === 'else' || (child.name === 'Keyword' && getNodeText(child, ctx.source) === 'else')) {
+    } else if (
+      child.name === 'else' ||
+      (child.name === 'Keyword' && getNodeText(child, ctx.source) === 'else')
+    ) {
       const body = children.find((c, idx) => idx > i && c.name === 'Body');
 
       if (body) {
@@ -773,7 +774,9 @@ function transformIfStatement(node: SyntaxNode, ctx: TransformContext): string {
 
 function transformWhileStatement(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node);
-  const condition = children.find((c) => c.name !== 'while' && c.name !== 'Body' && c.name !== 'Keyword' && c.name !== ':');
+  const condition = children.find(
+    (c) => c.name !== 'while' && c.name !== 'Body' && c.name !== 'Keyword' && c.name !== ':'
+  );
   const body = children.find((c) => c.name === 'Body');
 
   if (!condition || !body) return getNodeText(node, ctx.source);
@@ -796,9 +799,15 @@ function transformForStatement(node: SyntaxNode, ctx: TransformContext): string 
   let foundIn = false;
 
   for (const child of children) {
-    if (child.name === 'for' || (child.name === 'Keyword' && getNodeText(child, ctx.source) === 'for')) {
+    if (
+      child.name === 'for' ||
+      (child.name === 'Keyword' && getNodeText(child, ctx.source) === 'for')
+    ) {
       foundFor = true;
-    } else if (child.name === 'in' || (child.name === 'Keyword' && getNodeText(child, ctx.source) === 'in')) {
+    } else if (
+      child.name === 'in' ||
+      (child.name === 'Keyword' && getNodeText(child, ctx.source) === 'in')
+    ) {
       foundIn = true;
     } else if (child.name === 'Body') {
       bodyNode = child;
@@ -837,9 +846,7 @@ function transformForLoopVar(node: SyntaxNode, ctx: TransformContext): string {
   } else if (node.name === 'TupleExpression') {
     // Nested tuple: (a, b) -> [a, b]
     const children = getChildren(node);
-    const elements = children.filter(
-      (c) => c.name !== '(' && c.name !== ')' && c.name !== ','
-    );
+    const elements = children.filter((c) => c.name !== '(' && c.name !== ')' && c.name !== ',');
     return '[' + elements.map((e) => transformForLoopVar(e, ctx)).join(', ') + ']';
   }
   return transformNode(node, ctx);
@@ -949,12 +956,17 @@ interface ComprehensionClause {
   condition?: string;
 }
 
-function parseComprehensionClauses(children: SyntaxNode[], ctx: TransformContext): {
+function parseComprehensionClauses(
+  children: SyntaxNode[],
+  ctx: TransformContext
+): {
   outputExpr: string;
   clauses: ComprehensionClause[];
 } {
   // Skip brackets
-  const items = children.filter((c) => c.name !== '[' && c.name !== ']' && c.name !== '{' && c.name !== '}');
+  const items = children.filter(
+    (c) => c.name !== '[' && c.name !== ']' && c.name !== '{' && c.name !== '}'
+  );
 
   if (items.length === 0) {
     return { outputExpr: '', clauses: [] };
@@ -977,7 +989,10 @@ function parseComprehensionClauses(children: SyntaxNode[], ctx: TransformContext
       continue;
     }
 
-    if (item.name === 'for' || (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'for')) {
+    if (
+      item.name === 'for' ||
+      (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'for')
+    ) {
       // for variable in iterable
       const varNode = items[i + 1];
       // Skip 'in' keyword
@@ -993,7 +1008,10 @@ function parseComprehensionClauses(children: SyntaxNode[], ctx: TransformContext
       } else {
         i++;
       }
-    } else if (item.name === 'if' || (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'if')) {
+    } else if (
+      item.name === 'if' ||
+      (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'if')
+    ) {
       // if condition
       const conditionNode = items[i + 1];
       if (conditionNode) {
@@ -1005,7 +1023,10 @@ function parseComprehensionClauses(children: SyntaxNode[], ctx: TransformContext
       } else {
         i++;
       }
-    } else if (item.name === 'in' || (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'in')) {
+    } else if (
+      item.name === 'in' ||
+      (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'in')
+    ) {
       // Skip 'in' keyword (already handled in 'for' case)
       i++;
     } else {
@@ -1069,7 +1090,10 @@ function transformDictComprehension(node: SyntaxNode, ctx: TransformContext): st
       continue;
     }
 
-    if (item.name === 'for' || (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'for')) {
+    if (
+      item.name === 'for' ||
+      (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'for')
+    ) {
       const varNode = clauseItems[i + 1];
       const iterableNode = clauseItems[i + 3];
 
@@ -1083,7 +1107,10 @@ function transformDictComprehension(node: SyntaxNode, ctx: TransformContext): st
       } else {
         i++;
       }
-    } else if (item.name === 'if' || (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'if')) {
+    } else if (
+      item.name === 'if' ||
+      (item.name === 'Keyword' && getNodeText(item, ctx.source) === 'if')
+    ) {
       const conditionNode = clauseItems[i + 1];
       if (conditionNode) {
         clauses.push({
@@ -1105,9 +1132,7 @@ function transformDictComprehension(node: SyntaxNode, ctx: TransformContext): st
 
 function transformSetExpression(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node);
-  const elements = children.filter(
-    (c) => c.name !== '{' && c.name !== '}' && c.name !== ','
-  );
+  const elements = children.filter((c) => c.name !== '{' && c.name !== '}' && c.name !== ',');
 
   ctx.usesRuntime.add('set');
   const elementCodes = elements.map((el) => transformNode(el, ctx));

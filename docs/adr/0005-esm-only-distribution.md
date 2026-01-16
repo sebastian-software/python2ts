@@ -89,6 +89,7 @@ Configuration:
 Users with CJS codebases can:
 
 1. Use dynamic `import()`:
+
    ```javascript
    const { transpile } = await import('python2ts');
    ```

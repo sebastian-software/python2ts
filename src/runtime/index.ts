@@ -41,12 +41,7 @@ export const py = {
    * Python-style slice operation
    * Supports negative indices and step
    */
-  slice<T>(
-    obj: string | T[],
-    start?: number,
-    stop?: number,
-    step?: number
-  ): string | T[] {
+  slice<T>(obj: string | T[], start?: number, stop?: number, step?: number): string | T[] {
     const len = obj.length;
     const actualStep = step ?? 1;
 
@@ -147,22 +142,19 @@ export const py = {
   /**
    * Python zip() function
    */
-  zip<T extends unknown[][]>(
-    ...iterables: { [K in keyof T]: Iterable<T[K]> }
-  ): Iterable<T> {
+  zip<T extends unknown[][]>(...iterables: { [K in keyof T]: Iterable<T[K]> }): Iterable<T> {
     return {
       *[Symbol.iterator]() {
-        const iterators = iterables.map((it) =>
-          (it as Iterable<unknown>)[Symbol.iterator]()
-        );
+        const iterators = iterables.map((it) => (it as Iterable<unknown>)[Symbol.iterator]());
 
-        while (true) {
+        for (;;) {
           const results = iterators.map((it) => it.next());
 
           if (results.some((r) => r.done)) {
             break;
           }
 
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           yield results.map((r) => r.value) as T;
         }
       },
@@ -218,10 +210,12 @@ export const py = {
     if (obj instanceof Map || obj instanceof Set) {
       return obj.size;
     }
+    // Handle objects with length property (e.g., NodeList, arguments)
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (typeof obj === 'object' && obj !== null && 'length' in obj) {
       return obj.length;
     }
-    throw new TypeError("object has no len()");
+    throw new TypeError('object has no len()');
   },
 
   /**
@@ -235,8 +229,14 @@ export const py = {
    * Python min() function
    */
   min<T>(...args: T[] | [Iterable<T>]): T {
-    if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && Symbol.iterator in args[0]) {
-      const arr = Array.from(args[0] as Iterable<T>);
+    const first = args[0];
+    if (
+      args.length === 1 &&
+      typeof first === 'object' &&
+      first !== null &&
+      Symbol.iterator in first
+    ) {
+      const arr = [...first];
       if (arr.length === 0) {
         throw new Error('min() arg is an empty sequence');
       }
@@ -254,8 +254,14 @@ export const py = {
    * Python max() function
    */
   max<T>(...args: T[] | [Iterable<T>]): T {
-    if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && Symbol.iterator in args[0]) {
-      const arr = Array.from(args[0] as Iterable<T>);
+    const first = args[0];
+    if (
+      args.length === 1 &&
+      typeof first === 'object' &&
+      first !== null &&
+      Symbol.iterator in first
+    ) {
+      const arr = [...first];
       if (arr.length === 0) {
         throw new Error('max() arg is an empty sequence');
       }
@@ -283,10 +289,7 @@ export const py = {
   /**
    * Python sorted() function
    */
-  sorted<T>(
-    iterable: Iterable<T>,
-    options?: { key?: (x: T) => unknown; reverse?: boolean }
-  ): T[] {
+  sorted<T>(iterable: Iterable<T>, options?: { key?: (x: T) => unknown; reverse?: boolean }): T[] {
     const arr = Array.from(iterable);
     const key = options?.key ?? ((x: T) => x);
     const reverse = options?.reverse ?? false;
@@ -383,8 +386,15 @@ export const py = {
       if (x.size === 0) {
         return 'set()';
       }
-      return '{' + Array.from(x).map((item) => py.repr(item)).join(', ') + '}';
+      return (
+        '{' +
+        Array.from(x)
+          .map((item) => py.repr(item))
+          .join(', ') +
+        '}'
+      );
     }
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     return String(x);
   },
 

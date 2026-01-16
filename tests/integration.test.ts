@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { parse, transform, generate, transpile, py, debugTree, getNodeText, getChildren } from '../src/index.js';
+import {
+  parse,
+  transform,
+  generate,
+  transpile,
+  py,
+  debugTree,
+  getNodeText,
+  getChildren,
+} from '../src/index.js';
 
 describe('Integration Tests', () => {
   describe('Main exports', () => {
@@ -101,7 +110,7 @@ for i in range(10):
       const result = generate(python);
 
       expect(result.runtimeImport).not.toBeNull();
-      expect(result.code).toContain("import { py }");
+      expect(result.code).toContain('import { py }');
     });
 
     it('should not include runtime import when not needed', () => {

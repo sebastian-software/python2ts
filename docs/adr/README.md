@@ -8,13 +8,13 @@ An Architecture Decision Record captures an important architectural decision mad
 
 ## ADR Index
 
-| ID | Title | Status | Date |
-|----|-------|--------|------|
-| [ADR-0001](./0001-use-lezer-python-parser.md) | Use @lezer/python as Parser | Accepted | 2026-01-16 |
-| [ADR-0002](./0002-runtime-namespace-design.md) | Runtime Namespace Design (py.*) | Accepted | 2026-01-16 |
+| ID                                              | Title                              | Status   | Date       |
+| ----------------------------------------------- | ---------------------------------- | -------- | ---------- |
+| [ADR-0001](./0001-use-lezer-python-parser.md)   | Use @lezer/python as Parser        | Accepted | 2026-01-16 |
+| [ADR-0002](./0002-runtime-namespace-design.md)  | Runtime Namespace Design (py.\*)   | Accepted | 2026-01-16 |
 | [ADR-0003](./0003-python-operator-semantics.md) | Preserve Python Operator Semantics | Accepted | 2026-01-16 |
-| [ADR-0004](./0004-testing-strategy.md) | Testing Strategy with Vitest | Accepted | 2026-01-16 |
-| [ADR-0005](./0005-esm-only-distribution.md) | ESM-Only Distribution | Accepted | 2026-01-16 |
+| [ADR-0004](./0004-testing-strategy.md)          | Testing Strategy with Vitest       | Accepted | 2026-01-16 |
+| [ADR-0005](./0005-esm-only-distribution.md)     | ESM-Only Distribution              | Accepted | 2026-01-16 |
 
 ## Template
 

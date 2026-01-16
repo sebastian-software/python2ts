@@ -25,19 +25,23 @@ An AST-based transpiler that converts Python code to TypeScript. The parser is b
 ## Core Components
 
 ### 1. Parser (`src/parser/`)
+
 - Wrapper around `@lezer/python`
 - AST traversal and node types
 - See [ADR-0001](./docs/adr/0001-use-lezer-python-parser.md)
 
 ### 2. Transformer (`src/transformer/`)
+
 - Converts Lezer AST to TypeScript
 - Handlers for each Python node type
 
 ### 3. Code Generator (`src/generator/`)
+
 - Generates TypeScript code from transformed AST
 - Manages runtime imports
 
 ### 4. Runtime Library (`src/runtime/`)
+
 - `py.*` helper functions for Python-specific operations
 - See [ADR-0002](./docs/adr/0002-runtime-namespace-design.md)
 
@@ -53,6 +57,7 @@ An AST-based transpiler that converts Python code to TypeScript. The parser is b
 - [x] 412 tests with 89%+ coverage
 
 **Supported Syntax:**
+
 - [x] Literals: `int`, `float`, `str`, `bool`, `None`
 - [x] Variables and assignments
 - [x] Arithmetic operators: `+`, `-`, `*`, `/`, `//`, `%`, `**`
@@ -116,7 +121,7 @@ An AST-based transpiler that converts Python code to TypeScript. The parser is b
 - [ ] f-strings → template literals
 - [ ] Walrus operator (`:=`)
 
-## py.* Runtime API
+## py.\* Runtime API
 
 ```typescript
 export const py = {
@@ -239,6 +244,7 @@ See [ADR-0004](./docs/adr/0004-testing-strategy.md) for details.
 ## Conventions
 
 ### Git Commits (Conventional Commits)
+
 ```
 feat: add list comprehension support
 fix: handle nested slicing correctly
@@ -249,17 +255,18 @@ chore: upgrade dependencies
 ```
 
 ### Code Style
+
 - ESLint with TypeScript rules
 - Strict TypeScript settings (`strict: true`)
 - ESM-only distribution (see [ADR-0005](./docs/adr/0005-esm-only-distribution.md))
 
 ## Current Status
 
-| Metric | Value |
-|--------|-------|
-| Tests | 459 |
-| Coverage | 89%+ |
-| Phase | 2 Complete |
+| Metric   | Value      |
+| -------- | ---------- |
+| Tests    | 459        |
+| Coverage | 89%+       |
+| Phase    | 2 Complete |
 
 ## Next Steps
 
@@ -277,4 +284,4 @@ chore: upgrade dependencies
 
 ---
 
-*Last updated: 2026-01-16*
+_Last updated: 2026-01-16_

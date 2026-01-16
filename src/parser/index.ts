@@ -60,7 +60,9 @@ export function debugTree(tree: Tree, source: string): string {
     const indent = '  '.repeat(depth);
     const text = source.slice(cursor.from, cursor.to).replace(/\n/g, '\\n');
     const preview = text.length > 30 ? text.slice(0, 30) + '...' : text;
-    lines.push(`${indent}${cursor.name} [${cursor.from}-${cursor.to}] "${preview}"`);
+    lines.push(
+      `${indent}${cursor.name} [${String(cursor.from)}-${String(cursor.to)}] "${preview}"`
+    );
 
     if (cursor.firstChild()) {
       depth++;

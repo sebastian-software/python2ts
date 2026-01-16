@@ -171,7 +171,11 @@ x = 1`;
         yield 'c';
       };
       const result = [...py.enumerate(gen())];
-      expect(result).toEqual([[0, 'a'], [1, 'b'], [2, 'c']]);
+      expect(result).toEqual([
+        [0, 'a'],
+        [1, 'b'],
+        [2, 'c'],
+      ]);
     });
   });
 

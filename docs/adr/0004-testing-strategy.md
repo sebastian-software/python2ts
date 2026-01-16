@@ -104,7 +104,7 @@ describe('E2E: Operators', () => {
     expect(ts).toContain('py.mod(-7, 3)');
 
     // Verify runtime produces Python result
-    expect(py.mod(-7, 3)).toBe(2);  // Python: 2, JS: -1
+    expect(py.mod(-7, 3)).toBe(2); // Python: 2, JS: -1
   });
 });
 ```

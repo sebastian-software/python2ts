@@ -36,14 +36,15 @@ console.log(typescript);
 ```
 
 Output:
+
 ```typescript
 import { py } from 'python2ts/runtime';
 
 function greet(name) {
-  console.log(("Hello, " + name));
+  console.log('Hello, ' + name);
 }
 for (const i of py.range(5)) {
-  greet("World");
+  greet('World');
 }
 ```
 
@@ -53,20 +54,20 @@ for (const i of py.range(5)) {
 import { py } from 'python2ts/runtime';
 
 // Python-style floor division (rounds toward negative infinity)
-py.floordiv(7, 3);    // 2
-py.floordiv(-7, 3);   // -3 (not -2 like JS Math.floor)
+py.floordiv(7, 3); // 2
+py.floordiv(-7, 3); // -3 (not -2 like JS Math.floor)
 
 // Python-style modulo (result has sign of divisor)
-py.mod(-7, 3);        // 2 (not -1 like JS %)
+py.mod(-7, 3); // 2 (not -1 like JS %)
 
 // Slicing
-py.slice([0, 1, 2, 3, 4], 1, 4);           // [1, 2, 3]
-py.slice([0, 1, 2, 3, 4], undefined, undefined, -1);  // [4, 3, 2, 1, 0]
+py.slice([0, 1, 2, 3, 4], 1, 4); // [1, 2, 3]
+py.slice([0, 1, 2, 3, 4], undefined, undefined, -1); // [4, 3, 2, 1, 0]
 
 // Iterables
-[...py.range(5)];                    // [0, 1, 2, 3, 4]
-[...py.enumerate(['a', 'b', 'c'])];  // [[0, 'a'], [1, 'b'], [2, 'c']]
-[...py.zip([1, 2], ['a', 'b'])];     // [[1, 'a'], [2, 'b']]
+[...py.range(5)]; // [0, 1, 2, 3, 4]
+[...py.enumerate(['a', 'b', 'c'])]; // [[0, 'a'], [1, 'b'], [2, 'c']]
+[...py.zip([1, 2], ['a', 'b'])]; // [[1, 'a'], [2, 'b']]
 ```
 
 ### Advanced API
@@ -94,64 +95,64 @@ console.log(generated.usedRuntimeFunctions); // ['range', 'len', ...]
 
 ### Phase 1 (Current)
 
-| Python | TypeScript | Notes |
-|--------|------------|-------|
-| `True` / `False` | `true` / `false` | |
-| `None` | `null` | |
-| `x // y` | `py.floordiv(x, y)` | Python semantics |
-| `x ** y` | `py.pow(x, y)` | |
-| `x % y` | `py.mod(x, y)` | Python semantics |
-| `x and y` | `x && y` | |
-| `x or y` | `x \|\| y` | |
-| `not x` | `!x` | |
-| `x in items` | `py.in(x, items)` | |
-| `arr[1:3]` | `py.slice(arr, 1, 3)` | Full slice support |
-| `print(x)` | `console.log(x)` | |
-| `len(x)` | `py.len(x)` | |
-| `range(n)` | `py.range(n)` | |
-| `for x in items:` | `for (const x of items)` | |
-| `if/elif/else` | `if/else if/else` | |
-| `while` | `while` | |
-| `def fn():` | `function fn()` | |
-| `[1, 2, 3]` | `[1, 2, 3]` | |
-| `{"a": 1}` | `{ "a": 1 }` | |
-| `# comment` | `// comment` | |
+| Python            | TypeScript               | Notes              |
+| ----------------- | ------------------------ | ------------------ |
+| `True` / `False`  | `true` / `false`         |                    |
+| `None`            | `null`                   |                    |
+| `x // y`          | `py.floordiv(x, y)`      | Python semantics   |
+| `x ** y`          | `py.pow(x, y)`           |                    |
+| `x % y`           | `py.mod(x, y)`           | Python semantics   |
+| `x and y`         | `x && y`                 |                    |
+| `x or y`          | `x \|\| y`               |                    |
+| `not x`           | `!x`                     |                    |
+| `x in items`      | `py.in(x, items)`        |                    |
+| `arr[1:3]`        | `py.slice(arr, 1, 3)`    | Full slice support |
+| `print(x)`        | `console.log(x)`         |                    |
+| `len(x)`          | `py.len(x)`              |                    |
+| `range(n)`        | `py.range(n)`            |                    |
+| `for x in items:` | `for (const x of items)` |                    |
+| `if/elif/else`    | `if/else if/else`        |                    |
+| `while`           | `while`                  |                    |
+| `def fn():`       | `function fn()`          |                    |
+| `[1, 2, 3]`       | `[1, 2, 3]`              |                    |
+| `{"a": 1}`        | `{ "a": 1 }`             |                    |
+| `# comment`       | `// comment`             |                    |
 
 ### Phase 2 (Comprehensions & Destructuring)
 
-| Python | TypeScript | Notes |
-|--------|------------|-------|
-| `[x for x in items]` | `items.map((x) => x)` | List comprehension |
-| `[x for x in items if x > 0]` | `items.filter(...).map(...)` | With condition |
-| `[x + y for x in a for y in b]` | `a.flatMap((x) => b.map(...))` | Nested comprehension |
-| `{x: x * 2 for x in items}` | `py.dict(items.map(...))` | Dict comprehension |
-| `{x * 2 for x in items}` | `py.set(items.map(...))` | Set comprehension |
-| `{1, 2, 3}` | `py.set([1, 2, 3])` | Set literal |
-| `(x for x in items)` | `(function*() { ... })()` | Generator expression |
-| `sum(x for x in items)` | `py.sum((function*() {...})())` | Generator in function |
-| `for x, y in items:` | `for (const [x, y] of items)` | Tuple unpacking |
-| `a, b = 1, 2` | `let [a, b] = [1, 2]` | Multiple assignment |
-| `a, b = b, a` | `let [a, b] = [b, a]` | Swap pattern |
+| Python                          | TypeScript                      | Notes                 |
+| ------------------------------- | ------------------------------- | --------------------- |
+| `[x for x in items]`            | `items.map((x) => x)`           | List comprehension    |
+| `[x for x in items if x > 0]`   | `items.filter(...).map(...)`    | With condition        |
+| `[x + y for x in a for y in b]` | `a.flatMap((x) => b.map(...))`  | Nested comprehension  |
+| `{x: x * 2 for x in items}`     | `py.dict(items.map(...))`       | Dict comprehension    |
+| `{x * 2 for x in items}`        | `py.set(items.map(...))`        | Set comprehension     |
+| `{1, 2, 3}`                     | `py.set([1, 2, 3])`             | Set literal           |
+| `(x for x in items)`            | `(function*() { ... })()`       | Generator expression  |
+| `sum(x for x in items)`         | `py.sum((function*() {...})())` | Generator in function |
+| `for x, y in items:`            | `for (const [x, y] of items)`   | Tuple unpacking       |
+| `a, b = 1, 2`                   | `let [a, b] = [1, 2]`           | Multiple assignment   |
+| `a, b = b, a`                   | `let [a, b] = [b, a]`           | Swap pattern          |
 
 ### Built-in Functions
 
-| Python | TypeScript |
-|--------|------------|
-| `print()` | `console.log()` |
-| `len()` | `py.len()` |
-| `range()` | `py.range()` |
-| `enumerate()` | `py.enumerate()` |
-| `zip()` | `py.zip()` |
-| `sorted()` | `py.sorted()` |
-| `reversed()` | `py.reversed()` |
-| `min()` / `max()` | `py.min()` / `py.max()` |
-| `sum()` | `py.sum()` |
-| `abs()` | `py.abs()` |
-| `int()` / `float()` / `str()` / `bool()` | `py.int()` / `py.float()` / `py.str()` / `py.bool()` |
+| Python                                    | TypeScript                                            |
+| ----------------------------------------- | ----------------------------------------------------- |
+| `print()`                                 | `console.log()`                                       |
+| `len()`                                   | `py.len()`                                            |
+| `range()`                                 | `py.range()`                                          |
+| `enumerate()`                             | `py.enumerate()`                                      |
+| `zip()`                                   | `py.zip()`                                            |
+| `sorted()`                                | `py.sorted()`                                         |
+| `reversed()`                              | `py.reversed()`                                       |
+| `min()` / `max()`                         | `py.min()` / `py.max()`                               |
+| `sum()`                                   | `py.sum()`                                            |
+| `abs()`                                   | `py.abs()`                                            |
+| `int()` / `float()` / `str()` / `bool()`  | `py.int()` / `py.float()` / `py.str()` / `py.bool()`  |
 | `list()` / `dict()` / `set()` / `tuple()` | `py.list()` / `py.dict()` / `py.set()` / `py.tuple()` |
-| `ord()` / `chr()` | `py.ord()` / `py.chr()` |
-| `all()` / `any()` | `py.all()` / `py.any()` |
-| `map()` / `filter()` | `py.map()` / `py.filter()` |
+| `ord()` / `chr()`                         | `py.ord()` / `py.chr()`                               |
+| `all()` / `any()`                         | `py.all()` / `py.any()`                               |
+| `map()` / `filter()`                      | `py.map()` / `py.filter()`                            |
 
 ## Roadmap
 

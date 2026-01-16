@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { parse, getNodeText, getChildren, getChildByType, getChildrenByType, walkTree, debugTree } from '../src/parser/index.js';
+import {
+  parse,
+  getNodeText,
+  getChildren,
+  getChildByType,
+  getChildrenByType,
+  walkTree,
+  debugTree,
+} from '../src/parser/index.js';
 
 describe('Parser', () => {
   describe('parse()', () => {

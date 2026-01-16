@@ -12,8 +12,8 @@ describe('Generator', () => {
 
     it('should include runtime import when runtime functions are used', () => {
       const result = generate('x = 10 // 3');
-      expect(result.runtimeImport).toContain("import { py }");
-      expect(result.code).toContain("import { py }");
+      expect(result.runtimeImport).toContain('import { py }');
+      expect(result.code).toContain('import { py }');
     });
 
     it('should not include runtime import when no runtime functions are used', () => {
@@ -48,7 +48,7 @@ describe('Generator', () => {
 
     it('should include runtime import by default', () => {
       const result = transpile('x = len([1, 2, 3])');
-      expect(result).toContain("import { py }");
+      expect(result).toContain('import { py }');
       expect(result).toContain('py.len');
     });
   });
