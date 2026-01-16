@@ -196,6 +196,26 @@ export const py = {
     }
   },
 
+  /**
+   * Safe iteration helper for for-in loops
+   * Handles both arrays (iterates values) and objects (iterates keys)
+   */
+  iter<T>(obj: Iterable<T> | Record<string, unknown>): Iterable<T> | string[] {
+    if (obj === null || obj === undefined) {
+      return []
+    }
+    // Check if it's iterable (has Symbol.iterator)
+    if (typeof (obj as Iterable<T>)[Symbol.iterator] === "function") {
+      return obj as Iterable<T>
+    }
+    // Plain object - return keys
+    if (typeof obj === "object") {
+      return Object.keys(obj)
+    }
+    // Fallback
+    return []
+  },
+
   // ============================================================
   // Collections
   // ============================================================
@@ -971,6 +991,285 @@ export const py = {
     }
 
     return result
+  },
+
+  // ============================================================
+  // String Methods
+  // ============================================================
+
+  /**
+   * Python str.capitalize()
+   */
+  capitalize(s: string): string {
+    if (s.length === 0) return s
+    return s[0]!.toUpperCase() + s.slice(1).toLowerCase()
+  },
+
+  /**
+   * Python str.title()
+   */
+  title(s: string): string {
+    return s.replace(/\b\w/g, (c) => c.toUpperCase())
+  },
+
+  /**
+   * Python str.swapcase()
+   */
+  swapcase(s: string): string {
+    return s
+      .split("")
+      .map((c) => (c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()))
+      .join("")
+  },
+
+  /**
+   * Python str.index() - raises error if not found
+   */
+  strIndex(s: string, sub: string, start = 0, end?: number): number {
+    const searchIn = s.slice(start, end)
+    const index = searchIn.indexOf(sub)
+    if (index === -1) {
+      throw new Error(`substring not found`)
+    }
+    return index + start
+  },
+
+  /**
+   * Python str.rindex() - raises error if not found
+   */
+  strRindex(s: string, sub: string, start = 0, end?: number): number {
+    const searchIn = s.slice(start, end)
+    const index = searchIn.lastIndexOf(sub)
+    if (index === -1) {
+      throw new Error(`substring not found`)
+    }
+    return index + start
+  },
+
+  /**
+   * Python str.count()
+   */
+  strCount(s: string, sub: string, start = 0, end?: number): number {
+    const searchIn = s.slice(start, end)
+    if (sub.length === 0) return searchIn.length + 1
+    let count = 0
+    let pos = 0
+    while ((pos = searchIn.indexOf(sub, pos)) !== -1) {
+      count++
+      pos += sub.length
+    }
+    return count
+  },
+
+  /**
+   * Python str.replace() - replaces all occurrences by default
+   */
+  strReplace(s: string, old: string, newStr: string, count?: number): string {
+    if (count === undefined) {
+      return s.split(old).join(newStr)
+    }
+    let result = s
+    for (let i = 0; i < count; i++) {
+      const index = result.indexOf(old)
+      if (index === -1) break
+      result = result.slice(0, index) + newStr + result.slice(index + old.length)
+    }
+    return result
+  },
+
+  /**
+   * Python str.zfill()
+   */
+  zfill(s: string, width: number): string {
+    if (s.length >= width) return s
+    const sign = s[0] === "-" || s[0] === "+" ? s[0] : ""
+    const digits = sign ? s.slice(1) : s
+    return sign + digits.padStart(width - sign.length, "0")
+  },
+
+  /**
+   * Python str.center()
+   */
+  center(s: string, width: number, fillchar = " "): string {
+    if (s.length >= width) return s
+    const total = width - s.length
+    const left = Math.floor(total / 2)
+    const right = total - left
+    return fillchar.repeat(left) + s + fillchar.repeat(right)
+  },
+
+  /**
+   * Python str.rsplit()
+   */
+  rsplit(s: string, sep?: string, maxsplit?: number): string[] {
+    if (sep === undefined) {
+      // Split on whitespace
+      const parts = s.trim().split(/\s+/)
+      if (maxsplit === undefined) return parts
+      if (maxsplit <= 0) return [s]
+      if (parts.length <= maxsplit + 1) return parts
+      const keep = parts.slice(-maxsplit)
+      const rest = parts.slice(0, parts.length - maxsplit).join(" ")
+      return [rest, ...keep]
+    }
+
+    const parts = s.split(sep)
+    if (maxsplit === undefined || parts.length <= maxsplit + 1) return parts
+    const keep = parts.slice(-maxsplit)
+    const rest = parts.slice(0, parts.length - maxsplit).join(sep)
+    return [rest, ...keep]
+  },
+
+  /**
+   * Python str.partition()
+   */
+  partition(s: string, sep: string): [string, string, string] {
+    const index = s.indexOf(sep)
+    if (index === -1) return [s, "", ""]
+    return [s.slice(0, index), sep, s.slice(index + sep.length)]
+  },
+
+  /**
+   * Python str.rpartition()
+   */
+  rpartition(s: string, sep: string): [string, string, string] {
+    const index = s.lastIndexOf(sep)
+    if (index === -1) return ["", "", s]
+    return [s.slice(0, index), sep, s.slice(index + sep.length)]
+  },
+
+  // ============================================================
+  // List Methods
+  // ============================================================
+
+  /**
+   * Python list.remove() - removes first occurrence
+   */
+  listRemove<T>(arr: T[], value: T): void {
+    const index = arr.indexOf(value)
+    if (index === -1) {
+      throw new Error("list.remove(x): x not in list")
+    }
+    arr.splice(index, 1)
+  },
+
+  /**
+   * Python list.sort() with key function
+   */
+  listSort<T>(arr: T[], options?: { key?: (x: T) => unknown; reverse?: boolean }): void {
+    const key = options?.key ?? ((x: T) => x)
+    const reverse = options?.reverse ?? false
+    arr.sort((a, b) => {
+      const aKey = key(a)
+      const bKey = key(b)
+      let cmp = 0
+      if (aKey < bKey) cmp = -1
+      else if (aKey > bKey) cmp = 1
+      return reverse ? -cmp : cmp
+    })
+  },
+
+  // ============================================================
+  // Dict Methods
+  // ============================================================
+
+  /**
+   * Python dict.get()
+   */
+  dictGet<K extends string | number | symbol, V>(
+    obj: Record<K, V>,
+    key: K,
+    defaultValue?: V
+  ): V | undefined {
+    return key in obj ? obj[key] : defaultValue
+  },
+
+  /**
+   * Python dict.setdefault()
+   */
+  dictSetdefault<K extends string | number | symbol, V>(
+    obj: Record<K, V>,
+    key: K,
+    defaultValue: V
+  ): V {
+    if (!(key in obj)) {
+      obj[key] = defaultValue
+    }
+    return obj[key]
+  },
+
+  /**
+   * Python dict.fromkeys()
+   */
+  dictFromkeys<K extends string | number | symbol, V>(
+    keys: K[],
+    value?: V
+  ): Record<K, V | undefined> {
+    const result = {} as Record<K, V | undefined>
+    for (const key of keys) {
+      result[key] = value
+    }
+    return result
+  },
+
+  // ============================================================
+  // Set Methods
+  // ============================================================
+
+  /**
+   * Python set.intersection()
+   */
+  setIntersection<T>(a: Set<T>, b: Set<T>): Set<T> {
+    const result = new Set<T>()
+    for (const item of a) {
+      if (b.has(item)) result.add(item)
+    }
+    return result
+  },
+
+  /**
+   * Python set.difference()
+   */
+  setDifference<T>(a: Set<T>, b: Set<T>): Set<T> {
+    const result = new Set<T>()
+    for (const item of a) {
+      if (!b.has(item)) result.add(item)
+    }
+    return result
+  },
+
+  /**
+   * Python set.symmetric_difference()
+   */
+  setSymmetricDifference<T>(a: Set<T>, b: Set<T>): Set<T> {
+    const result = new Set<T>()
+    for (const item of a) {
+      if (!b.has(item)) result.add(item)
+    }
+    for (const item of b) {
+      if (!a.has(item)) result.add(item)
+    }
+    return result
+  },
+
+  /**
+   * Python set.issubset()
+   */
+  setIssubset<T>(a: Set<T>, b: Set<T>): boolean {
+    for (const item of a) {
+      if (!b.has(item)) return false
+    }
+    return true
+  },
+
+  /**
+   * Python set.issuperset()
+   */
+  setIssuperset<T>(a: Set<T>, b: Set<T>): boolean {
+    for (const item of b) {
+      if (!a.has(item)) return false
+    }
+    return true
   }
 }
 

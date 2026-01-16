@@ -7,6 +7,8 @@ export interface TransformContext {
   usesRuntime: Set<string>
   /** Stack of scopes - each scope is a set of variable names declared in that scope */
   scopeStack: Set<string>[]
+  /** Set of class names defined in this module (for adding 'new' on instantiation) */
+  definedClasses: Set<string>
 }
 
 export interface TransformResult {
@@ -19,7 +21,8 @@ function createContext(source: string): TransformContext {
     source,
     indentLevel: 0,
     usesRuntime: new Set(),
-    scopeStack: [new Set()] // Start with one global scope
+    scopeStack: [new Set()], // Start with one global scope
+    definedClasses: new Set()
   }
 }
 
@@ -595,6 +598,20 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
   const calleeName = getNodeText(callee, ctx.source)
   const args = argList ? transformArgList(argList, ctx) : ""
 
+  // Handle method calls (obj.method())
+  if (callee.name === "MemberExpression") {
+    const methodResult = transformMethodCall(callee, args, ctx)
+    if (methodResult !== null) {
+      return methodResult
+    }
+    // Fall through to regular call handling if no special mapping
+  }
+
+  // Check if this is a class instantiation (needs 'new')
+  if (callee.name === "VariableName" && ctx.definedClasses.has(calleeName)) {
+    return `new ${calleeName}(${args})`
+  }
+
   // Map Python built-ins to JS/runtime equivalents
   switch (calleeName) {
     case "print":
@@ -701,6 +718,200 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
     default:
       // Regular function call
       return `${transformNode(callee, ctx)}(${args})`
+  }
+}
+
+/**
+ * Transform Python method calls to JavaScript equivalents.
+ * Returns null if no special mapping is needed.
+ */
+function transformMethodCall(
+  callee: SyntaxNode,
+  args: string,
+  ctx: TransformContext
+): string | null {
+  const children = getChildren(callee)
+  if (children.length < 2) return null
+
+  const obj = children[0]
+  const methodNode = children[children.length - 1]
+  if (!obj || !methodNode) return null
+
+  // Skip transformation for module-like paths (e.g., os.path.join)
+  // These are MemberExpressions that look like module references, not method calls on values
+  if (obj.name === "MemberExpression") {
+    // Could be module.submodule.method() - don't transform
+    return null
+  }
+
+  const objCode = transformNode(obj, ctx)
+  const methodName = getNodeText(methodNode, ctx.source)
+
+  // String methods
+  switch (methodName) {
+    // String case conversion
+    case "upper":
+      return `${objCode}.toUpperCase()`
+    case "lower":
+      return `${objCode}.toLowerCase()`
+    case "capitalize":
+      ctx.usesRuntime.add("capitalize")
+      return `py.capitalize(${objCode})`
+    case "title":
+      ctx.usesRuntime.add("title")
+      return `py.title(${objCode})`
+    case "swapcase":
+      ctx.usesRuntime.add("swapcase")
+      return `py.swapcase(${objCode})`
+    case "casefold":
+      return `${objCode}.toLowerCase()`
+
+    // String whitespace
+    case "strip":
+      return args ? `${objCode}.split(${args}).join("")` : `${objCode}.trim()`
+    case "lstrip":
+      return args
+        ? `${objCode}.replace(new RegExp('^[' + ${args} + ']+'), '')`
+        : `${objCode}.trimStart()`
+    case "rstrip":
+      return args
+        ? `${objCode}.replace(new RegExp('[' + ${args} + ']+$'), '')`
+        : `${objCode}.trimEnd()`
+
+    // String search
+    case "startswith":
+      return `${objCode}.startsWith(${args})`
+    case "endswith":
+      return `${objCode}.endsWith(${args})`
+    case "find":
+      return `${objCode}.indexOf(${args})`
+    case "rfind":
+      return `${objCode}.lastIndexOf(${args})`
+    case "index":
+      ctx.usesRuntime.add("strIndex")
+      return `py.strIndex(${objCode}, ${args})`
+    case "rindex":
+      ctx.usesRuntime.add("strRindex")
+      return `py.strRindex(${objCode}, ${args})`
+    case "count":
+      ctx.usesRuntime.add("strCount")
+      return `py.strCount(${objCode}, ${args})`
+
+    // String testing
+    case "isalpha":
+      return `/^[a-zA-Z]+$/.test(${objCode})`
+    case "isdigit":
+      return `/^[0-9]+$/.test(${objCode})`
+    case "isalnum":
+      return `/^[a-zA-Z0-9]+$/.test(${objCode})`
+    case "isspace":
+      return `/^\\s+$/.test(${objCode})`
+    case "isupper":
+      return `(${objCode} === ${objCode}.toUpperCase() && ${objCode} !== ${objCode}.toLowerCase())`
+    case "islower":
+      return `(${objCode} === ${objCode}.toLowerCase() && ${objCode} !== ${objCode}.toUpperCase())`
+
+    // String modification
+    case "replace":
+      ctx.usesRuntime.add("strReplace")
+      return `py.strReplace(${objCode}, ${args})`
+    case "zfill":
+      ctx.usesRuntime.add("zfill")
+      return `py.zfill(${objCode}, ${args})`
+    case "center":
+      ctx.usesRuntime.add("center")
+      return `py.center(${objCode}, ${args})`
+    case "ljust":
+      return `${objCode}.padEnd(${args})`
+    case "rjust":
+      return `${objCode}.padStart(${args})`
+
+    // String split/join - join is special: "sep".join(arr) -> arr.join("sep")
+    case "join":
+      return `(${args}).join(${objCode})`
+    case "split":
+      return args ? `${objCode}.split(${args})` : `${objCode}.split(/\\s+/)`
+    case "rsplit":
+      ctx.usesRuntime.add("rsplit")
+      return `py.rsplit(${objCode}, ${args})`
+    case "splitlines":
+      return `${objCode}.split(/\\r?\\n/)`
+    case "partition":
+      ctx.usesRuntime.add("partition")
+      return `py.partition(${objCode}, ${args})`
+    case "rpartition":
+      ctx.usesRuntime.add("rpartition")
+      return `py.rpartition(${objCode}, ${args})`
+
+    // List methods
+    case "append":
+      return `${objCode}.push(${args})`
+    case "extend":
+      return `${objCode}.push(...${args})`
+    case "insert":
+      return `${objCode}.splice(${args.split(",")[0]}, 0, ${args.split(",").slice(1).join(",")})`
+    case "remove":
+      ctx.usesRuntime.add("listRemove")
+      return `py.listRemove(${objCode}, ${args})`
+    case "pop":
+      // pop() with no args works the same, pop(0) needs shift()
+      if (!args) return `${objCode}.pop()`
+      if (args.trim() === "0") return `${objCode}.shift()`
+      return `${objCode}.splice(${args}, 1)[0]`
+    case "clear":
+      return `${objCode}.length = 0`
+    case "copy":
+      return `[...${objCode}]`
+    case "reverse":
+      return `${objCode}.reverse()`
+    case "sort":
+      ctx.usesRuntime.add("listSort")
+      return args ? `py.listSort(${objCode}, ${args})` : `${objCode}.sort()`
+
+    // Dict methods
+    case "keys":
+      return `Object.keys(${objCode})`
+    case "values":
+      return `Object.values(${objCode})`
+    case "items":
+      return `Object.entries(${objCode})`
+    case "get":
+      ctx.usesRuntime.add("dictGet")
+      return `py.dictGet(${objCode}, ${args})`
+    case "setdefault":
+      ctx.usesRuntime.add("dictSetdefault")
+      return `py.dictSetdefault(${objCode}, ${args})`
+    case "update":
+      return `Object.assign(${objCode}, ${args})`
+    case "fromkeys":
+      ctx.usesRuntime.add("dictFromkeys")
+      return `py.dictFromkeys(${args})`
+
+    // Set methods
+    case "add":
+      return `${objCode}.add(${args})`
+    case "discard":
+      return `${objCode}.delete(${args})`
+    case "union":
+      return `new Set([...${objCode}, ...${args}])`
+    case "intersection":
+      ctx.usesRuntime.add("setIntersection")
+      return `py.setIntersection(${objCode}, ${args})`
+    case "difference":
+      ctx.usesRuntime.add("setDifference")
+      return `py.setDifference(${objCode}, ${args})`
+    case "symmetric_difference":
+      ctx.usesRuntime.add("setSymmetricDifference")
+      return `py.setSymmetricDifference(${objCode}, ${args})`
+    case "issubset":
+      ctx.usesRuntime.add("setIssubset")
+      return `py.setIssubset(${objCode}, ${args})`
+    case "issuperset":
+      ctx.usesRuntime.add("setIssuperset")
+      return `py.setIssuperset(${objCode}, ${args})`
+
+    default:
+      return null
   }
 }
 
@@ -1047,8 +1258,15 @@ function transformForStatement(node: SyntaxNode, ctx: TransformContext): string 
     varCode = "[" + varNodes.map((v) => transformForLoopVar(v, ctx)).join(", ") + "]"
   }
 
-  const iterableCode = transformNode(iterableNode, ctx)
+  let iterableCode = transformNode(iterableNode, ctx)
   const bodyCode = transformBody(bodyNode, ctx)
+
+  // Wrap plain variable names with py.iter() to handle dict iteration
+  // Arrays/strings remain iterable, but dicts need Object.keys()
+  if (iterableNode.name === "VariableName") {
+    ctx.usesRuntime.add("iter")
+    iterableCode = `py.iter(${iterableCode})`
+  }
 
   return `for (const ${varCode} of ${iterableCode}) {\n${bodyCode}\n}`
 }
@@ -1676,6 +1894,8 @@ function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): stri
   for (const child of children) {
     if (child.name === "VariableName") {
       className = getNodeText(child, ctx.source)
+      // Track class name for 'new' keyword on instantiation
+      ctx.definedClasses.add(className)
     } else if (child.name === "ArgList") {
       // Inheritance: class Child(Parent)
       const argChildren = getChildren(child)
