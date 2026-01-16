@@ -160,13 +160,16 @@ export const list = {
       // For extended slices, lengths must match
       if (indices.length !== values.length) {
         throw new Error(
-          `attempt to assign sequence of size ${values.length} to extended slice of size ${indices.length}`
+          `attempt to assign sequence of size ${String(values.length)} to extended slice of size ${String(indices.length)}`
         )
       }
 
       // Replace values at each index
       for (let i = 0; i < indices.length; i++) {
-        arr[indices[i]!] = values[i]!
+        const idx = indices[i]
+        if (idx !== undefined) {
+          arr[idx] = values[i] as T
+        }
       }
     }
   }

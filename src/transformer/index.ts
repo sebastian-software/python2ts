@@ -117,41 +117,41 @@ function transformPythonType(node: SyntaxNode, ctx: TransformContext): string {
         .map((c) => transformPythonType(c, ctx))
 
       // Handle specific Python generic types
+      const first = typeArgs[0] ?? "unknown"
+      const second = typeArgs[1] ?? "unknown"
+      const last = typeArgs[typeArgs.length - 1] ?? "unknown"
+
       switch (baseName) {
         case "list":
         case "List":
-          return typeArgs.length > 0 ? `${typeArgs[0]}[]` : "unknown[]"
+          return typeArgs.length > 0 ? `${first}[]` : "unknown[]"
         case "dict":
         case "Dict":
-          return typeArgs.length >= 2
-            ? `Record<${typeArgs[0]}, ${typeArgs[1]}>`
-            : "Record<string, unknown>"
+          return typeArgs.length >= 2 ? `Record<${first}, ${second}>` : "Record<string, unknown>"
         case "set":
         case "Set":
-          return typeArgs.length > 0 ? `Set<${typeArgs[0]}>` : "Set<unknown>"
+          return typeArgs.length > 0 ? `Set<${first}>` : "Set<unknown>"
         case "frozenset":
         case "FrozenSet":
-          return typeArgs.length > 0 ? `ReadonlySet<${typeArgs[0]}>` : "ReadonlySet<unknown>"
+          return typeArgs.length > 0 ? `ReadonlySet<${first}>` : "ReadonlySet<unknown>"
         case "tuple":
         case "Tuple":
           return `[${typeArgs.join(", ")}]`
         case "Optional":
-          return typeArgs.length > 0 ? `${typeArgs[0]} | null` : "unknown | null"
+          return typeArgs.length > 0 ? `${first} | null` : "unknown | null"
         case "Union":
           return typeArgs.join(" | ")
         case "Callable":
           // Callable[[arg1, arg2], return] -> (arg1, arg2) => return
           if (typeArgs.length >= 2) {
-            const returnType = typeArgs[typeArgs.length - 1]
-            // First arg should be the args list, but it's already transformed
             // For simplicity, we use a generic function type
-            return `(...args: unknown[]) => ${returnType}`
+            return `(...args: unknown[]) => ${last}`
           }
           return "(...args: unknown[]) => unknown"
         case "Iterable":
-          return typeArgs.length > 0 ? `Iterable<${typeArgs[0]}>` : "Iterable<unknown>"
+          return typeArgs.length > 0 ? `Iterable<${first}>` : "Iterable<unknown>"
         case "Iterator":
-          return typeArgs.length > 0 ? `Iterator<${typeArgs[0]}>` : "Iterator<unknown>"
+          return typeArgs.length > 0 ? `Iterator<${first}>` : "Iterator<unknown>"
         case "Generator":
           // Generator[YieldType, SendType, ReturnType]
           return typeArgs.length > 0 ? `Generator<${typeArgs.join(", ")}>` : "Generator<unknown>"
@@ -160,14 +160,12 @@ function transformPythonType(node: SyntaxNode, ctx: TransformContext): string {
             ? `AsyncGenerator<${typeArgs.join(", ")}>`
             : "AsyncGenerator<unknown>"
         case "Awaitable":
-          return typeArgs.length > 0 ? `Promise<${typeArgs[0]}>` : "Promise<unknown>"
+          return typeArgs.length > 0 ? `Promise<${first}>` : "Promise<unknown>"
         case "Coroutine":
-          return typeArgs.length > 0
-            ? `Promise<${typeArgs[typeArgs.length - 1]}>`
-            : "Promise<unknown>"
+          return typeArgs.length > 0 ? `Promise<${last}>` : "Promise<unknown>"
         case "Type":
           return typeArgs.length > 0
-            ? `new (...args: unknown[]) => ${typeArgs[0]}`
+            ? `new (...args: unknown[]) => ${first}`
             : "new (...args: unknown[]) => unknown"
         case "Literal":
           // Literal["a", "b"] -> "a" | "b"
@@ -404,7 +402,7 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
     if (!target) return getNodeText(node, ctx.source)
 
     // Check for slice assignment: arr[1:3] = values
-    if (target.name === "MemberExpression" && isSliceExpression(target, ctx)) {
+    if (target.name === "MemberExpression" && isSliceExpression(target)) {
       return transformSliceAssignment(target, values, ctx)
     }
 
@@ -497,7 +495,7 @@ function extractVariableNames(nodes: SyntaxNode[], source: string): string[] {
 /**
  * Check if a MemberExpression contains a slice (colon in the brackets)
  */
-function isSliceExpression(node: SyntaxNode, _ctx: TransformContext): boolean {
+function isSliceExpression(node: SyntaxNode): boolean {
   const children = getChildren(node)
   // Look for a colon inside the brackets
   return children.some((c) => c.name === ":")
@@ -549,19 +547,22 @@ function transformSliceAssignment(
       start = beforeFirst.map((n) => transformNode(n, ctx)).join("")
     }
 
+    const firstColon = colonIndices[0] ?? 0
+    const secondColon = colonIndices[1]
+
     if (colonIndices.length === 1) {
       // [start:end]
-      const afterFirst = sliceParts.slice(colonIndices[0]! + 1)
+      const afterFirst = sliceParts.slice(firstColon + 1)
       if (afterFirst.length > 0) {
         end = afterFirst.map((n) => transformNode(n, ctx)).join("")
       }
-    } else {
+    } else if (secondColon !== undefined) {
       // [start:end:step]
-      const betweenColons = sliceParts.slice(colonIndices[0]! + 1, colonIndices[1])
+      const betweenColons = sliceParts.slice(firstColon + 1, secondColon)
       if (betweenColons.length > 0) {
         end = betweenColons.map((n) => transformNode(n, ctx)).join("")
       }
-      const afterSecond = sliceParts.slice(colonIndices[1]! + 1)
+      const afterSecond = sliceParts.slice(secondColon + 1)
       if (afterSecond.length > 0) {
         step = afterSecond.map((n) => transformNode(n, ctx)).join("")
       }
@@ -569,9 +570,10 @@ function transformSliceAssignment(
   }
 
   // Transform the values
+  const firstValue = values[0]
   const valuesCode =
-    values.length === 1
-      ? transformNode(values[0]!, ctx)
+    values.length === 1 && firstValue
+      ? transformNode(firstValue, ctx)
       : `[${values.map((v) => transformNode(v, ctx)).join(", ")}]`
 
   ctx.usesRuntime.add("list.sliceAssign")
@@ -1602,7 +1604,9 @@ function transformMatchAsIfElse(
   const indent = "  ".repeat(ctx.indentLevel)
 
   for (let i = 0; i < clauses.length; i++) {
-    const clause = clauses[i]!
+    const clause = clauses[i]
+    if (!clause) continue
+
     const children = getChildren(clause)
 
     let pattern: SyntaxNode | null = null
@@ -1700,21 +1704,22 @@ function transformSequencePattern(
   // Check for exact length (unless there's a starred pattern)
   const hasStarred = elements.some((e) => e.name === "StarPattern")
   if (!hasStarred) {
-    conditions.push(`${subject}.length === ${elements.length}`)
+    conditions.push(`${subject}.length === ${String(elements.length)}`)
   }
 
   // Process each element
   elements.forEach((elem, idx) => {
+    const idxStr = String(idx)
     if (elem.name === "CapturePattern") {
       const varName = getNodeText(elem, ctx.source)
       if (varName !== "_") {
-        bindings.push(`const ${varName} = ${subject}[${idx}];`)
+        bindings.push(`const ${varName} = ${subject}[${idxStr}];`)
       }
     } else if (elem.name === "LiteralPattern") {
       const childNodes = getChildren(elem)
       const literal = childNodes[0]
       const value = literal ? transformNode(literal, ctx) : getNodeText(elem, ctx.source)
-      conditions.push(`${subject}[${idx}] === ${value}`)
+      conditions.push(`${subject}[${idxStr}] === ${value}`)
     }
   })
 
@@ -1740,9 +1745,8 @@ function transformMappingPattern(
       const key = keyNode ? transformNode(keyNode, ctx) : getNodeText(child, ctx.source)
 
       // Look for the colon and then the value pattern
-      if (children[i + 1]?.name === ":" && children[i + 2]) {
-        const valuePattern = children[i + 2]!
-
+      const valuePattern = children[i + 2]
+      if (children[i + 1]?.name === ":" && valuePattern) {
         conditions.push(`${key} in ${subject}`)
 
         if (valuePattern.name === "CapturePattern") {
@@ -2644,14 +2648,15 @@ function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): stri
   let classHeader = `class ${className}`
   let multipleInheritanceWarning = ""
 
-  if (parentClasses.length > 0) {
+  const firstParent = parentClasses[0]
+  if (firstParent) {
     // Use first parent for extends
-    classHeader += ` extends ${parentClasses[0]}`
+    classHeader += ` extends ${firstParent}`
 
     // Warn about multiple inheritance
     if (parentClasses.length > 1) {
       const ignoredParents = parentClasses.slice(1).join(", ")
-      multipleInheritanceWarning = `/* WARNING: Multiple inheritance not fully supported. Only extends ${parentClasses[0]}. Mixins needed for: ${ignoredParents} */\n`
+      multipleInheritanceWarning = `/* WARNING: Multiple inheritance not fully supported. Only extends ${firstParent}. Mixins needed for: ${ignoredParents} */\n`
     }
   }
 
