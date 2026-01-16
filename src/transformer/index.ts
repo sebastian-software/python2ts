@@ -9,6 +9,13 @@ export interface TransformContext {
   scopeStack: Set<string>[]
   /** Set of class names defined in this module (for adding 'new' on instantiation) */
   definedClasses: Set<string>
+  /** Whether to emit TypeScript type annotations */
+  emitTypes: boolean
+}
+
+export interface TransformOptions {
+  /** Whether to emit TypeScript type annotations. Defaults to true. */
+  emitTypes?: boolean
 }
 
 export interface TransformResult {
@@ -16,13 +23,14 @@ export interface TransformResult {
   usesRuntime: Set<string>
 }
 
-function createContext(source: string): TransformContext {
+function createContext(source: string, options: TransformOptions = {}): TransformContext {
   return {
     source,
     indentLevel: 0,
     usesRuntime: new Set(),
     scopeStack: [new Set()], // Start with one global scope
-    definedClasses: new Set()
+    definedClasses: new Set(),
+    emitTypes: options.emitTypes ?? true
   }
 }
 
@@ -71,9 +79,174 @@ function containsYield(node: SyntaxNode): boolean {
   return false
 }
 
-export function transform(input: string | ParseResult): TransformResult {
+/** Map of Python built-in types to TypeScript types */
+const PYTHON_TO_TS_TYPES: Record<string, string> = {
+  str: "string",
+  int: "number",
+  float: "number",
+  bool: "boolean",
+  bytes: "Uint8Array",
+  None: "null",
+  Any: "any",
+  object: "object"
+}
+
+/**
+ * Transform a Python type annotation to TypeScript
+ */
+function transformPythonType(node: SyntaxNode, ctx: TransformContext): string {
+  switch (node.name) {
+    case "VariableName": {
+      const typeName = getNodeText(node, ctx.source)
+      return PYTHON_TO_TS_TYPES[typeName] ?? typeName
+    }
+
+    case "None":
+      return "null"
+
+    case "MemberExpression": {
+      // Generic types like list[str], dict[str, int], Optional[T]
+      const children = getChildren(node)
+      const baseType = children[0]
+      if (!baseType) return getNodeText(node, ctx.source)
+
+      const baseName = getNodeText(baseType, ctx.source)
+
+      // Extract type arguments between [ and ]
+      const bracketStart = children.findIndex((c) => c.name === "[")
+      const bracketEnd = children.findIndex((c) => c.name === "]")
+      if (bracketStart === -1 || bracketEnd === -1) {
+        return PYTHON_TO_TS_TYPES[baseName] ?? baseName
+      }
+
+      const typeArgs = children
+        .slice(bracketStart + 1, bracketEnd)
+        .filter((c) => c.name !== ",")
+        .map((c) => transformPythonType(c, ctx))
+
+      // Handle specific Python generic types
+      switch (baseName) {
+        case "list":
+        case "List":
+          return typeArgs.length > 0 ? `${typeArgs[0]}[]` : "unknown[]"
+        case "dict":
+        case "Dict":
+          return typeArgs.length >= 2
+            ? `Record<${typeArgs[0]}, ${typeArgs[1]}>`
+            : "Record<string, unknown>"
+        case "set":
+        case "Set":
+          return typeArgs.length > 0 ? `Set<${typeArgs[0]}>` : "Set<unknown>"
+        case "frozenset":
+        case "FrozenSet":
+          return typeArgs.length > 0 ? `ReadonlySet<${typeArgs[0]}>` : "ReadonlySet<unknown>"
+        case "tuple":
+        case "Tuple":
+          return `[${typeArgs.join(", ")}]`
+        case "Optional":
+          return typeArgs.length > 0 ? `${typeArgs[0]} | null` : "unknown | null"
+        case "Union":
+          return typeArgs.join(" | ")
+        case "Callable":
+          // Callable[[arg1, arg2], return] -> (arg1, arg2) => return
+          if (typeArgs.length >= 2) {
+            const returnType = typeArgs[typeArgs.length - 1]
+            // First arg should be the args list, but it's already transformed
+            // For simplicity, we use a generic function type
+            return `(...args: unknown[]) => ${returnType}`
+          }
+          return "(...args: unknown[]) => unknown"
+        case "Iterable":
+          return typeArgs.length > 0 ? `Iterable<${typeArgs[0]}>` : "Iterable<unknown>"
+        case "Iterator":
+          return typeArgs.length > 0 ? `Iterator<${typeArgs[0]}>` : "Iterator<unknown>"
+        case "Generator":
+          // Generator[YieldType, SendType, ReturnType]
+          return typeArgs.length > 0 ? `Generator<${typeArgs.join(", ")}>` : "Generator<unknown>"
+        case "AsyncGenerator":
+          return typeArgs.length > 0
+            ? `AsyncGenerator<${typeArgs.join(", ")}>`
+            : "AsyncGenerator<unknown>"
+        case "Awaitable":
+          return typeArgs.length > 0 ? `Promise<${typeArgs[0]}>` : "Promise<unknown>"
+        case "Coroutine":
+          return typeArgs.length > 0
+            ? `Promise<${typeArgs[typeArgs.length - 1]}>`
+            : "Promise<unknown>"
+        case "Type":
+          return typeArgs.length > 0
+            ? `new (...args: unknown[]) => ${typeArgs[0]}`
+            : "new (...args: unknown[]) => unknown"
+        case "Literal":
+          // Literal["a", "b"] -> "a" | "b"
+          return typeArgs.join(" | ")
+        default:
+          // Generic class type: MyClass[T] -> MyClass<T>
+          return typeArgs.length > 0 ? `${baseName}<${typeArgs.join(", ")}>` : baseName
+      }
+    }
+
+    case "BinaryExpression": {
+      // Union types: int | str | None
+      const children = getChildren(node)
+      const left = children[0]
+      const op = children[1]
+      const right = children[2]
+
+      if (op && getNodeText(op, ctx.source) === "|" && left && right) {
+        const leftType = transformPythonType(left, ctx)
+        const rightType = transformPythonType(right, ctx)
+        return `${leftType} | ${rightType}`
+      }
+      return getNodeText(node, ctx.source)
+    }
+
+    case "String": {
+      // Forward reference: "MyClass" -> MyClass
+      const text = getNodeText(node, ctx.source)
+      // Remove quotes
+      return text.slice(1, -1)
+    }
+
+    case "TypeDef": {
+      // TypeDef contains : and the actual type
+      const children = getChildren(node)
+      const typeNode = children.find((c) => c.name !== ":")
+      if (typeNode) {
+        return transformPythonType(typeNode, ctx)
+      }
+      return "unknown"
+    }
+
+    default:
+      return getNodeText(node, ctx.source)
+  }
+}
+
+/**
+ * Extract type annotation from a TypeDef node, if present
+ * Returns null if emitTypes is false or if no type is found
+ */
+function extractTypeAnnotation(
+  typeDef: SyntaxNode | undefined,
+  ctx: TransformContext
+): string | null {
+  if (!ctx.emitTypes) return null
+  if (!typeDef || typeDef.name !== "TypeDef") return null
+  const children = getChildren(typeDef)
+  const typeNode = children.find((c) => c.name !== ":" && c.name !== "->")
+  if (typeNode) {
+    return transformPythonType(typeNode, ctx)
+  }
+  return null
+}
+
+export function transform(
+  input: string | ParseResult,
+  options: TransformOptions = {}
+): TransformResult {
   const parseResult = typeof input === "string" ? parse(input) : input
-  const ctx = createContext(parseResult.source)
+  const ctx = createContext(parseResult.source, options)
   const code = transformNode(parseResult.tree.topNode, ctx)
 
   return {
@@ -168,6 +341,14 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformWithStatement(node, ctx)
     case "MatchStatement":
       return transformMatchStatement(node, ctx)
+    case "ScopeStatement":
+      return transformScopeStatement(node, ctx)
+    case "DeleteStatement":
+      return transformDeleteStatement(node, ctx)
+    case "AssertStatement":
+      return transformAssertStatement(node, ctx)
+    case "YieldStatement":
+      return transformYieldStatement(node, ctx)
     default:
       return getNodeText(node, ctx.source)
   }
@@ -213,6 +394,9 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
   const assignOpIndex = children.findIndex((c) => c.name === "AssignOp" || c.name === "=")
   if (assignOpIndex === -1) return getNodeText(node, ctx.source)
 
+  // Find type annotation (TypeDef before AssignOp)
+  const typeDef = children.slice(0, assignOpIndex).find((c) => c.name === "TypeDef")
+
   // Collect targets (before =) and values (after =)
   // Filter out commas and TypeDef nodes (type annotations like `: int`)
   const targets = children
@@ -231,7 +415,16 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
     /* c8 ignore next */
     if (!target) return getNodeText(node, ctx.source)
 
+    // Check for slice assignment: arr[1:3] = values
+    if (target.name === "MemberExpression" && isSliceExpression(target, ctx)) {
+      return transformSliceAssignment(target, values, ctx)
+    }
+
     const targetCode = transformNode(target, ctx)
+
+    // Extract type annotation if present
+    const tsType = extractTypeAnnotation(typeDef, ctx)
+    const typeAnnotation = tsType ? `: ${tsType}` : ""
 
     // Determine if we need 'let' or not
     // - MemberExpression (obj.attr or arr[i]) never needs 'let'
@@ -249,13 +442,17 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
       const value = values[0]
       if (!value) return getNodeText(node, ctx.source)
       const valueCode = transformNode(value, ctx)
-      return needsLet ? `let ${targetCode} = ${valueCode}` : `${targetCode} = ${valueCode}`
+      if (needsLet) {
+        return `let ${targetCode}${typeAnnotation} = ${valueCode}`
+      }
+      return `${targetCode} = ${valueCode}`
     } else {
       // Multiple values into single target (creates array)
       const valuesCodes = values.map((v) => transformNode(v, ctx))
-      return needsLet
-        ? `let ${targetCode} = [${valuesCodes.join(", ")}]`
-        : `${targetCode} = [${valuesCodes.join(", ")}]`
+      if (needsLet) {
+        return `let ${targetCode}${typeAnnotation} = [${valuesCodes.join(", ")}]`
+      }
+      return `${targetCode} = [${valuesCodes.join(", ")}]`
     }
   }
 
@@ -307,6 +504,91 @@ function extractVariableNames(nodes: SyntaxNode[], source: string): string[] {
     }
   }
   return names
+}
+
+/**
+ * Check if a MemberExpression contains a slice (colon in the brackets)
+ */
+function isSliceExpression(node: SyntaxNode, _ctx: TransformContext): boolean {
+  const children = getChildren(node)
+  // Look for a colon inside the brackets
+  return children.some((c) => c.name === ":")
+}
+
+/**
+ * Transform a slice assignment: arr[1:3] = values -> py.list.sliceAssign(arr, 1, 3, undefined, values)
+ */
+function transformSliceAssignment(
+  target: SyntaxNode,
+  values: SyntaxNode[],
+  ctx: TransformContext
+): string {
+  const children = getChildren(target)
+
+  // Find the object being sliced (first child before the bracket)
+  const obj = children[0]
+  if (!obj) return `/* slice assignment error */`
+
+  const objCode = transformNode(obj, ctx)
+
+  // Parse slice indices: [start:end:step]
+  // Children after "[" and before "]" contain the slice parts
+  const bracketStart = children.findIndex((c) => c.name === "[")
+  const bracketEnd = children.findIndex((c) => c.name === "]")
+
+  if (bracketStart === -1 || bracketEnd === -1) return `/* slice assignment error */`
+
+  // Extract slice parts between brackets
+  const sliceParts = children.slice(bracketStart + 1, bracketEnd)
+
+  // Parse the slice notation
+  // Possible patterns: [a:b], [:b], [a:], [:], [a:b:c], [::c], etc.
+  let start: string | undefined
+  let end: string | undefined
+  let step: string | undefined
+
+  const colonIndices: number[] = []
+  for (let i = 0; i < sliceParts.length; i++) {
+    if (sliceParts[i]?.name === ":") {
+      colonIndices.push(i)
+    }
+  }
+
+  if (colonIndices.length >= 1) {
+    // Parts before first colon = start
+    const beforeFirst = sliceParts.slice(0, colonIndices[0])
+    if (beforeFirst.length > 0 && beforeFirst[0]?.name !== ":") {
+      start = beforeFirst.map((n) => transformNode(n, ctx)).join("")
+    }
+
+    if (colonIndices.length === 1) {
+      // [start:end]
+      const afterFirst = sliceParts.slice(colonIndices[0]! + 1)
+      if (afterFirst.length > 0) {
+        end = afterFirst.map((n) => transformNode(n, ctx)).join("")
+      }
+    } else {
+      // [start:end:step]
+      const betweenColons = sliceParts.slice(colonIndices[0]! + 1, colonIndices[1])
+      if (betweenColons.length > 0) {
+        end = betweenColons.map((n) => transformNode(n, ctx)).join("")
+      }
+      const afterSecond = sliceParts.slice(colonIndices[1]! + 1)
+      if (afterSecond.length > 0) {
+        step = afterSecond.map((n) => transformNode(n, ctx)).join("")
+      }
+    }
+  }
+
+  // Transform the values
+  const valuesCode =
+    values.length === 1
+      ? transformNode(values[0]!, ctx)
+      : `[${values.map((v) => transformNode(v, ctx)).join(", ")}]`
+
+  ctx.usesRuntime.add("list.sliceAssign")
+
+  return `py.list.sliceAssign(${objCode}, ${start ?? "undefined"}, ${end ?? "undefined"}, ${step ?? "undefined"}, ${valuesCode})`
 }
 
 function transformAssignTarget(node: SyntaxNode, ctx: TransformContext): string {
@@ -782,14 +1064,14 @@ function transformMethodCall(
     case "lower":
       return `${objCode}.toLowerCase()`
     case "capitalize":
-      ctx.usesRuntime.add("capitalize")
-      return `py.capitalize(${objCode})`
+      ctx.usesRuntime.add("string")
+      return `py.string.capitalize(${objCode})`
     case "title":
-      ctx.usesRuntime.add("title")
-      return `py.title(${objCode})`
+      ctx.usesRuntime.add("string")
+      return `py.string.title(${objCode})`
     case "swapcase":
-      ctx.usesRuntime.add("swapcase")
-      return `py.swapcase(${objCode})`
+      ctx.usesRuntime.add("string")
+      return `py.string.swapcase(${objCode})`
     case "casefold":
       return `${objCode}.toLowerCase()`
 
@@ -815,14 +1097,14 @@ function transformMethodCall(
     case "rfind":
       return `${objCode}.lastIndexOf(${args})`
     case "index":
-      ctx.usesRuntime.add("strIndex")
-      return `py.strIndex(${objCode}, ${args})`
+      ctx.usesRuntime.add("string")
+      return `py.string.index(${objCode}, ${args})`
     case "rindex":
-      ctx.usesRuntime.add("strRindex")
-      return `py.strRindex(${objCode}, ${args})`
+      ctx.usesRuntime.add("string")
+      return `py.string.rindex(${objCode}, ${args})`
     case "count":
-      ctx.usesRuntime.add("strCount")
-      return `py.strCount(${objCode}, ${args})`
+      ctx.usesRuntime.add("string")
+      return `py.string.count(${objCode}, ${args})`
 
     // String testing
     case "isalpha":
@@ -840,14 +1122,14 @@ function transformMethodCall(
 
     // String modification
     case "replace":
-      ctx.usesRuntime.add("strReplace")
-      return `py.strReplace(${objCode}, ${args})`
+      ctx.usesRuntime.add("string")
+      return `py.string.replace(${objCode}, ${args})`
     case "zfill":
-      ctx.usesRuntime.add("zfill")
-      return `py.zfill(${objCode}, ${args})`
+      ctx.usesRuntime.add("string")
+      return `py.string.zfill(${objCode}, ${args})`
     case "center":
-      ctx.usesRuntime.add("center")
-      return `py.center(${objCode}, ${args})`
+      ctx.usesRuntime.add("string")
+      return `py.string.center(${objCode}, ${args})`
     case "ljust":
       return `${objCode}.padEnd(${args})`
     case "rjust":
@@ -859,16 +1141,16 @@ function transformMethodCall(
     case "split":
       return args ? `${objCode}.split(${args})` : `${objCode}.split(/\\s+/)`
     case "rsplit":
-      ctx.usesRuntime.add("rsplit")
-      return `py.rsplit(${objCode}, ${args})`
+      ctx.usesRuntime.add("string")
+      return `py.string.rsplit(${objCode}, ${args})`
     case "splitlines":
       return `${objCode}.split(/\\r?\\n/)`
     case "partition":
-      ctx.usesRuntime.add("partition")
-      return `py.partition(${objCode}, ${args})`
+      ctx.usesRuntime.add("string")
+      return `py.string.partition(${objCode}, ${args})`
     case "rpartition":
-      ctx.usesRuntime.add("rpartition")
-      return `py.rpartition(${objCode}, ${args})`
+      ctx.usesRuntime.add("string")
+      return `py.string.rpartition(${objCode}, ${args})`
 
     // String format method
     case "format":
@@ -887,8 +1169,8 @@ function transformMethodCall(
       return `${objCode}.splice(${index}, 0, ${value})`
     }
     case "remove":
-      ctx.usesRuntime.add("listRemove")
-      return `py.listRemove(${objCode}, ${args})`
+      ctx.usesRuntime.add("list")
+      return `py.list.remove(${objCode}, ${args})`
     case "pop":
       // pop() with no args works the same, pop(0) needs shift()
       if (!args) return `${objCode}.pop()`
@@ -901,8 +1183,8 @@ function transformMethodCall(
     case "reverse":
       return `${objCode}.reverse()`
     case "sort":
-      ctx.usesRuntime.add("listSort")
-      return args ? `py.listSort(${objCode}, ${args})` : `${objCode}.sort()`
+      ctx.usesRuntime.add("list")
+      return args ? `py.list.sort(${objCode}, ${args})` : `${objCode}.sort()`
 
     // Dict methods
     case "keys":
@@ -912,16 +1194,16 @@ function transformMethodCall(
     case "items":
       return `Object.entries(${objCode})`
     case "get":
-      ctx.usesRuntime.add("dictGet")
-      return `py.dictGet(${objCode}, ${args})`
+      ctx.usesRuntime.add("dict")
+      return `py.dict.get(${objCode}, ${args})`
     case "setdefault":
-      ctx.usesRuntime.add("dictSetdefault")
-      return `py.dictSetdefault(${objCode}, ${args})`
+      ctx.usesRuntime.add("dict")
+      return `py.dict.setdefault(${objCode}, ${args})`
     case "update":
       return `Object.assign(${objCode}, ${args})`
     case "fromkeys":
-      ctx.usesRuntime.add("dictFromkeys")
-      return `py.dictFromkeys(${args})`
+      ctx.usesRuntime.add("dict")
+      return `py.dict.fromkeys(${args})`
 
     // Set methods
     case "add":
@@ -931,20 +1213,20 @@ function transformMethodCall(
     case "union":
       return `new Set([...${objCode}, ...${args}])`
     case "intersection":
-      ctx.usesRuntime.add("setIntersection")
-      return `py.setIntersection(${objCode}, ${args})`
+      ctx.usesRuntime.add("set")
+      return `py.set.intersection(${objCode}, ${args})`
     case "difference":
-      ctx.usesRuntime.add("setDifference")
-      return `py.setDifference(${objCode}, ${args})`
+      ctx.usesRuntime.add("set")
+      return `py.set.difference(${objCode}, ${args})`
     case "symmetric_difference":
-      ctx.usesRuntime.add("setSymmetricDifference")
-      return `py.setSymmetricDifference(${objCode}, ${args})`
+      ctx.usesRuntime.add("set")
+      return `py.set.symmetricDifference(${objCode}, ${args})`
     case "issubset":
-      ctx.usesRuntime.add("setIssubset")
-      return `py.setIssubset(${objCode}, ${args})`
+      ctx.usesRuntime.add("set")
+      return `py.set.issubset(${objCode}, ${args})`
     case "issuperset":
-      ctx.usesRuntime.add("setIssuperset")
-      return `py.setIssuperset(${objCode}, ${args})`
+      ctx.usesRuntime.add("set")
+      return `py.set.issuperset(${objCode}, ${args})`
 
     default:
       return null
@@ -1295,9 +1577,258 @@ function transformMatchStatement(node: SyntaxNode, ctx: TransformContext): strin
   if (!subject || !matchBody) return getNodeText(node, ctx.source)
 
   const subjectCode = transformNode(subject, ctx)
-  const clauses = transformMatchBody(matchBody, ctx)
 
+  // Collect all clauses and check if any have complex patterns
+  const matchBodyChildren = getChildren(matchBody)
+  const clauseNodes = matchBodyChildren.filter((c) => c.name === "MatchClause")
+
+  const hasComplexPatterns = clauseNodes.some((clause) => {
+    const clauseChildren = getChildren(clause)
+    const pattern = clauseChildren.find(
+      (c) => c.name !== "case" && c.name !== ":" && c.name !== "Body"
+    )
+    return (
+      pattern &&
+      (pattern.name === "SequencePattern" ||
+        pattern.name === "MappingPattern" ||
+        pattern.name === "ClassPattern")
+    )
+  })
+
+  if (hasComplexPatterns) {
+    // Use if/else chain for complex patterns
+    return transformMatchAsIfElse(subjectCode, clauseNodes, ctx)
+  }
+
+  // Use switch for simple patterns
+  const clauses = transformMatchBody(matchBody, ctx)
   return `switch (${subjectCode}) {\n${clauses}\n}`
+}
+
+function transformMatchAsIfElse(
+  subjectCode: string,
+  clauses: SyntaxNode[],
+  ctx: TransformContext
+): string {
+  const parts: string[] = []
+  const indent = "  ".repeat(ctx.indentLevel)
+
+  for (let i = 0; i < clauses.length; i++) {
+    const clause = clauses[i]!
+    const children = getChildren(clause)
+
+    let pattern: SyntaxNode | null = null
+    let body: SyntaxNode | null = null
+
+    for (const child of children) {
+      if (child.name === "case" || child.name === ":") continue
+      if (child.name === "Body") {
+        body = child
+      } else if (!pattern) {
+        pattern = child
+      }
+    }
+
+    if (!pattern || !body) continue
+
+    ctx.indentLevel++
+    const bodyCode = transformBody(body, ctx)
+    ctx.indentLevel--
+
+    const patternText = getNodeText(pattern, ctx.source)
+    const isWildcard =
+      patternText === "_" || (pattern.name === "CapturePattern" && patternText === "_")
+
+    if (isWildcard) {
+      // Wildcard/default case
+      if (i === 0) {
+        parts.push(`${indent}${bodyCode.trim()}`)
+      } else {
+        parts.push(` else {\n${indent}  ${bodyCode.trim()}\n${indent}}`)
+      }
+    } else {
+      const { condition, bindings } = transformComplexPattern(pattern, subjectCode, ctx)
+
+      const keyword = i === 0 ? "if" : " else if"
+      const bindingsCode =
+        bindings.length > 0 ? `\n${indent}  ${bindings.join(`\n${indent}  `)}` : ""
+
+      parts.push(
+        `${keyword} (${condition}) {${bindingsCode}\n${indent}  ${bodyCode.trim()}\n${indent}}`
+      )
+    }
+  }
+
+  return parts.join("")
+}
+
+interface PatternResult {
+  condition: string
+  bindings: string[]
+}
+
+function transformComplexPattern(
+  pattern: SyntaxNode,
+  subject: string,
+  ctx: TransformContext
+): PatternResult {
+  switch (pattern.name) {
+    case "SequencePattern":
+      return transformSequencePattern(pattern, subject, ctx)
+    case "MappingPattern":
+      return transformMappingPattern(pattern, subject, ctx)
+    case "ClassPattern":
+      return transformClassPattern(pattern, subject, ctx)
+    case "LiteralPattern": {
+      const children = getChildren(pattern)
+      const literal = children[0]
+      const value = literal ? transformNode(literal, ctx) : getNodeText(pattern, ctx.source)
+      return { condition: `${subject} === ${value}`, bindings: [] }
+    }
+    case "CapturePattern": {
+      const varName = getNodeText(pattern, ctx.source)
+      if (varName === "_") {
+        return { condition: "true", bindings: [] }
+      }
+      return { condition: "true", bindings: [`const ${varName} = ${subject};`] }
+    }
+    default:
+      // Fallback for unknown patterns
+      return { condition: `${subject} === ${getNodeText(pattern, ctx.source)}`, bindings: [] }
+  }
+}
+
+function transformSequencePattern(
+  pattern: SyntaxNode,
+  subject: string,
+  ctx: TransformContext
+): PatternResult {
+  const children = getChildren(pattern)
+  const elements = children.filter((c) => c.name !== "[" && c.name !== "]" && c.name !== ",")
+
+  const conditions: string[] = [`Array.isArray(${subject})`]
+  const bindings: string[] = []
+
+  // Check for exact length (unless there's a starred pattern)
+  const hasStarred = elements.some((e) => e.name === "StarPattern")
+  if (!hasStarred) {
+    conditions.push(`${subject}.length === ${elements.length}`)
+  }
+
+  // Process each element
+  elements.forEach((elem, idx) => {
+    if (elem.name === "CapturePattern") {
+      const varName = getNodeText(elem, ctx.source)
+      if (varName !== "_") {
+        bindings.push(`const ${varName} = ${subject}[${idx}];`)
+      }
+    } else if (elem.name === "LiteralPattern") {
+      const childNodes = getChildren(elem)
+      const literal = childNodes[0]
+      const value = literal ? transformNode(literal, ctx) : getNodeText(elem, ctx.source)
+      conditions.push(`${subject}[${idx}] === ${value}`)
+    }
+  })
+
+  return { condition: conditions.join(" && "), bindings }
+}
+
+function transformMappingPattern(
+  pattern: SyntaxNode,
+  subject: string,
+  ctx: TransformContext
+): PatternResult {
+  const children = getChildren(pattern)
+  const conditions: string[] = [`typeof ${subject} === "object"`, `${subject} !== null`]
+  const bindings: string[] = []
+
+  // Process key-value pairs
+  let i = 0
+  while (i < children.length) {
+    const child = children[i]
+    if (child?.name === "LiteralPattern" || child?.name === "String") {
+      // This is a key
+      const keyNode = child.name === "LiteralPattern" ? getChildren(child)[0] : child
+      const key = keyNode ? transformNode(keyNode, ctx) : getNodeText(child, ctx.source)
+
+      // Look for the colon and then the value pattern
+      if (children[i + 1]?.name === ":" && children[i + 2]) {
+        const valuePattern = children[i + 2]!
+
+        conditions.push(`${key} in ${subject}`)
+
+        if (valuePattern.name === "CapturePattern") {
+          const varName = getNodeText(valuePattern, ctx.source)
+          if (varName !== "_") {
+            bindings.push(`const ${varName} = ${subject}[${key}];`)
+          }
+        } else if (valuePattern.name === "LiteralPattern") {
+          const valueChildren = getChildren(valuePattern)
+          const literal = valueChildren[0]
+          const value = literal
+            ? transformNode(literal, ctx)
+            : getNodeText(valuePattern, ctx.source)
+          conditions.push(`${subject}[${key}] === ${value}`)
+        }
+        i += 3
+        continue
+      }
+    }
+    i++
+  }
+
+  return { condition: conditions.join(" && "), bindings }
+}
+
+function transformClassPattern(
+  pattern: SyntaxNode,
+  subject: string,
+  ctx: TransformContext
+): PatternResult {
+  const children = getChildren(pattern)
+  const className = children.find((c) => c.name === "VariableName")
+  const argList = children.find((c) => c.name === "PatternArgList")
+
+  const conditions: string[] = []
+  const bindings: string[] = []
+
+  if (className) {
+    const classNameText = getNodeText(className, ctx.source)
+    conditions.push(`${subject} instanceof ${classNameText}`)
+  }
+
+  if (argList) {
+    const argChildren = getChildren(argList)
+    for (const arg of argChildren) {
+      if (arg.name === "KeywordPattern") {
+        const kwChildren = getChildren(arg)
+        const attrName = kwChildren.find((c) => c.name === "VariableName")
+        const valuePattern = kwChildren.find(
+          (c) => c.name === "LiteralPattern" || c.name === "CapturePattern"
+        )
+
+        if (attrName && valuePattern) {
+          const attrNameText = getNodeText(attrName, ctx.source)
+
+          if (valuePattern.name === "LiteralPattern") {
+            const litChildren = getChildren(valuePattern)
+            const literal = litChildren[0]
+            const value = literal
+              ? transformNode(literal, ctx)
+              : getNodeText(valuePattern, ctx.source)
+            conditions.push(`${subject}.${attrNameText} === ${value}`)
+          } else if (valuePattern.name === "CapturePattern") {
+            const varName = getNodeText(valuePattern, ctx.source)
+            if (varName !== "_") {
+              bindings.push(`const ${varName} = ${subject}.${attrNameText};`)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return { condition: conditions.length > 0 ? conditions.join(" && ") : "true", bindings }
 }
 
 function transformMatchBody(node: SyntaxNode, ctx: TransformContext): string {
@@ -1349,11 +1880,11 @@ function transformMatchClause(node: SyntaxNode, ctx: TransformContext, indent: s
   }
 
   // Handle literal patterns
-  const caseValue = transformMatchPattern(pattern, ctx)
+  const caseValue = transformMatchPatternSimple(pattern, ctx)
   return `${indent}case ${caseValue}:\n${bodyIndent}${bodyCode.trim()}\n${bodyIndent}break;`
 }
 
-function transformMatchPattern(node: SyntaxNode, ctx: TransformContext): string {
+function transformMatchPatternSimple(node: SyntaxNode, ctx: TransformContext): string {
   switch (node.name) {
     case "LiteralPattern": {
       const children = getChildren(node)
@@ -1373,6 +1904,11 @@ function transformMatchPattern(node: SyntaxNode, ctx: TransformContext): string 
 
 function transformForStatement(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
+
+  // Check for async for
+  const isAsync = children.some(
+    (c) => c.name === "async" || (c.name === "Keyword" && getNodeText(c, ctx.source) === "async")
+  )
 
   // Find the variables (between 'for' and 'in'), iterable (after 'in'), and body
   const varNodes: SyntaxNode[] = []
@@ -1395,7 +1931,12 @@ function transformForStatement(node: SyntaxNode, ctx: TransformContext): string 
       foundIn = true
     } else if (child.name === "Body") {
       bodyNode = child
-    } else if (child.name !== ":" && child.name !== "Keyword" && child.name !== ",") {
+    } else if (
+      child.name !== ":" &&
+      child.name !== "Keyword" &&
+      child.name !== "," &&
+      child.name !== "async"
+    ) {
       if (foundFor && !foundIn) {
         varNodes.push(child)
       } else if (foundIn && !bodyNode) {
@@ -1423,12 +1964,14 @@ function transformForStatement(node: SyntaxNode, ctx: TransformContext): string 
 
   // Wrap plain variable names with py.iter() to handle dict iteration
   // Arrays/strings remain iterable, but dicts need Object.keys()
-  if (iterableNode.name === "VariableName") {
+  if (iterableNode.name === "VariableName" && !isAsync) {
     ctx.usesRuntime.add("iter")
     iterableCode = `py.iter(${iterableCode})`
   }
 
-  return `for (const ${varCode} of ${iterableCode}) {\n${bodyCode}\n}`
+  // Use 'for await' for async iteration
+  const forKeyword = isAsync ? "for await" : "for"
+  return `${forKeyword} (const ${varCode} of ${iterableCode}) {\n${bodyCode}\n}`
 }
 
 function transformForLoopVar(node: SyntaxNode, ctx: TransformContext): string {
@@ -1747,6 +2290,9 @@ function transformSimpleImport(children: SyntaxNode[], ctx: TransformContext): s
     .join("\n")
 }
 
+/** Modules whose imports should be ignored (type-only modules) */
+const TYPING_MODULES = new Set(["typing", "typing_extensions", "collections.abc", "__future__"])
+
 function transformFromImport(children: SyntaxNode[], ctx: TransformContext): string {
   // from os import path -> import { path } from "os"
   // from os import path, getcwd -> import { path, getcwd } from "os"
@@ -1754,6 +2300,24 @@ function transformFromImport(children: SyntaxNode[], ctx: TransformContext): str
   // from math import * -> import * from "math"
   // from . import utils -> import * as utils from "./utils"
   // from ..utils import helper -> import { helper } from "../utils"
+
+  // First pass: find the module name to check if it's a typing module
+  let preCheckModule = ""
+  for (const child of children) {
+    if (child.name === "VariableName") {
+      const prevChild = children[children.indexOf(child) - 1]
+      // Check if this is after "from" (not after "import")
+      if (prevChild?.name === "from" || prevChild?.name === ".") {
+        preCheckModule = getNodeText(child, ctx.source)
+        break
+      }
+    }
+  }
+
+  // Ignore typing module imports - TypeScript has its own type system
+  if (TYPING_MODULES.has(preCheckModule)) {
+    return "/* typing imports removed - TypeScript has native types */"
+  }
 
   let moduleName = ""
   let relativeDots = 0
@@ -2024,6 +2588,7 @@ function transformFunctionDefinition(node: SyntaxNode, ctx: TransformContext): s
   let funcName = ""
   let paramList: SyntaxNode | null = null
   let body: SyntaxNode | null = null
+  let returnTypeDef: SyntaxNode | null = null
 
   for (const child of children) {
     if (child.name === "async") {
@@ -2034,6 +2599,9 @@ function transformFunctionDefinition(node: SyntaxNode, ctx: TransformContext): s
       paramList = child
     } else if (child.name === "Body") {
       body = child
+    } else if (child.name === "TypeDef") {
+      // Return type annotation (comes after ParamList, before Body)
+      returnTypeDef = child
     }
   }
 
@@ -2043,16 +2611,28 @@ function transformFunctionDefinition(node: SyntaxNode, ctx: TransformContext): s
   // Check if function is a generator (contains yield)
   const isGenerator = body ? containsYield(body) : false
 
+  // Get return type annotation (only if emitTypes is enabled)
+  let returnType = ""
+  if (ctx.emitTypes && returnTypeDef) {
+    const typeChildren = getChildren(returnTypeDef)
+    const typeNode = typeChildren.find((c) => c.name !== ":" && c.name !== "->")
+    if (typeNode) {
+      const tsType = transformPythonType(typeNode, ctx)
+      // Convert None return type to void for functions
+      returnType = `: ${tsType === "null" ? "void" : tsType}`
+    }
+  }
+
   const asyncPrefix = isAsync ? "async " : ""
   const generatorStar = isGenerator ? "*" : ""
-  return `${asyncPrefix}function${generatorStar} ${funcName}(${params}) {\n${bodyCode}\n}`
+  return `${asyncPrefix}function${generatorStar} ${funcName}(${params})${returnType} {\n${bodyCode}\n}`
 }
 
 function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
 
   let className = ""
-  let parentClass: string | null = null
+  const parentClasses: string[] = []
   let body: SyntaxNode | null = null
 
   for (const child of children) {
@@ -2061,11 +2641,11 @@ function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): stri
       // Track class name for 'new' keyword on instantiation
       ctx.definedClasses.add(className)
     } else if (child.name === "ArgList") {
-      // Inheritance: class Child(Parent)
+      // Inheritance: class Child(Parent) or class Child(A, B, C)
       const argChildren = getChildren(child)
-      const parentNode = argChildren.find((c) => c.name === "VariableName")
-      if (parentNode) {
-        parentClass = getNodeText(parentNode, ctx.source)
+      const parentNodes = argChildren.filter((c) => c.name === "VariableName")
+      for (const parentNode of parentNodes) {
+        parentClasses.push(getNodeText(parentNode, ctx.source))
       }
     } else if (child.name === "Body") {
       body = child
@@ -2074,14 +2654,23 @@ function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): stri
 
   // Build class header
   let classHeader = `class ${className}`
-  if (parentClass) {
-    classHeader += ` extends ${parentClass}`
+  let multipleInheritanceWarning = ""
+
+  if (parentClasses.length > 0) {
+    // Use first parent for extends
+    classHeader += ` extends ${parentClasses[0]}`
+
+    // Warn about multiple inheritance
+    if (parentClasses.length > 1) {
+      const ignoredParents = parentClasses.slice(1).join(", ")
+      multipleInheritanceWarning = `/* WARNING: Multiple inheritance not fully supported. Only extends ${parentClasses[0]}. Mixins needed for: ${ignoredParents} */\n`
+    }
   }
 
   // Transform class body
   const bodyCode = body ? transformClassBody(body, ctx) : ""
 
-  return `${classHeader} {\n${bodyCode}\n}`
+  return `${multipleInheritanceWarning}${classHeader} {\n${bodyCode}\n}`
 }
 
 function transformClassBody(node: SyntaxNode, ctx: TransformContext): string {
@@ -2485,8 +3074,16 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
       const nextChild = children[i + 1]
       if (nextChild && nextChild.name === "VariableName") {
         const name = getNodeText(nextChild, ctx.source)
-        restParam = `...${name}`
-        i += 2
+        // Check for type annotation after *args
+        const typeChild = children[i + 2]
+        if (typeChild && typeChild.name === "TypeDef") {
+          const tsType = extractTypeAnnotation(typeChild, ctx)
+          restParam = tsType ? `...${name}: ${tsType}[]` : `...${name}`
+          i += 3
+        } else {
+          restParam = `...${name}`
+          i += 2
+        }
         continue
       }
       i++
@@ -2507,23 +3104,37 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
       continue
     }
 
-    // Check for parameter with default value: VariableName AssignOp Value
+    // Check for parameter: VariableName [TypeDef] [AssignOp Value]
     if (child.name === "VariableName") {
+      const nameCode = getNodeText(child, ctx.source)
+      let typeAnnotation = ""
+      let offset = 1
+
+      // Check for type annotation
       const nextChild = children[i + 1]
-      if (nextChild && nextChild.name === "AssignOp") {
-        // This is a default parameter
-        const defaultValChild = children[i + 2]
+      if (nextChild && nextChild.name === "TypeDef") {
+        const tsType = extractTypeAnnotation(nextChild, ctx)
+        if (tsType) {
+          typeAnnotation = `: ${tsType}`
+        }
+        offset = 2
+      }
+
+      // Check for default value
+      const afterType = children[i + offset]
+      if (afterType && afterType.name === "AssignOp") {
+        const defaultValChild = children[i + offset + 1]
         if (defaultValChild) {
-          const nameCode = getNodeText(child, ctx.source)
           const defaultCode = transformNode(defaultValChild, ctx)
-          params.push(`${nameCode} = ${defaultCode}`)
-          i += 3
+          params.push(`${nameCode}${typeAnnotation} = ${defaultCode}`)
+          i += offset + 2
           continue
         }
       }
-      // Regular parameter without default
-      params.push(getNodeText(child, ctx.source))
-      i++
+
+      // Parameter without default
+      params.push(`${nameCode}${typeAnnotation}`)
+      i += offset
       continue
     }
 
@@ -2531,14 +3142,20 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
     if (child.name === "AssignParam" || child.name === "DefaultParam") {
       const paramChildren = getChildren(child)
       const name = paramChildren.find((c) => c.name === "VariableName")
+      const typeDef = paramChildren.find((c) => c.name === "TypeDef")
       const defaultVal = paramChildren[paramChildren.length - 1]
 
-      if (name && defaultVal && name !== defaultVal) {
+      if (name) {
         const nameCode = getNodeText(name, ctx.source)
-        const defaultCode = transformNode(defaultVal, ctx)
-        params.push(`${nameCode} = ${defaultCode}`)
-      } else if (name) {
-        params.push(getNodeText(name, ctx.source))
+        const tsType = extractTypeAnnotation(typeDef, ctx)
+        const typeAnnotation = tsType ? `: ${tsType}` : ""
+
+        if (defaultVal && name !== defaultVal && defaultVal.name !== "TypeDef") {
+          const defaultCode = transformNode(defaultVal, ctx)
+          params.push(`${nameCode}${typeAnnotation} = ${defaultCode}`)
+        } else {
+          params.push(`${nameCode}${typeAnnotation}`)
+        }
       }
       i++
       continue
@@ -2550,7 +3167,8 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
   // Add kwargs parameter before rest param if no rest param exists
   // If both exist, kwargs is not supported (rest param must be last in JS)
   if (kwargsParam && !restParam) {
-    params.push(`${kwargsParam} = {}`)
+    const kwargsType = ctx.emitTypes ? ": Record<string, unknown>" : ""
+    params.push(`${kwargsParam}${kwargsType} = {}`)
   }
 
   // Add rest parameter last (must be last in JS)
@@ -3048,6 +3666,103 @@ function buildDictComprehensionChain(
   const arrayComp = buildComprehensionChain(pairExpr, clauses, "array")
 
   return `py.dict(${arrayComp})`
+}
+
+// ============================================================
+// Scope Statements (global, nonlocal)
+// ============================================================
+
+function transformScopeStatement(node: SyntaxNode, ctx: TransformContext): string {
+  // global and nonlocal don't have direct JS equivalents
+  // JS has different scoping rules - these are converted to comments
+  const children = getChildren(node)
+  const keyword = children.find((c) => c.name === "global" || c.name === "nonlocal")
+  const keywordText = keyword ? getNodeText(keyword, ctx.source) : "scope"
+  const vars = children
+    .filter((c) => c.name === "VariableName")
+    .map((c) => getNodeText(c, ctx.source))
+
+  return `/* ${keywordText} ${vars.join(", ")} */`
+}
+
+// ============================================================
+// Delete Statement
+// ============================================================
+
+function transformDeleteStatement(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+  const targets = children.filter((c) => c.name !== "del" && c.name !== ",")
+
+  const deletions = targets.map((target) => {
+    if (target.name === "MemberExpression") {
+      // del obj[key] or del obj.attr
+      const memberChildren = getChildren(target)
+      const obj = memberChildren[0]
+      const bracket = memberChildren.find((c) => c.name === "[")
+
+      if (bracket) {
+        // del arr[index] - use splice for numeric index, delete for string key
+        const objCode = obj ? transformNode(obj, ctx) : ""
+        const indexNode = memberChildren.find((c) => c.name !== "[" && c.name !== "]" && c !== obj)
+        const indexCode = indexNode ? transformNode(indexNode, ctx) : "0"
+
+        // Check if index is a simple number
+        if (indexNode?.name === "Number") {
+          return `${objCode}.splice(${indexCode}, 1)`
+        }
+        // For other cases, use delete
+        return `delete ${objCode}[${indexCode}]`
+      } else {
+        // del obj.attr
+        return `delete ${transformNode(target, ctx)}`
+      }
+    } else if (target.name === "VariableName") {
+      // del variable - not really possible in JS strict mode
+      // Convert to setting undefined
+      const varName = getNodeText(target, ctx.source)
+      return `${varName} = undefined`
+    }
+    return `delete ${transformNode(target, ctx)}`
+  })
+
+  return deletions.join(";\n")
+}
+
+// ============================================================
+// Assert Statement
+// ============================================================
+
+function transformAssertStatement(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+  // Find the condition (first expression after 'assert')
+  const expressions = children.filter((c) => c.name !== "assert" && c.name !== ",")
+
+  const condition = expressions[0]
+  const message = expressions[1]
+
+  const conditionCode = condition ? transformNode(condition, ctx) : "true"
+  const messageCode = message ? transformNode(message, ctx) : '"Assertion failed"'
+
+  return `if (!(${conditionCode})) throw new Error(${messageCode})`
+}
+
+// ============================================================
+// Yield Statement (including yield from)
+// ============================================================
+
+function transformYieldStatement(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+  const hasFrom = children.some((c) => c.name === "from")
+  const valueNode = children.find((c) => c.name !== "yield" && c.name !== "from")
+
+  if (hasFrom && valueNode) {
+    // yield from expr -> yield* expr
+    return `yield* ${transformNode(valueNode, ctx)}`
+  } else if (valueNode) {
+    // yield expr
+    return `yield ${transformNode(valueNode, ctx)}`
+  }
+  return "yield"
 }
 
 export { transformNode, createContext }

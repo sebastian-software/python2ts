@@ -50,7 +50,7 @@ describe("E2E: Imports", () => {
     it("should convert from import with multiple aliases", () => {
       const python = `from typing import List as L, Dict as D`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
-        `"import { List as L, Dict as D } from "typing""`
+        `"/* typing imports removed - TypeScript has native types */"`
       )
     })
 
@@ -132,7 +132,7 @@ from dataclasses import dataclass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "import * as os from "os"
         import * as sys from "sys"
-        import { List, Optional } from "typing"
+        /* typing imports removed - TypeScript has native types */
         import { dataclass } from "dataclasses""
       `)
     })

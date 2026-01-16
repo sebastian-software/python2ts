@@ -170,7 +170,7 @@ describe("E2E: Advanced Functions", () => {
       const python = `def config(**kwargs):
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "function config(kwargs = {}) {
+        "function config(kwargs: Record<string, unknown> = {}) {
           /* pass */;
         }"
       `)
@@ -180,7 +180,7 @@ describe("E2E: Advanced Functions", () => {
       const python = `def create(name, **options):
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "function create(name, options = {}) {
+        "function create(name, options: Record<string, unknown> = {}) {
           /* pass */;
         }"
       `)

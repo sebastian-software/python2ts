@@ -40,7 +40,8 @@ function runPython(code: string): string {
 function runTranspiled(pythonCode: string): string {
   const tsCode = transpile(pythonCode, {
     includeRuntime: false,
-    runtimeImportPath: "python2ts/runtime"
+    runtimeImportPath: "python2ts/runtime",
+    emitTypes: false // Disable type annotations for runtime execution
   })
 
   const outputs: string[] = []
