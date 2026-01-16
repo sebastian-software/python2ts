@@ -171,166 +171,139 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 
 ## Supported Python Syntax
 
-### Phase 1 (Current)
+| Python                                    | TypeScript                                            | Notes                  |
+| ----------------------------------------- | ----------------------------------------------------- | ---------------------- |
+| **Literals & Operators**                  |                                                       |                        |
+| `True` / `False`                          | `true` / `false`                                      |                        |
+| `None`                                    | `null`                                                |                        |
+| `x // y`                                  | `py.floordiv(x, y)`                                   | Python semantics       |
+| `x ** y`                                  | `py.pow(x, y)`                                        |                        |
+| `x % y`                                   | `py.mod(x, y)`                                        | Python semantics       |
+| `x and y`                                 | `x && y`                                              |                        |
+| `x or y`                                  | `x \|\| y`                                            |                        |
+| `not x`                                   | `!x`                                                  |                        |
+| `x in items`                              | `py.in(x, items)`                                     |                        |
+| `arr[1:3]`                                | `py.slice(arr, 1, 3)`                                 | Full slice support     |
+| `[1, 2, 3]`                               | `[1, 2, 3]`                                           |                        |
+| `{"a": 1}`                                | `{ "a": 1 }`                                          |                        |
+| `{1, 2, 3}`                               | `py.set([1, 2, 3])`                                   | Set literal            |
+| `# comment`                               | `// comment`                                          |                        |
+| **Control Flow**                          |                                                       |                        |
+| `if/elif/else`                            | `if/else if/else`                                     |                        |
+| `while`                                   | `while`                                               |                        |
+| `for x in items:`                         | `for (const x of items)`                              |                        |
+| `for x, y in items:`                      | `for (const [x, y] of items)`                         | Tuple unpacking        |
+| `match x:`                                | `switch (x) {`                                        | Match statement        |
+| `case 1:`                                 | `case 1:`                                             | Literal pattern        |
+| `case _:`                                 | `default:`                                            | Wildcard pattern       |
+| **Functions**                             |                                                       |                        |
+| `def fn():`                               | `function fn()`                                       |                        |
+| `def fn(x=1):`                            | `function fn(x = 1)`                                  | Default parameters     |
+| `def fn(*args):`                          | `function fn(...args)`                                | Rest parameters        |
+| `def fn(**kwargs):`                       | `function fn(kwargs)`                                 | Keyword args           |
+| `lambda x: x + 1`                         | `(x) => (x + 1)`                                      | Lambda expressions     |
+| `fn(key=val)`                             | `fn({ key: val })`                                    | Keyword arguments      |
+| `async def fn():`                         | `async function fn() {`                               | Async function         |
+| `await expr`                              | `await expr`                                          | Await                  |
+| `def gen(): yield x`                      | `function* gen() {...}`                               | Generator function     |
+| `yield value`                             | `yield value`                                         | Yield expression       |
+| **Decorators**                            |                                                       |                        |
+| `@decorator def fn():`                    | `const fn = decorator(function fn() {...})`           | Function decorator     |
+| `@decorator class C:`                     | `const C = decorator(class C {...})`                  | Class decorator        |
+| `@app.route("/api")`                      | `app.route("/api")(class ...)`                        | Decorator with args    |
+| **Classes**                               |                                                       |                        |
+| `class Dog:`                              | `class Dog {`                                         | Class definition       |
+| `class Child(Parent):`                    | `class Child extends Parent {`                        | Inheritance            |
+| `def __init__(self, x):`                  | `constructor(x) {`                                    | Constructor            |
+| `def method(self, x):`                    | `method(x) {`                                         | Instance methods       |
+| `self.x`                                  | `this.x`                                              | Instance attributes    |
+| `super().__init__(x)`                     | `super(x)`                                            | Super calls            |
+| `def __str__(self):`                      | `toString() {`                                        | String representation  |
+| `@staticmethod`                           | `static`                                              | Static methods         |
+| `@classmethod`                            | `static`                                              | Class methods          |
+| `@property`                               | `get`                                                 | Property getter        |
+| `@x.setter`                               | `set`                                                 | Property setter        |
+| `__name__`                                | `.name`                                               | Special attributes     |
+| **@dataclass**                            |                                                       |                        |
+| `@dataclass class Person:`                | `class Person { constructor(...) {} }`                | Basic dataclass        |
+| `name: str`                               | `name: string;`                                       | Typed field            |
+| `age: int = 0`                            | `age: number = 0;`                                    | Default value          |
+| `@dataclass(frozen=True)`                 | `readonly` + `Object.freeze(this)`                    | Immutable              |
+| `field(default_factory=list)`             | `= []`                                                | Factory default        |
+| **Comprehensions**                        |                                                       |                        |
+| `[x for x in items]`                      | `items.map((x) => x)`                                 | List comprehension     |
+| `[x for x in items if x > 0]`             | `items.filter(...).map(...)`                          | With condition         |
+| `[x + y for x in a for y in b]`           | `a.flatMap((x) => b.map(...))`                        | Nested comprehension   |
+| `{x: x * 2 for x in items}`               | `py.dict(items.map(...))`                             | Dict comprehension     |
+| `{x * 2 for x in items}`                  | `py.set(items.map(...))`                              | Set comprehension      |
+| `(x for x in items)`                      | `(function*() { ... })()`                             | Generator expression   |
+| `sum(x for x in items)`                   | `py.sum((function*() {...})())`                       | Generator in function  |
+| **Assignment**                            |                                                       |                        |
+| `a, b = 1, 2`                             | `let [a, b] = [1, 2]`                                 | Multiple assignment    |
+| `a, b = b, a`                             | `let [a, b] = [b, a]`                                 | Swap pattern           |
+| `(n := expr)`                             | `(n = expr)`                                          | Walrus operator        |
+| `if (n := len(a)) > 0:`                   | `if ((n = py.len(a)) > 0)`                            | Walrus in conditionals |
+| **Exception Handling**                    |                                                       |                        |
+| `try: ... except: ...`                    | `try { ... } catch { ... }`                           | Exception handling     |
+| `except ValueError:`                      | `catch (e) {`                                         | Typed exception        |
+| `except ValueError as e:`                 | `catch (e) {`                                         | Named exception        |
+| `finally:`                                | `finally {`                                           | Finally block          |
+| `raise ValueError("msg")`                 | `throw new Error("msg")`                              | Raise exception        |
+| `raise`                                   | `throw`                                               | Re-throw               |
+| **Context Managers**                      |                                                       |                        |
+| `with open(f) as x:`                      | `const x = open(f); try {...} finally {...}`          | Context manager        |
+| `async with expr as x:`                   | Same with `await` in finally                          | Async context          |
+| **Imports**                               |                                                       |                        |
+| `import os`                               | `import * as os from "os"`                            | Module import          |
+| `import numpy as np`                      | `import * as np from "numpy"`                         | Import alias           |
+| `from os import path`                     | `import { path } from "os"`                           | Named import           |
+| `from os import path, getcwd`             | `import { path, getcwd } from "os"`                   | Multiple               |
+| `from x import y as z`                    | `import { y as z } from "x"`                          | Import alias           |
+| `from math import *`                      | `import * as math from "math"`                        | Star import            |
+| `from . import utils`                     | `import * as utils from "./utils"`                    | Relative               |
+| `from ..utils import helper`              | `import { helper } from "../utils"`                   | Parent relative        |
+| **Type Hints**                            |                                                       |                        |
+| `x: int = 5`                              | `let x: number = 5`                                   | Basic types            |
+| `x: str = "hi"`                           | `let x: string = "hi"`                                | String type            |
+| `x: List[int]`                            | `x: number[]`                                         | Generic list           |
+| `x: Dict[str, int]`                       | `x: Record<string, number>`                           | Generic dict           |
+| `x: Optional[str]`                        | `x: string \| null`                                   | Optional type          |
+| `def fn(x: int) -> str:`                  | `function fn(x: number): string`                      | Function signatures    |
+| **F-Strings**                             |                                                       |                        |
+| `f"Hello {name}"`                         | `` `Hello ${name}` ``                                 | Basic f-string         |
+| `f"{value:.2f}"`                          | `` `${py.format(value, ".2f")}` ``                    | Format specifier       |
+| `f"{name!r}"`                             | `` `${py.repr(name)}` ``                              | Repr conversion        |
+| `f"{value!s}"`                            | `` `${py.str(value)}` ``                              | Str conversion         |
+| `f"{{escaped}}"`                          | `` `{escaped}` ``                                     | Escaped braces         |
+| **String Formatting**                     |                                                       |                        |
+| `"Hello %s" % name`                       | `py.sprintf("Hello %s", name)`                        | %-style formatting     |
+| `"%s is %d" % (name, age)`                | `py.sprintf("%s is %d", [...])`                       | Multiple values        |
+| `"Hello {}".format(name)`                 | `py.strFormat("Hello {}", name)`                      | .format() method       |
+| `"{0} {1}".format(a, b)`                  | `py.strFormat("{0} {1}", a, b)`                       | Indexed placeholders   |
+| `"{name}".format(name="World")`           | `py.strFormat("{name}", {name:...})`                  | Named placeholders     |
+| **Docstrings → JSDoc**                    |                                                       |                        |
+| `"""Docstring"""`                         | `/** JSDoc */`                                        | Basic docstring        |
+| `Args: name: description`                 | `@param name - description`                           | Parameter docs         |
+| `Returns: description`                    | `@returns description`                                | Return value docs      |
+| `Raises: ValueError: description`         | `@throws {ValueError} description`                    | Exception docs         |
+| **Built-in Functions**                    |                                                       |                        |
+| `print()`                                 | `console.log()`                                       |                        |
+| `len()`                                   | `py.len()`                                            |                        |
+| `range()`                                 | `py.range()`                                          |                        |
+| `enumerate()`                             | `py.enumerate()`                                      |                        |
+| `zip()`                                   | `py.zip()`                                            |                        |
+| `sorted()`                                | `py.sorted()`                                         |                        |
+| `reversed()`                              | `py.reversed()`                                       |                        |
+| `min()` / `max()`                         | `py.min()` / `py.max()`                               |                        |
+| `sum()`                                   | `py.sum()`                                            |                        |
+| `abs()`                                   | `py.abs()`                                            |                        |
+| `int()` / `float()` / `str()` / `bool()`  | `py.int()` / `py.float()` / `py.str()` / `py.bool()`  |                        |
+| `list()` / `dict()` / `set()` / `tuple()` | `py.list()` / `py.dict()` / `py.set()` / `py.tuple()` |                        |
+| `ord()` / `chr()`                         | `py.ord()` / `py.chr()`                               |                        |
+| `all()` / `any()`                         | `py.all()` / `py.any()`                               |                        |
+| `map()` / `filter()`                      | `py.map()` / `py.filter()`                            |                        |
 
-| Python            | TypeScript               | Notes              |
-| ----------------- | ------------------------ | ------------------ |
-| `True` / `False`  | `true` / `false`         |                    |
-| `None`            | `null`                   |                    |
-| `x // y`          | `py.floordiv(x, y)`      | Python semantics   |
-| `x ** y`          | `py.pow(x, y)`           |                    |
-| `x % y`           | `py.mod(x, y)`           | Python semantics   |
-| `x and y`         | `x && y`                 |                    |
-| `x or y`          | `x \|\| y`               |                    |
-| `not x`           | `!x`                     |                    |
-| `x in items`      | `py.in(x, items)`        |                    |
-| `arr[1:3]`        | `py.slice(arr, 1, 3)`    | Full slice support |
-| `print(x)`        | `console.log(x)`         |                    |
-| `len(x)`          | `py.len(x)`              |                    |
-| `range(n)`        | `py.range(n)`            |                    |
-| `for x in items:` | `for (const x of items)` |                    |
-| `if/elif/else`    | `if/else if/else`        |                    |
-| `while`           | `while`                  |                    |
-| `def fn():`       | `function fn()`          |                    |
-| `[1, 2, 3]`       | `[1, 2, 3]`              |                    |
-| `{"a": 1}`        | `{ "a": 1 }`             |                    |
-| `# comment`       | `// comment`             |                    |
-
-### Phase 2 (Comprehensions & Destructuring)
-
-| Python                          | TypeScript                      | Notes                 |
-| ------------------------------- | ------------------------------- | --------------------- |
-| `[x for x in items]`            | `items.map((x) => x)`           | List comprehension    |
-| `[x for x in items if x > 0]`   | `items.filter(...).map(...)`    | With condition        |
-| `[x + y for x in a for y in b]` | `a.flatMap((x) => b.map(...))`  | Nested comprehension  |
-| `{x: x * 2 for x in items}`     | `py.dict(items.map(...))`       | Dict comprehension    |
-| `{x * 2 for x in items}`        | `py.set(items.map(...))`        | Set comprehension     |
-| `{1, 2, 3}`                     | `py.set([1, 2, 3])`             | Set literal           |
-| `(x for x in items)`            | `(function*() { ... })()`       | Generator expression  |
-| `sum(x for x in items)`         | `py.sum((function*() {...})())` | Generator in function |
-| `for x, y in items:`            | `for (const [x, y] of items)`   | Tuple unpacking       |
-| `a, b = 1, 2`                   | `let [a, b] = [1, 2]`           | Multiple assignment   |
-| `a, b = b, a`                   | `let [a, b] = [b, a]`           | Swap pattern          |
-
-### Phase 3 (Advanced Functions & Decorators)
-
-| Python                 | TypeScript                                  | Notes               |
-| ---------------------- | ------------------------------------------- | ------------------- |
-| `def fn(x=1):`         | `function fn(x = 1)`                        | Default parameters  |
-| `def fn(*args):`       | `function fn(...args)`                      | Rest parameters     |
-| `def fn(**kwargs):`    | `function fn(kwargs)`                       | Keyword args        |
-| `lambda x: x + 1`      | `(x) => (x + 1)`                            | Lambda expressions  |
-| `fn(key=val)`          | `fn({ key: val })`                          | Keyword arguments   |
-| `@decorator def fn():` | `const fn = decorator(function fn() {...})` | Function decorator  |
-| `@decorator class C:`  | `const C = decorator(class C {...})`        | Class decorator     |
-| `@app.route("/api")`   | `app.route("/api")(class ...)`              | Decorator with args |
-
-### Phase 4 (Classes)
-
-| Python                   | TypeScript                     | Notes                 |
-| ------------------------ | ------------------------------ | --------------------- |
-| `class Dog:`             | `class Dog {`                  | Class definition      |
-| `class Child(Parent):`   | `class Child extends Parent {` | Inheritance           |
-| `def __init__(self, x):` | `constructor(x) {`             | Constructor           |
-| `def method(self, x):`   | `method(x) {`                  | Instance methods      |
-| `self.x`                 | `this.x`                       | Instance attributes   |
-| `super().__init__(x)`    | `super(x)`                     | Super calls           |
-| `def __str__(self):`     | `toString() {`                 | String representation |
-| `@staticmethod`          | `static`                       | Static methods        |
-| `@classmethod`           | `static`                       | Class methods         |
-| `@property`              | `get`                          | Property getter       |
-| `@x.setter`              | `set`                          | Property setter       |
-| `__name__`               | `.name`                        | Special attributes    |
-
-### Phase 5 (Exception Handling)
-
-| Python                    | TypeScript                  | Notes              |
-| ------------------------- | --------------------------- | ------------------ |
-| `try: ... except: ...`    | `try { ... } catch { ... }` | Exception handling |
-| `except ValueError:`      | `catch (e) {`               | Typed exception    |
-| `except ValueError as e:` | `catch (e) {`               | Named exception    |
-| `finally:`                | `finally {`                 | Finally block      |
-| `raise ValueError("msg")` | `throw new Error("msg")`    | Raise exception    |
-| `raise`                   | `throw`                     | Re-throw           |
-
-### Phase 6 (Modules & Imports)
-
-| Python                        | TypeScript                          | Notes           |
-| ----------------------------- | ----------------------------------- | --------------- |
-| `import os`                   | `import * as os from "os"`          | Module import   |
-| `import numpy as np`          | `import * as np from "numpy"`       | Import alias    |
-| `from os import path`         | `import { path } from "os"`         | Named import    |
-| `from os import path, getcwd` | `import { path, getcwd } from "os"` | Multiple        |
-| `from x import y as z`        | `import { y as z } from "x"`        | Import alias    |
-| `from math import *`          | `import * as math from "math"`      | Star import     |
-| `from . import utils`         | `import * as utils from "./utils"`  | Relative        |
-| `from ..utils import helper`  | `import { helper } from "../utils"` | Parent relative |
-
-### Phase 7 (Async/Await & Context Managers)
-
-| Python                  | TypeScript                                   | Notes           |
-| ----------------------- | -------------------------------------------- | --------------- |
-| `async def fn():`       | `async function fn() {`                      | Async function  |
-| `await expr`            | `await expr`                                 | Await           |
-| `with open(f) as x:`    | `const x = open(f); try {...} finally {...}` | Context manager |
-| `async with expr as x:` | Same with `await` in finally                 | Async context   |
-
-### F-Strings
-
-| Python            | TypeScript                         | Notes            |
-| ----------------- | ---------------------------------- | ---------------- |
-| `f"Hello {name}"` | `` `Hello ${name}` ``              | Basic f-string   |
-| `f"{value:.2f}"`  | `` `${py.format(value, ".2f")}` `` | Format specifier |
-| `f"{name!r}"`     | `` `${py.repr(name)}` ``           | Repr conversion  |
-| `f"{value!s}"`    | `` `${py.str(value)}` ``           | Str conversion   |
-| `f"{text!a}"`     | `` `${py.ascii(text)}` ``          | ASCII conversion |
-| `f"{{escaped}}"`  | `` `{escaped}` ``                  | Escaped braces   |
-
-### Walrus Operator
-
-| Python                  | TypeScript                 | Notes               |
-| ----------------------- | -------------------------- | ------------------- |
-| `(n := expr)`           | `(n = expr)`               | Assignment expr     |
-| `if (n := len(a)) > 0:` | `if ((n = py.len(a)) > 0)` | In conditionals     |
-| `while (x := next()):`  | `while ((x = next()))`     | In while loops      |
-| `[y := f(x), y*2]`      | `[y = f(x), y * 2]`        | In list expressions |
-
-### String Formatting
-
-| Python                          | TypeScript                           | Notes                |
-| ------------------------------- | ------------------------------------ | -------------------- |
-| `"Hello %s" % name`             | `py.sprintf("Hello %s", name)`       | %-style formatting   |
-| `"%s is %d" % (name, age)`      | `py.sprintf("%s is %d", [...])`      | Multiple values      |
-| `"Hello {}".format(name)`       | `py.strFormat("Hello {}", name)`     | .format() method     |
-| `"{0} {1}".format(a, b)`        | `py.strFormat("{0} {1}", a, b)`      | Indexed placeholders |
-| `"{name}".format(name="World")` | `py.strFormat("{name}", {name:...})` | Named placeholders   |
-
-### Generators
-
-| Python               | TypeScript              | Notes              |
-| -------------------- | ----------------------- | ------------------ |
-| `def gen(): yield x` | `function* gen() {...}` | Generator function |
-| `yield value`        | `yield value`           | Yield expression   |
-
-### Match Statement (Python 3.10+)
-
-| Python          | TypeScript      | Notes            |
-| --------------- | --------------- | ---------------- |
-| `match x:`      | `switch (x) {`  | Match statement  |
-| `case 1:`       | `case 1:`       | Literal pattern  |
-| `case "hello":` | `case "hello":` | String pattern   |
-| `case _:`       | `default:`      | Wildcard pattern |
-
-### Docstrings → JSDoc
-
-| Python                            | TypeScript                         | Notes             |
-| --------------------------------- | ---------------------------------- | ----------------- |
-| `"""Docstring"""`                 | `/** JSDoc */`                     | Basic docstring   |
-| `Args: name: description`         | `@param name - description`        | Parameter docs    |
-| `Returns: description`            | `@returns description`             | Return value docs |
-| `Raises: ValueError: description` | `@throws {ValueError} description` | Exception docs    |
-
-Example:
+### Docstrings Example
 
 ```python
 def greet(name):
@@ -359,17 +332,7 @@ function greet(name) {
 }
 ```
 
-### @dataclass
-
-| Python                        | TypeScript                             | Notes           |
-| ----------------------------- | -------------------------------------- | --------------- |
-| `@dataclass class Person:`    | `class Person { constructor(...) {} }` | Basic dataclass |
-| `name: str`                   | `name: string;`                        | Typed field     |
-| `age: int = 0`                | `age: number = 0;`                     | Default value   |
-| `@dataclass(frozen=True)`     | `readonly` + `Object.freeze(this)`     | Immutable       |
-| `field(default_factory=list)` | `= []`                                 | Factory default |
-
-Example:
+### @dataclass Example
 
 ```python
 @dataclass
@@ -394,37 +357,6 @@ class Person {
   }
 }
 ```
-
-### Type Hints
-
-| Python                   | TypeScript                       | Notes               |
-| ------------------------ | -------------------------------- | ------------------- |
-| `x: int = 5`             | `let x: number = 5`              | Basic types         |
-| `x: str = "hi"`          | `let x: string = "hi"`           | String type         |
-| `x: List[int]`           | `x: number[]`                    | Generic list        |
-| `x: Dict[str, int]`      | `x: Record<string, number>`      | Generic dict        |
-| `x: Optional[str]`       | `x: string \| null`              | Optional type       |
-| `def fn(x: int) -> str:` | `function fn(x: number): string` | Function signatures |
-
-### Built-in Functions
-
-| Python                                    | TypeScript                                            |
-| ----------------------------------------- | ----------------------------------------------------- |
-| `print()`                                 | `console.log()`                                       |
-| `len()`                                   | `py.len()`                                            |
-| `range()`                                 | `py.range()`                                          |
-| `enumerate()`                             | `py.enumerate()`                                      |
-| `zip()`                                   | `py.zip()`                                            |
-| `sorted()`                                | `py.sorted()`                                         |
-| `reversed()`                              | `py.reversed()`                                       |
-| `min()` / `max()`                         | `py.min()` / `py.max()`                               |
-| `sum()`                                   | `py.sum()`                                            |
-| `abs()`                                   | `py.abs()`                                            |
-| `int()` / `float()` / `str()` / `bool()`  | `py.int()` / `py.float()` / `py.str()` / `py.bool()`  |
-| `list()` / `dict()` / `set()` / `tuple()` | `py.list()` / `py.dict()` / `py.set()` / `py.tuple()` |
-| `ord()` / `chr()`                         | `py.ord()` / `py.chr()`                               |
-| `all()` / `any()`                         | `py.all()` / `py.any()`                               |
-| `map()` / `filter()`                      | `py.map()` / `py.filter()`                            |
 
 ## Roadmap
 
