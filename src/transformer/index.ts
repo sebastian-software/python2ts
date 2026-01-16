@@ -230,6 +230,255 @@ function extractTypeAnnotation(
   return null
 }
 
+// ============================================================================
+// Docstring → JSDoc helpers
+// ============================================================================
+
+interface ParsedDocstring {
+  description: string
+  params: Array<{ name: string; description: string }>
+  returns: string | null
+  throws: Array<{ type: string; description: string }>
+}
+
+/**
+ * Check if a node is a docstring (ExpressionStatement containing a String)
+ */
+function isDocstringNode(node: SyntaxNode, ctx: TransformContext): boolean {
+  if (node.name !== "ExpressionStatement") return false
+  const children = getChildren(node)
+  const firstChild = children[0]
+  if (!firstChild || firstChild.name !== "String") return false
+
+  const text = getNodeText(firstChild, ctx.source)
+  // Must be a triple-quoted string
+  return text.startsWith('"""') || text.startsWith("'''")
+}
+
+/**
+ * Extract docstring content from a triple-quoted string
+ */
+function extractDocstringContent(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+  const stringNode = children[0]
+  if (!stringNode) return ""
+
+  const text = getNodeText(stringNode, ctx.source)
+
+  // Remove triple quotes (""" or ''')
+  let content = text
+  if (content.startsWith('"""')) {
+    content = content.slice(3, -3)
+  } else if (content.startsWith("'''")) {
+    content = content.slice(3, -3)
+  }
+
+  // Normalize line endings and trim
+  content = content.replace(/\r\n/g, "\n").trim()
+
+  return content
+}
+
+/**
+ * Parse a docstring into structured components (Google-style or NumPy-style)
+ */
+function parseDocstring(content: string): ParsedDocstring {
+  const result: ParsedDocstring = {
+    description: "",
+    params: [],
+    returns: null,
+    throws: []
+  }
+
+  const lines = content.split("\n")
+  let currentSection: "description" | "params" | "returns" | "throws" = "description"
+  const descriptionLines: string[] = []
+  let currentParamName = ""
+  let currentParamDesc: string[] = []
+  let currentThrowsType = ""
+  let currentThrowsDesc: string[] = []
+  const returnsLines: string[] = []
+
+  // Helper to flush current param
+  const flushParam = () => {
+    if (currentParamName) {
+      result.params.push({
+        name: currentParamName,
+        description: currentParamDesc.join(" ").trim()
+      })
+      currentParamName = ""
+      currentParamDesc = []
+    }
+  }
+
+  // Helper to flush current throws
+  const flushThrows = () => {
+    if (currentThrowsType || currentThrowsDesc.length > 0) {
+      result.throws.push({
+        type: currentThrowsType || "Error",
+        description: currentThrowsDesc.join(" ").trim()
+      })
+      currentThrowsType = ""
+      currentThrowsDesc = []
+    }
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+
+    // Check for section headers
+    if (/^(Args|Arguments|Parameters):$/i.test(trimmed)) {
+      currentSection = "params"
+      continue
+    }
+    if (/^(Returns?|Yields?):$/i.test(trimmed)) {
+      flushParam()
+      currentSection = "returns"
+      continue
+    }
+    if (/^(Raises?|Throws?|Exceptions?):$/i.test(trimmed)) {
+      flushParam()
+      currentSection = "throws"
+      continue
+    }
+
+    // Skip empty section markers like "Examples:", "Notes:", etc.
+    if (/^[A-Z][a-z]+:$/.test(trimmed)) {
+      continue
+    }
+
+    switch (currentSection) {
+      case "description":
+        descriptionLines.push(trimmed)
+        break
+
+      case "params": {
+        // Google-style: "name (type): description" or "name: description"
+        // NumPy-style: "name : type\n    description"
+        const googleMatch = trimmed.match(/^(\w+)\s*(?:\([^)]*\))?\s*:\s*(.*)$/)
+        if (googleMatch) {
+          flushParam()
+          currentParamName = googleMatch[1] ?? ""
+          const desc = googleMatch[2] ?? ""
+          if (desc) currentParamDesc.push(desc)
+        } else if (currentParamName && trimmed) {
+          // Continuation line for current param
+          currentParamDesc.push(trimmed)
+        }
+        break
+      }
+
+      case "returns": {
+        // Strip type prefix like "str: " or "(str): "
+        const stripped = trimmed.replace(/^(?:\([^)]*\)|[^:]+):\s*/, "")
+        if (stripped || trimmed) {
+          returnsLines.push(stripped || trimmed)
+        }
+        break
+      }
+
+      case "throws": {
+        // Google-style: "ValueError: description"
+        const throwsMatch = trimmed.match(/^(\w+)\s*:\s*(.*)$/)
+        if (throwsMatch) {
+          flushThrows()
+          currentThrowsType = throwsMatch[1] ?? "Error"
+          const desc = throwsMatch[2] ?? ""
+          if (desc) currentThrowsDesc.push(desc)
+        } else if (trimmed) {
+          currentThrowsDesc.push(trimmed)
+        }
+        break
+      }
+    }
+  }
+
+  // Flush any remaining
+  flushParam()
+  flushThrows()
+
+  result.description = descriptionLines.join("\n").trim()
+  if (returnsLines.length > 0) {
+    result.returns = returnsLines.join(" ").trim()
+  }
+
+  return result
+}
+
+/**
+ * Convert a parsed docstring to JSDoc format
+ */
+function toJSDoc(parsed: ParsedDocstring, indent: string): string {
+  const lines: string[] = []
+
+  lines.push(`${indent}/**`)
+
+  // Description
+  if (parsed.description) {
+    const descLines = parsed.description.split("\n")
+    for (const line of descLines) {
+      if (line.trim()) {
+        lines.push(`${indent} * ${line}`)
+      } else {
+        lines.push(`${indent} *`)
+      }
+    }
+  }
+
+  // Add blank line if we have description and other tags
+  if (
+    parsed.description &&
+    (parsed.params.length > 0 || parsed.returns || parsed.throws.length > 0)
+  ) {
+    lines.push(`${indent} *`)
+  }
+
+  // Params
+  for (const param of parsed.params) {
+    if (param.description) {
+      lines.push(`${indent} * @param ${param.name} - ${param.description}`)
+    } else {
+      lines.push(`${indent} * @param ${param.name}`)
+    }
+  }
+
+  // Returns
+  if (parsed.returns) {
+    lines.push(`${indent} * @returns ${parsed.returns}`)
+  }
+
+  // Throws
+  for (const t of parsed.throws) {
+    lines.push(`${indent} * @throws {${t.type}} ${t.description}`)
+  }
+
+  lines.push(`${indent} */`)
+
+  return lines.join("\n")
+}
+
+/**
+ * Extract docstring from a function/class body, returning the JSDoc and remaining body statements
+ */
+function extractDocstringFromBody(
+  bodyNode: SyntaxNode,
+  ctx: TransformContext,
+  indent: string
+): { jsdoc: string | null; skipFirstStatement: boolean } {
+  const children = getChildren(bodyNode)
+  const statements = children.filter((c) => c.name !== ":")
+
+  const firstStatement = statements[0]
+  if (firstStatement && isDocstringNode(firstStatement, ctx)) {
+    const content = extractDocstringContent(firstStatement, ctx)
+    const parsed = parseDocstring(content)
+    const jsdoc = toJSDoc(parsed, indent)
+    return { jsdoc, skipFirstStatement: true }
+  }
+
+  return { jsdoc: null, skipFirstStatement: false }
+}
+
 export function transform(input: string | ParseResult): TransformResult {
   const parseResult = typeof input === "string" ? parse(input) : input
   const ctx = createContext(parseResult.source)
@@ -2532,14 +2781,22 @@ function transformWithStatement(node: SyntaxNode, ctx: TransformContext): string
   return result
 }
 
-function transformBody(node: SyntaxNode, ctx: TransformContext): string {
+function transformBody(
+  node: SyntaxNode,
+  ctx: TransformContext,
+  skipFirst: boolean = false
+): string {
   ctx.indentLevel++
   pushScope(ctx) // Each block body gets its own scope
   const children = getChildren(node)
   const indent = "  ".repeat(ctx.indentLevel)
 
-  const statements = children
-    .filter((child) => child.name !== ":")
+  let filteredChildren = children.filter((child) => child.name !== ":")
+  if (skipFirst && filteredChildren.length > 0) {
+    filteredChildren = filteredChildren.slice(1)
+  }
+
+  const statements = filteredChildren
     .map((child) => {
       const transformed = transformNode(child, ctx)
       if (
@@ -2597,8 +2854,14 @@ function transformFunctionDefinition(node: SyntaxNode, ctx: TransformContext): s
     }
   }
 
+  // Extract docstring and convert to JSDoc
+  const indent = "  ".repeat(ctx.indentLevel)
+  const { jsdoc, skipFirstStatement } = body
+    ? extractDocstringFromBody(body, ctx, indent)
+    : { jsdoc: null, skipFirstStatement: false }
+
   const params = paramList ? transformParamList(paramList, ctx) : ""
-  const bodyCode = body ? transformBody(body, ctx) : ""
+  const bodyCode = body ? transformBody(body, ctx, skipFirstStatement) : ""
 
   // Check if function is a generator (contains yield)
   const isGenerator = body ? containsYield(body) : false
@@ -2617,7 +2880,9 @@ function transformFunctionDefinition(node: SyntaxNode, ctx: TransformContext): s
 
   const asyncPrefix = isAsync ? "async " : ""
   const generatorStar = isGenerator ? "*" : ""
-  return `${asyncPrefix}function${generatorStar} ${funcName}(${params})${returnType} {\n${bodyCode}\n}`
+  const funcDecl = `${asyncPrefix}function${generatorStar} ${funcName}(${params})${returnType} {\n${bodyCode}\n}`
+
+  return jsdoc ? `${jsdoc}\n${funcDecl}` : funcDecl
 }
 
 function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): string {
@@ -2644,6 +2909,12 @@ function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): stri
     }
   }
 
+  // Extract class docstring and convert to JSDoc
+  const indent = "  ".repeat(ctx.indentLevel)
+  const { jsdoc, skipFirstStatement } = body
+    ? extractDocstringFromBody(body, ctx, indent)
+    : { jsdoc: null, skipFirstStatement: false }
+
   // Build class header
   let classHeader = `class ${className}`
   let multipleInheritanceWarning = ""
@@ -2661,20 +2932,28 @@ function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): stri
   }
 
   // Transform class body
-  const bodyCode = body ? transformClassBody(body, ctx) : ""
+  const bodyCode = body ? transformClassBody(body, ctx, skipFirstStatement) : ""
 
-  return `${multipleInheritanceWarning}${classHeader} {\n${bodyCode}\n}`
+  const classDecl = `${multipleInheritanceWarning}${classHeader} {\n${bodyCode}\n}`
+  return jsdoc ? `${jsdoc}\n${classDecl}` : classDecl
 }
 
-function transformClassBody(node: SyntaxNode, ctx: TransformContext): string {
+function transformClassBody(
+  node: SyntaxNode,
+  ctx: TransformContext,
+  skipFirst: boolean = false
+): string {
   ctx.indentLevel++
   const children = getChildren(node)
   const indent = "  ".repeat(ctx.indentLevel)
   const members: string[] = []
 
-  for (const child of children) {
-    if (child.name === ":") continue
+  let filteredChildren = children.filter((c) => c.name !== ":")
+  if (skipFirst && filteredChildren.length > 0) {
+    filteredChildren = filteredChildren.slice(1)
+  }
 
+  for (const child of filteredChildren) {
     if (child.name === "FunctionDefinition") {
       members.push(transformClassMethod(child, ctx, null))
     } else if (child.name === "DecoratedStatement") {
@@ -2684,10 +2963,13 @@ function transformClassBody(node: SyntaxNode, ctx: TransformContext): string {
       const transformed = transformNode(child, ctx)
       members.push(indent + transformed + ";")
     } else if (child.name === "ExpressionStatement") {
-      // Docstrings or other expressions
-      const transformed = transformNode(child, ctx)
-      if (transformed.trim()) {
-        members.push(indent + transformed + ";")
+      // Non-docstring expressions (docstrings at class level are handled by transformClassDefinition)
+      // Skip any remaining triple-quoted strings that look like docstrings
+      if (!isDocstringNode(child, ctx)) {
+        const transformed = transformNode(child, ctx)
+        if (transformed.trim()) {
+          members.push(indent + transformed + ";")
+        }
       }
     } else if (child.name === "PassStatement") {
       // Skip pass in class body
@@ -2720,11 +3002,16 @@ function transformClassMethod(
     }
   }
 
+  // Extract method docstring and convert to JSDoc
+  const { jsdoc, skipFirstStatement } = body
+    ? extractDocstringFromBody(body, ctx, indent)
+    : { jsdoc: null, skipFirstStatement: false }
+
   // Transform parameters, removing 'self' or 'cls'
   const params = paramList ? transformMethodParamList(paramList, ctx) : ""
 
   // Transform body, replacing 'self' with 'this'
-  const bodyCode = body ? transformClassMethodBody(body, ctx) : ""
+  const bodyCode = body ? transformClassMethodBody(body, ctx, skipFirstStatement) : ""
 
   // Check if method is a generator (contains yield)
   const isGenerator = body ? containsYield(body) : false
@@ -2732,11 +3019,13 @@ function transformClassMethod(
 
   // Handle special methods
   if (methodName === "__init__") {
-    return `${indent}constructor(${params}) {\n${bodyCode}\n${indent}}`
+    const methodDecl = `${indent}constructor(${params}) {\n${bodyCode}\n${indent}}`
+    return jsdoc ? `${jsdoc}\n${methodDecl}` : methodDecl
   }
 
   if (methodName === "__str__" || methodName === "__repr__") {
-    return `${indent}toString() {\n${bodyCode}\n${indent}}`
+    const methodDecl = `${indent}toString() {\n${bodyCode}\n${indent}}`
+    return jsdoc ? `${jsdoc}\n${methodDecl}` : methodDecl
   }
 
   // Handle decorators
@@ -2749,7 +3038,8 @@ function transformClassMethod(
     prefix = "set "
   }
 
-  return `${indent}${prefix}${generatorStar}${methodName}(${params}) {\n${bodyCode}\n${indent}}`
+  const methodDecl = `${indent}${prefix}${generatorStar}${methodName}(${params}) {\n${bodyCode}\n${indent}}`
+  return jsdoc ? `${jsdoc}\n${methodDecl}` : methodDecl
 }
 
 function transformClassDecoratedMethod(node: SyntaxNode, ctx: TransformContext): string {
@@ -2869,13 +3159,21 @@ function transformMethodParamList(node: SyntaxNode, ctx: TransformContext): stri
   return params.join(", ")
 }
 
-function transformClassMethodBody(node: SyntaxNode, ctx: TransformContext): string {
+function transformClassMethodBody(
+  node: SyntaxNode,
+  ctx: TransformContext,
+  skipFirst: boolean = false
+): string {
   ctx.indentLevel++
   const children = getChildren(node)
   const indent = "  ".repeat(ctx.indentLevel)
 
-  const statements = children
-    .filter((child) => child.name !== ":")
+  let filteredChildren = children.filter((child) => child.name !== ":")
+  if (skipFirst && filteredChildren.length > 0) {
+    filteredChildren = filteredChildren.slice(1)
+  }
+
+  const statements = filteredChildren
     .map((child) => {
       let transformed: string
 
@@ -2971,9 +3269,10 @@ function transformClassAssignment(node: SyntaxNode, ctx: TransformContext): stri
 function transformDecoratedStatement(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
 
-  // Collect decorators and find the function definition
+  // Collect decorators and find the function/class definition
   const decorators: { name: string; args: string | null }[] = []
   let funcDef: SyntaxNode | null = null
+  let classDef: SyntaxNode | null = null
 
   for (const child of children) {
     if (child.name === "Decorator") {
@@ -2981,14 +3280,34 @@ function transformDecoratedStatement(node: SyntaxNode, ctx: TransformContext): s
       let decoratorName = ""
       let decoratorArgs: string | null = null
 
+      // Build decorator name from possibly dotted path: @app.route("/api")
+      // AST: At, VariableName("app"), ".", VariableName("route"), ArgList
+      const nameParts: string[] = []
       for (const decChild of decChildren) {
         if (decChild.name === "VariableName") {
-          decoratorName = getNodeText(decChild, ctx.source)
+          nameParts.push(getNodeText(decChild, ctx.source))
         } else if (decChild.name === "MemberExpression") {
+          // Fallback for nested member expressions
           decoratorName = transformNode(decChild, ctx)
         } else if (decChild.name === "ArgList") {
           decoratorArgs = transformArgList(decChild, ctx)
+        } else if (decChild.name === "CallExpression") {
+          // Handle nested call expressions if they occur
+          const callChildren = getChildren(decChild)
+          for (const callChild of callChildren) {
+            if (callChild.name === "VariableName") {
+              nameParts.push(getNodeText(callChild, ctx.source))
+            } else if (callChild.name === "MemberExpression") {
+              decoratorName = transformNode(callChild, ctx)
+            } else if (callChild.name === "ArgList") {
+              decoratorArgs = transformArgList(callChild, ctx)
+            }
+          }
         }
+      }
+      // If we collected name parts, join them with dots
+      if (nameParts.length > 0) {
+        decoratorName = nameParts.join(".")
       }
 
       if (decoratorName) {
@@ -2996,7 +3315,14 @@ function transformDecoratedStatement(node: SyntaxNode, ctx: TransformContext): s
       }
     } else if (child.name === "FunctionDefinition") {
       funcDef = child
+    } else if (child.name === "ClassDefinition") {
+      classDef = child
     }
+  }
+
+  // Handle decorated class
+  if (classDef) {
+    return transformDecoratedClass(classDef, decorators, ctx)
   }
 
   if (!funcDef) {
@@ -3040,6 +3366,471 @@ function transformDecoratedStatement(node: SyntaxNode, ctx: TransformContext): s
   }
 
   return `const ${funcName} = ${funcExpr}`
+}
+
+// ============================================================================
+// Class decorator and @dataclass helpers
+// ============================================================================
+
+interface DataclassField {
+  name: string
+  tsType: string
+  hasDefault: boolean
+  defaultValue: string | null
+  isFieldFactory: boolean
+}
+
+interface DataclassOptions {
+  frozen: boolean
+}
+
+/**
+ * Handle decorated class definitions
+ * Routes to either @dataclass special handling or generic class decorator wrapping
+ */
+function transformDecoratedClass(
+  classDef: SyntaxNode,
+  decorators: Array<{ name: string; args: string | null }>,
+  ctx: TransformContext
+): string {
+  // Check for @dataclass decorator
+  const dataclassDecorator = decorators.find(
+    (d) => d.name === "dataclass" || d.name === "dataclasses.dataclass"
+  )
+
+  if (dataclassDecorator) {
+    // Filter out the dataclass decorator, apply remaining decorators if any
+    const otherDecorators = decorators.filter((d) => d !== dataclassDecorator)
+    const dataclassCode = transformDataclass(classDef, dataclassDecorator, ctx)
+
+    if (otherDecorators.length === 0) {
+      return dataclassCode
+    }
+
+    // Wrap dataclass with remaining decorators
+    const children = getChildren(classDef)
+    let className = ""
+    for (const child of children) {
+      if (child.name === "VariableName") {
+        className = getNodeText(child, ctx.source)
+        break
+      }
+    }
+
+    let expr = dataclassCode
+    for (let i = otherDecorators.length - 1; i >= 0; i--) {
+      const dec = otherDecorators[i]
+      if (!dec) continue
+      if (dec.args !== null) {
+        expr = `${dec.name}(${dec.args})(${expr})`
+      } else {
+        expr = `${dec.name}(${expr})`
+      }
+    }
+    return `const ${className} = ${expr}`
+  }
+
+  // Generic class decorator wrapping
+  return transformGenericDecoratedClass(classDef, decorators, ctx)
+}
+
+/**
+ * Wrap a class with decorators (non-dataclass)
+ * @decorator class MyClass: pass -> const MyClass = decorator(class MyClass { })
+ */
+function transformGenericDecoratedClass(
+  classDef: SyntaxNode,
+  decorators: Array<{ name: string; args: string | null }>,
+  ctx: TransformContext
+): string {
+  const children = getChildren(classDef)
+  let className = ""
+
+  for (const child of children) {
+    if (child.name === "VariableName") {
+      className = getNodeText(child, ctx.source)
+      ctx.definedClasses.add(className)
+      break
+    }
+  }
+
+  // Transform the class definition using existing logic
+  let classExpr = transformClassDefinition(classDef, ctx)
+
+  // Apply decorators from bottom to top (innermost first)
+  for (let i = decorators.length - 1; i >= 0; i--) {
+    const dec = decorators[i]
+    if (!dec) continue
+
+    if (dec.args !== null) {
+      classExpr = `${dec.name}(${dec.args})(${classExpr})`
+    } else {
+      classExpr = `${dec.name}(${classExpr})`
+    }
+  }
+
+  return `const ${className} = ${classExpr}`
+}
+
+/**
+ * Parse @dataclass decorator options
+ */
+function parseDataclassOptions(args: string | null): DataclassOptions {
+  const options: DataclassOptions = {
+    frozen: false
+  }
+
+  if (!args) return options
+
+  // Parse keyword arguments - args is already transformed
+  // e.g., "frozen: true" or "frozen=True" before transformation
+  if (
+    args.includes("frozen: true") ||
+    args.includes("frozen=True") ||
+    args.includes("frozen=true")
+  ) {
+    options.frozen = true
+  }
+
+  return options
+}
+
+/**
+ * Extract dataclass fields from class body
+ * Only considers typed assignments: name: type or name: type = default
+ */
+function extractDataclassFields(body: SyntaxNode, ctx: TransformContext): DataclassField[] {
+  const fields: DataclassField[] = []
+  const children = getChildren(body)
+
+  for (const child of children) {
+    if (child.name === ":") continue
+
+    // Handle typed assignment: name: type = value
+    if (child.name === "AssignStatement") {
+      const field = parseDataclassFieldFromAssignment(child, ctx)
+      if (field) fields.push(field)
+    }
+    // Handle bare type annotation: name: type (ExpressionStatement wrapping TypeAnnotation)
+    else if (child.name === "ExpressionStatement") {
+      const field = parseDataclassFieldFromExpression(child, ctx)
+      if (field) fields.push(field)
+    }
+  }
+
+  return fields
+}
+
+/**
+ * Parse a field from an assignment statement: name: type = value
+ */
+function parseDataclassFieldFromAssignment(
+  node: SyntaxNode,
+  ctx: TransformContext
+): DataclassField | null {
+  const children = getChildren(node)
+
+  // Look for pattern: VariableName TypeDef AssignOp Value
+  let varName: SyntaxNode | null = null
+  let typeDef: SyntaxNode | null = null
+  let assignOpIndex = -1
+
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i]
+    if (!child) continue
+
+    if (child.name === "VariableName" && !varName) {
+      varName = child
+    } else if (child.name === "TypeDef") {
+      typeDef = child
+    } else if (child.name === "AssignOp" || child.name === "=") {
+      assignOpIndex = i
+    }
+  }
+
+  // Must have type annotation to be a dataclass field
+  if (!varName || !typeDef) {
+    return null
+  }
+
+  const name = getNodeText(varName, ctx.source)
+  const tsType = extractTypeAnnotation(typeDef, ctx) ?? "unknown"
+
+  let hasDefault = false
+  let defaultValue: string | null = null
+  let isFieldFactory = false
+
+  if (assignOpIndex !== -1) {
+    hasDefault = true
+    const valueNodes = children.slice(assignOpIndex + 1).filter((c) => c.name !== ",")
+    const firstValue = valueNodes[0]
+
+    if (firstValue) {
+      // Check for field(default_factory=...) pattern
+      if (firstValue.name === "CallExpression") {
+        const callText = getNodeText(firstValue, ctx.source)
+        if (callText.startsWith("field(")) {
+          isFieldFactory = true
+          defaultValue = parseFieldDefaultFactory(firstValue, ctx)
+        } else {
+          defaultValue = transformNode(firstValue, ctx)
+        }
+      } else {
+        defaultValue = transformNode(firstValue, ctx)
+      }
+    }
+  }
+
+  return { name, tsType, hasDefault, defaultValue, isFieldFactory }
+}
+
+/**
+ * Parse a field from an expression statement (bare type annotation): name: type
+ */
+function parseDataclassFieldFromExpression(
+  node: SyntaxNode,
+  ctx: TransformContext
+): DataclassField | null {
+  const children = getChildren(node)
+
+  // Look for VariableName and TypeDef (or a pattern like "name: type")
+  for (const child of children) {
+    // Check if this is an annotated name expression
+    if (child.name === "VariableName") {
+      // Look for TypeDef sibling
+      const typeDef = children.find((c) => c.name === "TypeDef")
+      if (typeDef) {
+        const name = getNodeText(child, ctx.source)
+        const tsType = extractTypeAnnotation(typeDef, ctx) ?? "unknown"
+        return { name, tsType, hasDefault: false, defaultValue: null, isFieldFactory: false }
+      }
+    }
+  }
+
+  return null
+}
+
+/**
+ * Parse field(default_factory=...) to extract the default value
+ */
+function parseFieldDefaultFactory(callNode: SyntaxNode, ctx: TransformContext): string {
+  const text = getNodeText(callNode, ctx.source)
+
+  // Extract the factory from field(default_factory=X)
+  const factoryMatch = text.match(/default_factory\s*=\s*(\w+)/)
+  if (factoryMatch) {
+    const factory = factoryMatch[1]
+    if (factory === "list") return "[]"
+    if (factory === "dict") return "{}"
+    if (factory === "set") return "new Set()"
+    // For other factories, return the factory call
+    if (factory) return `${factory}()`
+  }
+
+  // Check for default= pattern
+  const defaultMatch = text.match(/default\s*=\s*([^,)]+)/)
+  if (defaultMatch) {
+    return defaultMatch[1]?.trim() ?? "undefined"
+  }
+
+  return "undefined"
+}
+
+/**
+ * Transform @dataclass decorated class
+ */
+function transformDataclass(
+  classDef: SyntaxNode,
+  decorator: { name: string; args: string | null },
+  ctx: TransformContext
+): string {
+  const children = getChildren(classDef)
+
+  let className = ""
+  let body: SyntaxNode | null = null
+  const parentClasses: string[] = []
+
+  for (const child of children) {
+    if (child.name === "VariableName") {
+      className = getNodeText(child, ctx.source)
+      ctx.definedClasses.add(className)
+    } else if (child.name === "ArgList") {
+      // Inheritance
+      const argChildren = getChildren(child)
+      const parentNodes = argChildren.filter((c) => c.name === "VariableName")
+      for (const parentNode of parentNodes) {
+        parentClasses.push(getNodeText(parentNode, ctx.source))
+      }
+    } else if (child.name === "Body") {
+      body = child
+    }
+  }
+
+  // Extract dataclass options
+  const options = parseDataclassOptions(decorator.args)
+
+  // Extract fields from body
+  const fields = body ? extractDataclassFields(body, ctx) : []
+
+  // Extract docstring
+  const indent = "  ".repeat(ctx.indentLevel)
+  const { jsdoc } = body ? extractDocstringFromBody(body, ctx, indent) : { jsdoc: null }
+
+  // Generate class code
+  return generateDataclassCode(className, parentClasses, fields, options, body, ctx, jsdoc)
+}
+
+/**
+ * Generate TypeScript class code from dataclass fields
+ */
+function generateDataclassCode(
+  className: string,
+  parentClasses: string[],
+  fields: DataclassField[],
+  options: DataclassOptions,
+  body: SyntaxNode | null,
+  ctx: TransformContext,
+  jsdoc: string | null
+): string {
+  const memberIndent = "  "
+  const bodyIndent = "    "
+  const members: string[] = []
+
+  // 1. Generate field declarations
+  for (const field of fields) {
+    const readonly = options.frozen ? "readonly " : ""
+    if (field.hasDefault && field.defaultValue !== null && !field.isFieldFactory) {
+      members.push(
+        `${memberIndent}${readonly}${field.name}: ${field.tsType} = ${field.defaultValue};`
+      )
+    } else {
+      members.push(`${memberIndent}${readonly}${field.name}: ${field.tsType};`)
+    }
+  }
+
+  // 2. Generate constructor
+  const constructorParams = fields
+    .map((f) => {
+      if (f.hasDefault && f.defaultValue !== null) {
+        return `${f.name}: ${f.tsType} = ${f.defaultValue}`
+      }
+      return `${f.name}: ${f.tsType}`
+    })
+    .join(", ")
+
+  const constructorAssignments = fields
+    .map((f) => `${bodyIndent}this.${f.name} = ${f.name};`)
+    .join("\n")
+
+  let constructorBody = ""
+  if (parentClasses.length > 0) {
+    constructorBody += `${bodyIndent}super();\n`
+  }
+  constructorBody += constructorAssignments
+  if (options.frozen) {
+    constructorBody += `\n${bodyIndent}Object.freeze(this);`
+  }
+
+  members.push(
+    `\n${memberIndent}constructor(${constructorParams}) {\n${constructorBody}\n${memberIndent}}`
+  )
+
+  // 3. Extract and add any methods defined in the class body
+  if (body) {
+    const methodMembers = extractNonFieldMembers(body, ctx, fields)
+    if (methodMembers.length > 0) {
+      members.push(...methodMembers)
+    }
+  }
+
+  // Build class header
+  let classHeader = `class ${className}`
+  const firstParent = parentClasses[0]
+  if (firstParent) {
+    classHeader += ` extends ${firstParent}`
+  }
+
+  const classCode = `${classHeader} {\n${members.join("\n")}\n}`
+
+  if (jsdoc) {
+    return `${jsdoc}\n${classCode}`
+  }
+  return classCode
+}
+
+/**
+ * Extract non-field members (methods) from dataclass body
+ */
+function extractNonFieldMembers(
+  body: SyntaxNode,
+  ctx: TransformContext,
+  fields: DataclassField[]
+): string[] {
+  const members: string[] = []
+  const children = getChildren(body)
+  const fieldNames = new Set(fields.map((f) => f.name))
+
+  // Track if we've seen the docstring already (it's always first)
+  let skipFirst = false
+  const firstChild = children.find((c) => c.name !== ":")
+  if (firstChild && isDocstringNode(firstChild, ctx)) {
+    skipFirst = true
+  }
+
+  let isFirst = true
+  for (const child of children) {
+    if (child.name === ":") continue
+    if (isFirst && skipFirst) {
+      isFirst = false
+      continue
+    }
+    isFirst = false
+
+    // Skip field declarations (AssignStatement and ExpressionStatement with type annotations)
+    if (child.name === "AssignStatement" || child.name === "ExpressionStatement") {
+      // Check if this is a field we already processed
+      const childChildren = getChildren(child)
+      const varName = childChildren.find((c) => c.name === "VariableName")
+      if (varName && fieldNames.has(getNodeText(varName, ctx.source))) {
+        continue
+      }
+      // Check for type annotation (indicates it's a field)
+      const hasTypeDef = childChildren.some((c) => c.name === "TypeDef")
+      if (hasTypeDef) {
+        continue
+      }
+    }
+
+    // Process methods
+    if (child.name === "FunctionDefinition") {
+      const methodName = getMethodName(child, ctx)
+      // Skip __init__ as we generate our own constructor
+      if (methodName !== "__init__") {
+        ctx.indentLevel++
+        members.push("\n" + transformClassMethod(child, ctx, null))
+        ctx.indentLevel--
+      }
+    } else if (child.name === "DecoratedStatement") {
+      ctx.indentLevel++
+      members.push("\n" + transformClassDecoratedMethod(child, ctx))
+      ctx.indentLevel--
+    }
+  }
+
+  return members
+}
+
+/**
+ * Get method name from a FunctionDefinition node
+ */
+function getMethodName(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+  for (const child of children) {
+    if (child.name === "VariableName") {
+      return getNodeText(child, ctx.source)
+    }
+  }
+  return ""
 }
 
 function transformParamList(node: SyntaxNode, ctx: TransformContext): string {

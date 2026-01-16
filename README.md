@@ -212,16 +212,18 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `a, b = 1, 2`                   | `let [a, b] = [1, 2]`           | Multiple assignment   |
 | `a, b = b, a`                   | `let [a, b] = [b, a]`           | Swap pattern          |
 
-### Phase 3 (Advanced Functions)
+### Phase 3 (Advanced Functions & Decorators)
 
-| Python              | TypeScript                                  | Notes              |
-| ------------------- | ------------------------------------------- | ------------------ |
-| `def fn(x=1):`      | `function fn(x = 1)`                        | Default parameters |
-| `def fn(*args):`    | `function fn(...args)`                      | Rest parameters    |
-| `def fn(**kwargs):` | `function fn(kwargs)`                       | Keyword args       |
-| `lambda x: x + 1`   | `(x) => (x + 1)`                            | Lambda expressions |
-| `fn(key=val)`       | `fn({ key: val })`                          | Keyword arguments  |
-| `@decorator`        | `const fn = decorator(function fn() {...})` | Decorators         |
+| Python                 | TypeScript                                  | Notes               |
+| ---------------------- | ------------------------------------------- | ------------------- |
+| `def fn(x=1):`         | `function fn(x = 1)`                        | Default parameters  |
+| `def fn(*args):`       | `function fn(...args)`                      | Rest parameters     |
+| `def fn(**kwargs):`    | `function fn(kwargs)`                       | Keyword args        |
+| `lambda x: x + 1`      | `(x) => (x + 1)`                            | Lambda expressions  |
+| `fn(key=val)`          | `fn({ key: val })`                          | Keyword arguments   |
+| `@decorator def fn():` | `const fn = decorator(function fn() {...})` | Function decorator  |
+| `@decorator class C:`  | `const C = decorator(class C {...})`        | Class decorator     |
+| `@app.route("/api")`   | `app.route("/api")(class ...)`              | Decorator with args |
 
 ### Phase 4 (Classes)
 
@@ -319,6 +321,80 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `case "hello":` | `case "hello":` | String pattern   |
 | `case _:`       | `default:`      | Wildcard pattern |
 
+### Docstrings → JSDoc
+
+| Python                            | TypeScript                         | Notes             |
+| --------------------------------- | ---------------------------------- | ----------------- |
+| `"""Docstring"""`                 | `/** JSDoc */`                     | Basic docstring   |
+| `Args: name: description`         | `@param name - description`        | Parameter docs    |
+| `Returns: description`            | `@returns description`             | Return value docs |
+| `Raises: ValueError: description` | `@throws {ValueError} description` | Exception docs    |
+
+Example:
+
+```python
+def greet(name):
+    """Greet a person.
+
+    Args:
+        name: The person's name.
+
+    Returns:
+        A greeting string.
+    """
+    return f"Hello, {name}"
+```
+
+→
+
+```typescript
+/**
+ * Greet a person.
+ *
+ * @param name - The person's name.
+ * @returns A greeting string.
+ */
+function greet(name) {
+  return `Hello, ${name}`
+}
+```
+
+### @dataclass
+
+| Python                        | TypeScript                             | Notes           |
+| ----------------------------- | -------------------------------------- | --------------- |
+| `@dataclass class Person:`    | `class Person { constructor(...) {} }` | Basic dataclass |
+| `name: str`                   | `name: string;`                        | Typed field     |
+| `age: int = 0`                | `age: number = 0;`                     | Default value   |
+| `@dataclass(frozen=True)`     | `readonly` + `Object.freeze(this)`     | Immutable       |
+| `field(default_factory=list)` | `= []`                                 | Factory default |
+
+Example:
+
+```python
+@dataclass
+class Person:
+    name: str
+    age: int
+    email: str = ""
+```
+
+→
+
+```typescript
+class Person {
+  name: string
+  age: number
+  email: string = ""
+
+  constructor(name: string, age: number, email: string = "") {
+    this.name = name
+    this.age = age
+    this.email = email
+  }
+}
+```
+
 ### Type Hints
 
 | Python                   | TypeScript                       | Notes               |
@@ -365,6 +441,9 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 - [x] **Generators**: `function*` syntax with `yield`
 - [x] **Match Statement**: Python 3.10+ `match`/`case` to `switch`
 - [x] **Type Hints**: Python types → TypeScript types
+- [x] **Docstrings**: Google/NumPy-style docstrings → JSDoc comments
+- [x] **Class Decorators**: `@decorator class C:` → `const C = decorator(class C {})`
+- [x] **@dataclass**: Automatic constructor generation with typed fields
 
 ## Architecture
 

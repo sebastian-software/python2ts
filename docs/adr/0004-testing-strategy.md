@@ -12,7 +12,7 @@ We need a comprehensive testing strategy that:
 2. Ensures correct transformation to TypeScript
 3. Validates runtime function behavior (especially edge cases)
 4. Provides end-to-end verification of the full pipeline
-5. Maintains high code coverage (target: 90%+, current: ~93%)
+5. Maintains high code coverage (target: 85%+, current: ~95%)
 
 Testing framework options:
 
@@ -34,6 +34,7 @@ tests/
 ├── generator.test.ts    # Generator unit tests
 ├── runtime.test.ts      # Runtime library unit tests
 ├── integration.test.ts  # Full pipeline integration tests
+├── cli.test.ts          # CLI tool tests
 └── e2e/
     ├── literals.test.ts          # End-to-end: literals
     ├── operators.test.ts         # End-to-end: operators
@@ -51,6 +52,9 @@ tests/
     ├── walrus.test.ts            # Assignment expressions (:=)
     ├── methods.test.ts           # Method call transformations
     ├── new-features.test.ts      # Generators, match/case, etc.
+    ├── docstrings.test.ts        # Docstrings → JSDoc conversion
+    ├── decorators.test.ts        # Class decorators
+    ├── dataclass.test.ts         # @dataclass transformation
     ├── smoke.test.ts             # Cross-Python verification
     └── edge-cases.test.ts        # Edge cases
 ```
