@@ -16,6 +16,8 @@ context and consequences.
 | [ADR-0003](./0003-python-operator-semantics.md) | Preserve Python Operator Semantics | Accepted | 2026-01-16 |
 | [ADR-0004](./0004-testing-strategy.md)          | Testing Strategy with Vitest       | Accepted | 2026-01-16 |
 | [ADR-0005](./0005-esm-only-distribution.md)     | ESM-Only Distribution              | Accepted | 2026-01-16 |
+| [ADR-0006](./0006-type-hints-to-typescript.md)  | Python Type Hints to TypeScript    | Accepted | 2026-01-16 |
+| [ADR-0007](./0007-dataclass-transformation.md)  | @dataclass Transformation Strategy | Accepted | 2026-01-16 |
 
 ## Template
 
