@@ -15,6 +15,9 @@
       "types": "./dist/runtime/index.d.ts"
     }
   },
+  "bin": {
+    "python2ts": "./dist/cli/index.js"
+  },
   "files": [
     "dist"
   ],
