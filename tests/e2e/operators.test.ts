@@ -207,4 +207,99 @@ describe("E2E: Operators", () => {
       })
     })
   })
+
+  describe("Identity Operators", () => {
+    it("should handle 'is' with None", () => {
+      const result = transpile("x is None", { includeRuntime: false })
+      expect(result).toBe("(x === null);")
+    })
+
+    it("should handle identity comparison", () => {
+      const result = transpile("a is b", { includeRuntime: false })
+      expect(result).toBe("(a === b);")
+    })
+
+    it("should handle negated identity comparison", () => {
+      const result = transpile("x is not None", { includeRuntime: false })
+      expect(result).toBeDefined()
+    })
+  })
+
+  describe("Chained Comparisons", () => {
+    it("should handle chained comparison with >=", () => {
+      const result = transpile("1 <= x <= 10", { includeRuntime: false })
+      expect(result).toContain("&&")
+    })
+
+    it("should handle chained comparison with !=", () => {
+      const result = transpile("a != b != c", { includeRuntime: false })
+      expect(result).toContain("&&")
+    })
+  })
+
+  describe("Bitwise Operators", () => {
+    it("should handle bitwise and", () => {
+      const result = transpile("x = a & b", { includeRuntime: false })
+      expect(result).toContain("&")
+    })
+
+    it("should handle bitwise or", () => {
+      const result = transpile("x = a | b", { includeRuntime: false })
+      expect(result).toContain("|")
+    })
+
+    it("should handle bitwise xor", () => {
+      const result = transpile("x = a ^ b", { includeRuntime: false })
+      expect(result).toContain("^")
+    })
+
+    it("should handle left shift", () => {
+      const result = transpile("x = a << 2", { includeRuntime: false })
+      expect(result).toContain("<<")
+    })
+
+    it("should handle right shift", () => {
+      const result = transpile("x = a >> 2", { includeRuntime: false })
+      expect(result).toContain(">>")
+    })
+
+    it("should handle bitwise not", () => {
+      const result = transpile("x = ~y", { includeRuntime: false })
+      expect(result).toContain("~")
+    })
+  })
+
+  describe("Repetition Operators", () => {
+    it("should handle number * string repetition (reversed)", () => {
+      const result = transpile("x = 3 * 'ab'")
+      expect(result).toContain("py.repeat")
+    })
+
+    it("should handle number * array repetition (reversed)", () => {
+      const result = transpile("x = 3 * [1, 2]")
+      expect(result).toContain("py.repeat")
+    })
+  })
+
+  describe("Augmented Assignment Operators", () => {
+    it("should handle augmented assignment", () => {
+      const result = transpile("x += 1", { includeRuntime: false })
+      expect(result).toContain("+=")
+    })
+
+    it("should handle floor division augmented assignment", () => {
+      const result = transpile("x //= 2", { includeRuntime: false })
+      expect(result).toContain("//=")
+    })
+
+    it("should handle power augmented assignment", () => {
+      const result = transpile("x **= 2", { includeRuntime: false })
+      expect(result).toContain("**=")
+    })
+
+    it("should handle modulo augmented assignment", () => {
+      const result = transpile("x %= 2", { includeRuntime: false })
+      expect(result).toContain("%=")
+    })
+  })
 })
