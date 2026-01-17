@@ -18,6 +18,8 @@ import { dict as dictMethods } from "./dict.js"
 import { set as setMethods } from "./set.js"
 import * as core from "./core.js"
 import * as builtins from "./builtins.js"
+import * as itertools from "./itertools.js"
+import { Counter, defaultdict, deque } from "./collections.js"
 
 // Create callable objects that are both functions and have methods
 // This allows py.list() as constructor and py.list.remove() as method
@@ -127,7 +129,19 @@ export const py = {
   // ============================================================
   // Formatting
   // ============================================================
-  format: builtins.format
+  format: builtins.format,
+
+  // ============================================================
+  // itertools module
+  // ============================================================
+  itertools,
+
+  // ============================================================
+  // collections module
+  // ============================================================
+  Counter,
+  defaultdict,
+  deque
 }
 
 // Set the py reference for builtins (needed for str() and repr())

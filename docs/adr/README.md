@@ -18,6 +18,7 @@ context and consequences.
 | [ADR-0005](./0005-esm-only-distribution.md)     | ESM-Only Distribution              | Accepted | 2026-01-16 |
 | [ADR-0006](./0006-type-hints-to-typescript.md)  | Python Type Hints to TypeScript    | Accepted | 2026-01-16 |
 | [ADR-0007](./0007-dataclass-transformation.md)  | @dataclass Transformation Strategy | Accepted | 2026-01-16 |
+| [ADR-0008](./0008-itertools-eager-vs-lazy.md)   | itertools: Eager Arrays vs. Lazy   | Accepted | 2026-01-17 |
 
 ## Template
 

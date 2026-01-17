@@ -113,10 +113,17 @@ function transformPythonType(node: SyntaxNode, ctx: TransformContext): string {
         return PYTHON_TO_TS_TYPES[baseName] ?? baseName
       }
 
-      const typeArgs = children
+      // Raw type argument nodes (before transformation)
+      const rawTypeArgNodes = children
         .slice(bracketStart + 1, bracketEnd)
         .filter((c) => c.name !== ",")
-        .map((c) => transformPythonType(c, ctx))
+
+      // Special handling for Callable to get proper parameter types
+      if (baseName === "Callable") {
+        return transformCallableType(rawTypeArgNodes, ctx)
+      }
+
+      const typeArgs = rawTypeArgNodes.map((c) => transformPythonType(c, ctx))
 
       // Handle specific Python generic types
       const first = typeArgs[0] ?? "unknown"
@@ -143,13 +150,13 @@ function transformPythonType(node: SyntaxNode, ctx: TransformContext): string {
           return typeArgs.length > 0 ? `${first} | null` : "unknown | null"
         case "Union":
           return typeArgs.join(" | ")
-        case "Callable":
-          // Callable[[arg1, arg2], return] -> (arg1, arg2) => return
-          if (typeArgs.length >= 2) {
-            // For simplicity, we use a generic function type
-            return `(...args: unknown[]) => ${last}`
-          }
-          return "(...args: unknown[]) => unknown"
+        case "Final":
+          // Final[T] -> T (the 'const' or 'readonly' is handled at declaration level)
+          return typeArgs.length > 0 ? first : "unknown"
+        case "ClassVar":
+          // ClassVar[T] -> T (the 'static' is handled at declaration level)
+          return typeArgs.length > 0 ? first : "unknown"
+        // Callable is handled specially before the switch via transformCallableType
         case "Iterable":
           return typeArgs.length > 0 ? `Iterable<${first}>` : "Iterable<unknown>"
         case "Iterator":
@@ -244,6 +251,96 @@ function extractTypeAnnotation(
     return transformPythonType(typeNode, ctx)
   }
   return null
+}
+
+interface TypeModifiers {
+  isFinal: boolean
+  isClassVar: boolean
+}
+
+/**
+ * Extract type modifiers (Final, ClassVar) from a TypeDef node
+ * Returns the modifiers found in the type annotation
+ */
+function extractTypeModifiers(
+  typeDef: SyntaxNode | undefined,
+  ctx: TransformContext
+): TypeModifiers {
+  const result: TypeModifiers = { isFinal: false, isClassVar: false }
+  if (!typeDef || typeDef.name !== "TypeDef") return result
+
+  const children = getChildren(typeDef)
+  const typeNode = children.find((c) => c.name !== ":" && c.name !== "->")
+  if (!typeNode) return result
+
+  // Check if the type is a MemberExpression (generic type like Final[T])
+  if (typeNode.name === "MemberExpression") {
+    const typeChildren = getChildren(typeNode)
+    const baseType = typeChildren[0]
+    if (baseType) {
+      const baseName = getNodeText(baseType, ctx.source)
+      if (baseName === "Final") {
+        result.isFinal = true
+      } else if (baseName === "ClassVar") {
+        result.isClassVar = true
+      }
+    }
+  } else if (typeNode.name === "VariableName") {
+    // Could be just "Final" without type argument (Final = Final[Any])
+    const typeName = getNodeText(typeNode, ctx.source)
+    if (typeName === "Final") {
+      result.isFinal = true
+    } else if (typeName === "ClassVar") {
+      result.isClassVar = true
+    }
+  }
+
+  return result
+}
+
+/**
+ * Transform Callable type annotation to TypeScript function type
+ * Callable[[int, str], bool] -> (arg0: number, arg1: string) => boolean
+ */
+function transformCallableType(rawTypeArgNodes: SyntaxNode[], ctx: TransformContext): string {
+  if (rawTypeArgNodes.length < 2) {
+    return "(...args: unknown[]) => unknown"
+  }
+
+  const paramListNode = rawTypeArgNodes[0]
+  const returnTypeNode = rawTypeArgNodes[rawTypeArgNodes.length - 1]
+
+  // Extract parameter types from the first argument (should be an array/list)
+  let paramTypes: string[] = []
+  if (paramListNode) {
+    // The first argument should be a list: [int, str]
+    const paramListChildren = getChildren(paramListNode)
+    const innerTypes = paramListChildren.filter(
+      (c) => c.name !== "[" && c.name !== "]" && c.name !== ","
+    )
+
+    if (innerTypes.length > 0) {
+      paramTypes = innerTypes.map((c) => transformPythonType(c, ctx))
+    }
+  }
+
+  const returnType = returnTypeNode ? transformPythonType(returnTypeNode, ctx) : "unknown"
+
+  // If paramListNode was a proper list (has children like [ and ]), use explicit params
+  // Otherwise, fall back to generic args
+  if (paramListNode) {
+    const paramListChildren = getChildren(paramListNode)
+    const hasBrackets = paramListChildren.some((c) => c.name === "[" || c.name === "]")
+
+    if (hasBrackets) {
+      // It's a list notation - could be empty or have params
+      const params = paramTypes.map((t, i) => `arg${i}: ${t}`).join(", ")
+      return `(${params}) => ${returnType}`
+    }
+  }
+
+  // Fallback for malformed or bare Callable
+  return `(...args: unknown[]) => ${returnType}`
 }
 
 // ============================================================================
@@ -702,31 +799,37 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
     const tsType = extractTypeAnnotation(typeDef, ctx)
     const typeAnnotation = tsType ? `: ${tsType}` : ""
 
-    // Determine if we need 'let' or not
-    // - MemberExpression (obj.attr or arr[i]) never needs 'let'
-    // - VariableName needs 'let' only if not already declared in an accessible scope
-    let needsLet = false
+    // Extract type modifiers (Final, ClassVar) for declaration keyword
+    const modifiers = extractTypeModifiers(typeDef, ctx)
+
+    // Determine if we need a declaration keyword
+    // - MemberExpression (obj.attr or arr[i]) never needs declaration
+    // - VariableName needs declaration only if not already declared in an accessible scope
+    let needsDeclaration = false
     if (target.name === "VariableName") {
       const varName = getNodeText(target, ctx.source)
       if (!isVariableDeclared(ctx, varName)) {
-        needsLet = true
+        needsDeclaration = true
         declareVariable(ctx, varName)
       }
     }
+
+    // Use 'const' for Final, 'let' otherwise
+    const declarationKeyword = modifiers.isFinal ? "const" : "let"
 
     if (values.length === 1) {
       const value = values[0]
       if (!value) return getNodeText(node, ctx.source)
       const valueCode = transformNode(value, ctx)
-      if (needsLet) {
-        return `let ${targetCode}${typeAnnotation} = ${valueCode}`
+      if (needsDeclaration) {
+        return `${declarationKeyword} ${targetCode}${typeAnnotation} = ${valueCode}`
       }
       return `${targetCode} = ${valueCode}`
     } else {
       // Multiple values into single target (creates array)
       const valuesCodes = values.map((v) => transformNode(v, ctx))
-      if (needsLet) {
-        return `let ${targetCode}${typeAnnotation} = [${valuesCodes.join(", ")}]`
+      if (needsDeclaration) {
+        return `${declarationKeyword} ${targetCode}${typeAnnotation} = [${valuesCodes.join(", ")}]`
       }
       return `${targetCode} = [${valuesCodes.join(", ")}]`
     }
@@ -1304,6 +1407,47 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
     case "bin":
       ctx.usesRuntime.add("bin")
       return `py.bin(${args})`
+
+    // itertools functions
+    case "chain":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.chain(${args})`
+    case "combinations":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.combinations(${args})`
+    case "permutations":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.permutations(${args})`
+    case "product":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.product(${args})`
+    case "cycle":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.cycle(${args})`
+    case "repeat":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.repeat(${args})`
+    case "islice":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.islice(${args})`
+    case "takewhile":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.takewhile(${args})`
+    case "dropwhile":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.dropwhile(${args})`
+
+    // collections classes/functions
+    case "Counter":
+      ctx.usesRuntime.add("Counter")
+      return `new py.Counter(${args})`
+    case "defaultdict":
+      ctx.usesRuntime.add("defaultdict")
+      return `py.defaultdict(${args})`
+    case "deque":
+      ctx.usesRuntime.add("deque")
+      return `new py.deque(${args})`
+
     default:
       // Regular function call
       return `${transformNode(callee, ctx)}(${args})`
@@ -2581,6 +2725,9 @@ const TYPING_MODULES = new Set([
   "abc"
 ])
 
+/** Runtime modules whose imports should be stripped (provided by runtime) */
+const RUNTIME_MODULES = new Set(["itertools", "collections"])
+
 function transformFromImport(children: SyntaxNode[], ctx: TransformContext): string {
   // from os import path -> import { path } from "os"
   // from os import path, getcwd -> import { path, getcwd } from "os"
@@ -2604,6 +2751,11 @@ function transformFromImport(children: SyntaxNode[], ctx: TransformContext): str
 
   // Strip typing module imports entirely - TypeScript has its own type system
   if (TYPING_MODULES.has(preCheckModule)) {
+    return ""
+  }
+
+  // Strip runtime module imports - provided by py runtime
+  if (RUNTIME_MODULES.has(preCheckModule)) {
     return ""
   }
 
@@ -3048,9 +3200,11 @@ function transformClassBody(
     } else if (child.name === "DecoratedStatement") {
       members.push(transformClassDecoratedMethod(child, ctx))
     } else if (child.name === "AssignStatement") {
-      // Class-level assignment (class attribute)
-      const transformed = transformNode(child, ctx)
-      members.push(indent + transformed + ";")
+      // Class-level assignment (class property)
+      const transformed = transformClassProperty(child, ctx, indent)
+      if (transformed) {
+        members.push(transformed)
+      }
     } else if (child.name === "ExpressionStatement") {
       // Non-docstring expressions (docstrings at class level are handled by transformClassDefinition)
       // Skip any remaining triple-quoted strings that look like docstrings
@@ -3067,6 +3221,85 @@ function transformClassBody(
 
   ctx.indentLevel--
   return members.filter((m) => m.trim()).join("\n\n")
+}
+
+/**
+ * Transform a class property assignment
+ * Handles Final (readonly) and ClassVar (static) modifiers
+ */
+function transformClassProperty(node: SyntaxNode, ctx: TransformContext, indent: string): string {
+  const children = getChildren(node)
+  if (children.length < 2) return ""
+
+  // Find the assignment operator
+  const assignOpIndex = children.findIndex((c) => c.name === "AssignOp" || c.name === "=")
+
+  // Find type annotation
+  const typeDef = children.find((c) => c.name === "TypeDef")
+
+  // Handle type-only declarations (no assignment): value: T
+  if (assignOpIndex === -1) {
+    // No assignment, just type annotation
+    const targets = children.filter((c) => c.name !== "," && c.name !== "TypeDef" && c.name !== ":")
+    const target = targets[0]
+    if (!target) return ""
+
+    const targetCode = transformNode(target, ctx)
+    const tsType = extractTypeAnnotation(typeDef, ctx)
+    const typeAnnotation = tsType ? `: ${tsType}` : ""
+
+    // Extract type modifiers (Final, ClassVar)
+    const modifiers = extractTypeModifiers(typeDef, ctx)
+
+    // Build property prefix: static for ClassVar, readonly for Final
+    let prefix = ""
+    if (modifiers.isClassVar) {
+      prefix = "static "
+    }
+    if (modifiers.isFinal) {
+      prefix += "readonly "
+    }
+
+    return `${indent}${prefix}${targetCode}${typeAnnotation};`
+  }
+
+  // Handle assignments: value: T = default
+  const typeDefBeforeAssign = children.slice(0, assignOpIndex).find((c) => c.name === "TypeDef")
+
+  // Collect targets (before =) and values (after =)
+  const targets = children
+    .slice(0, assignOpIndex)
+    .filter((c) => c.name !== "," && c.name !== "TypeDef")
+  const values = children.slice(assignOpIndex + 1).filter((c) => c.name !== ",")
+
+  if (targets.length === 0 || values.length === 0) return ""
+
+  const target = targets[0]
+  if (!target) return ""
+
+  const targetCode = transformNode(target, ctx)
+
+  // Extract type annotation if present
+  const tsType = extractTypeAnnotation(typeDefBeforeAssign, ctx)
+  const typeAnnotation = tsType ? `: ${tsType}` : ""
+
+  // Extract type modifiers (Final, ClassVar)
+  const modifiers = extractTypeModifiers(typeDefBeforeAssign, ctx)
+
+  // Build property prefix: static for ClassVar, readonly for Final
+  let prefix = ""
+  if (modifiers.isClassVar) {
+    prefix = "static "
+  }
+  if (modifiers.isFinal) {
+    prefix += "readonly "
+  }
+
+  // Transform value
+  const value = values[0]
+  const valueCode = value ? transformNode(value, ctx) : ""
+
+  return `${indent}${prefix}${targetCode}${typeAnnotation} = ${valueCode};`
 }
 
 function transformClassMethod(

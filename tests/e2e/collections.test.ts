@@ -1,0 +1,195 @@
+import { describe, it, expect } from "vitest"
+import { transpile } from "../../src/index"
+import { py } from "../../src/runtime"
+
+describe("E2E: collections", () => {
+  describe("Transformer", () => {
+    it("should strip collections imports", () => {
+      const python = `
+from collections import Counter, defaultdict, deque
+`
+      const result = transpile(python, { includeRuntime: false })
+      expect(result.trim()).toBe("")
+    })
+
+    it("should transform Counter call", () => {
+      const python = `
+from collections import Counter
+c = Counter("abracadabra")
+`
+      const result = transpile(python)
+      expect(result).toContain("new py.Counter")
+    })
+
+    it("should transform defaultdict call", () => {
+      const python = `
+from collections import defaultdict
+d = defaultdict(int)
+`
+      const result = transpile(python)
+      expect(result).toContain("py.defaultdict")
+    })
+
+    it("should transform deque call", () => {
+      const python = `
+from collections import deque
+q = deque([1, 2, 3])
+`
+      const result = transpile(python)
+      expect(result).toContain("new py.deque")
+    })
+  })
+
+  describe("Runtime - Counter", () => {
+    it("should count elements from string", () => {
+      const counter = new py.Counter("abracadabra")
+      expect(counter.get("a")).toBe(5)
+      expect(counter.get("b")).toBe(2)
+      expect(counter.get("r")).toBe(2)
+    })
+
+    it("should count elements from array", () => {
+      const counter = new py.Counter([1, 1, 2, 3, 3, 3])
+      expect(counter.get(1)).toBe(2)
+      expect(counter.get(2)).toBe(1)
+      expect(counter.get(3)).toBe(3)
+    })
+
+    it("should return 0 for missing keys", () => {
+      const counter = new py.Counter("abc")
+      expect(counter.get("z")).toBe(0)
+    })
+
+    it("should increment counts", () => {
+      const counter = new py.Counter<string>()
+      counter.increment("a")
+      counter.increment("a")
+      counter.increment("b")
+      expect(counter.get("a")).toBe(2)
+      expect(counter.get("b")).toBe(1)
+    })
+
+    it("should return most common elements", () => {
+      const counter = new py.Counter("abracadabra")
+      const common = counter.mostCommon(2)
+      expect(common).toEqual([
+        ["a", 5],
+        ["b", 2]
+      ])
+    })
+
+    it("should iterate elements", () => {
+      const counter = new py.Counter("aab")
+      const result = [...counter.elements()]
+      expect(result.sort()).toEqual(["a", "a", "b"])
+    })
+
+    it("should calculate total", () => {
+      const counter = new py.Counter("abc")
+      expect(counter.total()).toBe(3)
+    })
+
+    it("should subtract counts", () => {
+      const counter = new py.Counter("abracadabra")
+      counter.subtract("aaa")
+      expect(counter.get("a")).toBe(2)
+    })
+
+    it("should update counts", () => {
+      const counter = new py.Counter("abc")
+      counter.update("aaa")
+      expect(counter.get("a")).toBe(4)
+    })
+  })
+
+  describe("Runtime - defaultdict", () => {
+    it("should provide default values for missing keys", () => {
+      const d = py.defaultdict(() => 0)
+      expect(d.get("missing")).toBe(0)
+    })
+
+    it("should use factory for new values", () => {
+      const d = py.defaultdict(() => [])
+      d.get("a").push(1)
+      d.get("a").push(2)
+      d.get("b").push(3)
+      expect(d.get("a")).toEqual([1, 2])
+      expect(d.get("b")).toEqual([3])
+    })
+
+    it("should work with Map methods", () => {
+      const d = py.defaultdict(() => 0)
+      d.set("a", 5)
+      expect(d.get("a")).toBe(5)
+      expect(d.has("a")).toBe(true)
+      expect(d.has("b")).toBe(false)
+    })
+  })
+
+  describe("Runtime - deque", () => {
+    it("should append to right", () => {
+      const d = new py.deque([1, 2])
+      d.append(3)
+      expect(d.toArray()).toEqual([1, 2, 3])
+    })
+
+    it("should append to left", () => {
+      const d = new py.deque([1, 2])
+      d.appendleft(0)
+      expect(d.toArray()).toEqual([0, 1, 2])
+    })
+
+    it("should pop from right", () => {
+      const d = new py.deque([1, 2, 3])
+      expect(d.pop()).toBe(3)
+      expect(d.toArray()).toEqual([1, 2])
+    })
+
+    it("should pop from left", () => {
+      const d = new py.deque([1, 2, 3])
+      expect(d.popleft()).toBe(1)
+      expect(d.toArray()).toEqual([2, 3])
+    })
+
+    it("should respect maxlen", () => {
+      const d = new py.deque([1, 2, 3], 3)
+      d.append(4)
+      expect(d.toArray()).toEqual([2, 3, 4])
+    })
+
+    it("should rotate right", () => {
+      const d = new py.deque([1, 2, 3, 4, 5])
+      d.rotate(2)
+      expect(d.toArray()).toEqual([4, 5, 1, 2, 3])
+    })
+
+    it("should rotate left with negative", () => {
+      const d = new py.deque([1, 2, 3, 4, 5])
+      d.rotate(-2)
+      expect(d.toArray()).toEqual([3, 4, 5, 1, 2])
+    })
+
+    it("should extend from right", () => {
+      const d = new py.deque([1])
+      d.extend([2, 3])
+      expect(d.toArray()).toEqual([1, 2, 3])
+    })
+
+    it("should extend from left", () => {
+      const d = new py.deque([1])
+      d.extendleft([2, 3])
+      expect(d.toArray()).toEqual([3, 2, 1])
+    })
+
+    it("should be iterable", () => {
+      const d = new py.deque([1, 2, 3])
+      expect([...d]).toEqual([1, 2, 3])
+    })
+
+    it("should clear all elements", () => {
+      const d = new py.deque([1, 2, 3])
+      d.clear()
+      expect(d.length).toBe(0)
+    })
+  })
+})

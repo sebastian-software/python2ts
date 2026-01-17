@@ -41,9 +41,10 @@ describe("E2E: Imports", () => {
     })
 
     it("should convert from import with alias", () => {
-      const python = `from collections import defaultdict as dd`
+      // Note: collections imports are now stripped as they're provided by the runtime
+      const python = `from os import path as p`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
-        `"import { defaultdict as dd } from "collections""`
+        `"import { path as p } from "os""`
       )
     })
 
