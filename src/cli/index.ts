@@ -2,7 +2,7 @@
 import { parseArgs } from "node:util"
 import { readFile, writeFile } from "node:fs/promises"
 import { createInterface } from "node:readline"
-import { transpile, type GeneratorOptions } from "../generator/index.js"
+import { transpileAsync, type GeneratorOptions } from "../generator/index.js"
 
 const VERSION = "0.1.0"
 
@@ -91,7 +91,7 @@ async function main(): Promise<void> {
     pythonCode = await readStdin()
   }
 
-  // Transpile
+  // Transpile (with Prettier formatting)
   let tsCode: string
   try {
     const options: GeneratorOptions = {
@@ -100,7 +100,7 @@ async function main(): Promise<void> {
     if (values["runtime-path"]) {
       options.runtimeImportPath = values["runtime-path"]
     }
-    tsCode = transpile(pythonCode, options)
+    tsCode = await transpileAsync(pythonCode, options)
   } catch (error) {
     const err = error as Error
     console.error(`Transpilation error: ${err.message}`)

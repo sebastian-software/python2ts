@@ -49,7 +49,6 @@
     "eslint": "^9.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.8.0",
     "tsup": "^8.3.0",
     "typescript": "^5.6.0",
     "typescript-eslint": "^8.0.0",
@@ -57,7 +56,8 @@
   },
   "dependencies": {
     "@lezer/common": "^1.2.0",
-    "@lezer/python": "^1.1.0"
+    "@lezer/python": "^1.1.0",
+    "prettier": "^3.8.0"
   },
   "engines": {
     "node": ">=22.0.0"

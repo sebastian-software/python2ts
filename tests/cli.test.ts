@@ -64,7 +64,7 @@ describe("CLI", () => {
       try {
         const result = runCLI(testFile)
         expect(result.code).toBe(0)
-        expect(result.stdout).toContain("let x = (1 + 2)")
+        expect(result.stdout).toContain("let x = 1 + 2")
       } finally {
         unlinkSync(testFile)
       }
@@ -75,7 +75,7 @@ describe("CLI", () => {
       try {
         const result = runCLI(testFile)
         expect(result.code).toBe(0)
-        expect(result.stdout).toContain("import { py } from 'python2ts/runtime'")
+        expect(result.stdout).toContain('import { py } from "python2ts/runtime"')
         expect(result.stdout).toContain("py.range(5)")
       } finally {
         unlinkSync(testFile)
@@ -99,7 +99,7 @@ describe("CLI", () => {
         const result = runCLI(`${testFile} -o ${outputFile}`)
         expect(result.code).toBe(0)
         const output = readFileSync(outputFile, "utf-8")
-        expect(output).toContain("let x = (1 + 2)")
+        expect(output).toContain("let x = 1 + 2")
       } finally {
         unlinkSync(testFile)
         try {
@@ -135,7 +135,7 @@ describe("CLI", () => {
       try {
         const result = runCLI(`${testFile} --runtime-path ./custom/runtime`)
         expect(result.code).toBe(0)
-        expect(result.stdout).toContain("import { py } from './custom/runtime'")
+        expect(result.stdout).toContain('import { py } from "./custom/runtime"')
       } finally {
         unlinkSync(testFile)
       }
@@ -146,7 +146,7 @@ describe("CLI", () => {
     it("should read from stdin", () => {
       const result = runCLI("", "x = 1 + 2")
       expect(result.code).toBe(0)
-      expect(result.stdout).toContain("let x = (1 + 2)")
+      expect(result.stdout).toContain("let x = 1 + 2")
     })
 
     it("should handle multiline input from stdin", () => {
@@ -154,7 +154,7 @@ describe("CLI", () => {
       expect(result.code).toBe(0)
       expect(result.stdout).toContain("let x = 1")
       expect(result.stdout).toContain("let y = 2")
-      expect(result.stdout).toContain("console.log((x + y))")
+      expect(result.stdout).toContain("console.log(x + y)")
     })
   })
 })

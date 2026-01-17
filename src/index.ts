@@ -5,7 +5,10 @@ export { transform, type TransformResult, type TransformContext } from "./transf
 
 export {
   generate,
+  generateAsync,
   transpile,
+  transpileAsync,
+  formatCode,
   type GeneratorOptions,
   type GeneratedCode
 } from "./generator/index.js"
