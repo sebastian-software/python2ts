@@ -1,6 +1,59 @@
 import { describe, it, expect } from "vitest"
 import { transpile } from "python2ts"
-import { py } from "pythonlib"
+import * as pythonlib from "pythonlib"
+const {
+  py,
+  len,
+  range,
+  floordiv,
+  mod,
+  pow,
+  slice,
+  at,
+  contains,
+  repeatValue,
+  string,
+  list,
+  dict,
+  set,
+  tuple,
+  itertools,
+  functools,
+  math,
+  random,
+  json,
+  os,
+  datetime,
+  re,
+  collections,
+  enumerate,
+  zip,
+  sorted,
+  reversed,
+  map,
+  filter,
+  min,
+  max,
+  sum,
+  abs,
+  all,
+  any,
+  int,
+  float,
+  str,
+  bool,
+  repr,
+  round,
+  ord,
+  chr,
+  hex,
+  oct,
+  bin,
+  isinstance,
+  type,
+  format,
+  ascii
+} = pythonlib
 
 describe("E2E: Edge Cases", () => {
   describe("Empty and minimal code", () => {
@@ -35,7 +88,7 @@ z = 3`
             print(item)`
       const ts = transpile(python)
       expect(ts).toContain("function process(items)")
-      expect(ts).toContain("for (const item of py.iter(items))")
+      expect(ts).toContain("for (const item of iter(items))")
       expect(ts).toContain("if ((item > 0))")
     })
 
@@ -45,9 +98,9 @@ z = 3`
         for k in depths:
             print(i, j, k)`
       const ts = transpile(python)
-      expect(ts).toContain("for (const i of py.iter(rows))")
-      expect(ts).toContain("for (const j of py.iter(cols))")
-      expect(ts).toContain("for (const k of py.iter(depths))")
+      expect(ts).toContain("for (const i of iter(rows))")
+      expect(ts).toContain("for (const j of iter(cols))")
+      expect(ts).toContain("for (const k of iter(depths))")
     })
   })
 
@@ -152,13 +205,13 @@ x = 1`
 
   describe("Runtime: sorted with string keys", () => {
     it("should sort strings alphabetically", () => {
-      const result = py.sorted(["banana", "apple", "cherry"])
+      const result = sorted(["banana", "apple", "cherry"])
       expect(result).toEqual(["apple", "banana", "cherry"])
     })
 
     it("should sort with key and reverse", () => {
       const items = [{ name: "z" }, { name: "a" }, { name: "m" }]
-      const sorted = py.sorted(items, { key: (x) => x.name, reverse: true })
+      const sorted = sorted(items, { key: (x) => x.name, reverse: true })
       expect(sorted.map((x) => x.name)).toEqual(["z", "m", "a"])
     })
   })
@@ -170,7 +223,7 @@ x = 1`
         yield "b"
         yield "c"
       }
-      const result = [...py.enumerate(gen())]
+      const result = [...enumerate(gen())]
       expect(result).toEqual([
         [0, "a"],
         [1, "b"],
@@ -186,24 +239,24 @@ x = 1`
         yield 2
         yield 3
       }
-      expect(py.in(2, gen())).toBe(true)
+      expect(contains(2, gen())).toBe(true)
     })
   })
 
   describe("Runtime: bool edge cases", () => {
     it("should handle Maps correctly", () => {
-      expect(py.bool(new Map())).toBe(false)
-      expect(py.bool(new Map([["a", 1]]))).toBe(true)
+      expect(bool(new Map())).toBe(false)
+      expect(bool(new Map([["a", 1]]))).toBe(true)
     })
 
     it("should handle Sets correctly", () => {
-      expect(py.bool(new Set())).toBe(false)
-      expect(py.bool(new Set([1]))).toBe(true)
+      expect(bool(new Set())).toBe(false)
+      expect(bool(new Set([1]))).toBe(true)
     })
 
     it("should handle objects", () => {
-      expect(py.bool({})).toBe(true)
-      expect(py.bool({ a: 1 })).toBe(true)
+      expect(bool({})).toBe(true)
+      expect(bool({ a: 1 })).toBe(true)
     })
   })
 

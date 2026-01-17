@@ -99,27 +99,27 @@ describe("E2E: Advanced Functions", () => {
     it("should convert lambda in map()", () => {
       const python = "list(map(lambda x: x * 2, items))"
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { list, map } from "pythonlib"
 
-        py.list(py.map((x) => (x * 2), items));"
+        list(map((x) => (x * 2), items));"
       `)
     })
 
     it("should convert lambda in filter()", () => {
       const python = "list(filter(lambda x: x > 0, items))"
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { filter, list } from "pythonlib"
 
-        py.list(py.filter((x) => (x > 0), items));"
+        list(filter((x) => (x > 0), items));"
       `)
     })
 
     it("should convert lambda in sorted() with key", () => {
       const python = "sorted(items, key=lambda x: x.name)"
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { sorted } from "pythonlib"
 
-        py.sorted(items, { key: (x) => x.name });"
+        sorted(items, { key: (x) => x.name });"
       `)
     })
 
@@ -136,10 +136,10 @@ describe("E2E: Advanced Functions", () => {
       const python = `def sum_all(*args):
     return sum(args)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { sum } from "pythonlib"
 
         function sum_all(...args) {
-          return py.sum(args);
+          return sum(args);
         }"
       `)
     })

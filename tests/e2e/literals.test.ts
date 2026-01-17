@@ -1,6 +1,59 @@
 import { describe, it, expect } from "vitest"
 import { transpile } from "python2ts"
-import { py } from "pythonlib"
+import * as pythonlib from "pythonlib"
+const {
+  py,
+  len,
+  range,
+  floordiv,
+  mod,
+  pow,
+  slice,
+  at,
+  contains,
+  repeatValue,
+  string,
+  list,
+  dict,
+  set,
+  tuple,
+  itertools,
+  functools,
+  math,
+  random,
+  json,
+  os,
+  datetime,
+  re,
+  collections,
+  enumerate,
+  zip,
+  sorted,
+  reversed,
+  map,
+  filter,
+  min,
+  max,
+  sum,
+  abs,
+  all,
+  any,
+  int,
+  float,
+  str,
+  bool,
+  repr,
+  round,
+  ord,
+  chr,
+  hex,
+  oct,
+  bin,
+  isinstance,
+  type,
+  format,
+  ascii
+} = pythonlib
 
 describe("E2E: Literals", () => {
   describe("Numbers", () => {
@@ -120,19 +173,19 @@ describe("E2E: Literals", () => {
       const pythonExpr = "2 ** 8"
       const ts = transpile(pythonExpr)
       // The generated code uses py.pow
-      expect(ts).toContain("py.pow(2, 8)")
+      expect(ts).toContain("pow(2, 8)")
       // Verify runtime produces correct result
-      expect(py.pow(2, 8)).toBe(256)
+      expect(pow(2, 8)).toBe(256)
     })
 
     it("should produce executable TypeScript for floor division", () => {
-      expect(py.floordiv(10, 3)).toBe(3)
-      expect(py.floordiv(-10, 3)).toBe(-4) // Python semantics
+      expect(floordiv(10, 3)).toBe(3)
+      expect(floordiv(-10, 3)).toBe(-4) // Python semantics
     })
 
     it("should produce executable TypeScript for modulo", () => {
-      expect(py.mod(7, 3)).toBe(1)
-      expect(py.mod(-7, 3)).toBe(2) // Python semantics
+      expect(mod(7, 3)).toBe(1)
+      expect(mod(-7, 3)).toBe(2) // Python semantics
     })
   })
 })

@@ -75,8 +75,8 @@ describe("CLI", () => {
       try {
         const result = runCLI(testFile)
         expect(result.code).toBe(0)
-        expect(result.stdout).toContain('import { py } from "pythonlib"')
-        expect(result.stdout).toContain("py.range(5)")
+        expect(result.stdout).toContain('import { range } from "pythonlib"')
+        expect(result.stdout).toContain("range(5)")
       } finally {
         unlinkSync(testFile)
       }
@@ -119,8 +119,8 @@ describe("CLI", () => {
       try {
         const result = runCLI(`${testFile} --no-runtime`)
         expect(result.code).toBe(0)
-        expect(result.stdout).not.toContain("import { py }")
-        expect(result.stdout).toContain("py.range(5)")
+        expect(result.stdout).not.toContain("import {")
+        expect(result.stdout).toContain("range(5)")
       } finally {
         unlinkSync(testFile)
       }
@@ -135,7 +135,8 @@ describe("CLI", () => {
       try {
         const result = runCLI(`${testFile} --runtime-path ./custom/runtime`)
         expect(result.code).toBe(0)
-        expect(result.stdout).toContain('import { py } from "./custom/runtime"')
+        expect(result.stdout).toContain('from "./custom/runtime"')
+        expect(result.stdout).toContain("range")
       } finally {
         unlinkSync(testFile)
       }

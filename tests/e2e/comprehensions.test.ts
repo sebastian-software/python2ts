@@ -37,17 +37,17 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform list comprehension with function call", () => {
       expect(transpile("[len(x) for x in items]")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { len } from "pythonlib"
 
-        items.map((x) => py.len(x));"
+        items.map((x) => len(x));"
       `)
     })
 
     it("should transform list comprehension with range", () => {
       expect(transpile("[x ** 2 for x in range(10)]")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { pow, range } from "pythonlib"
 
-        [...py.range(10)].map((x) => py.pow(x, 2));"
+        [...range(10)].map((x) => pow(x, 2));"
       `)
     })
 
@@ -59,9 +59,9 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform list comprehension with complex expression", () => {
       expect(transpile("[x + 1 for x in items if x % 2 == 0]")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { mod } from "pythonlib"
 
-        items.filter((x) => (py.mod(x, 2) == 0)).map((x) => (x + 1));"
+        items.filter((x) => (mod(x, 2) == 0)).map((x) => (x + 1));"
       `)
     })
   })
@@ -69,25 +69,25 @@ describe("E2E: Comprehensions", () => {
   describe("Dict Comprehensions", () => {
     it("should transform simple dict comprehension", () => {
       expect(transpile("{x: x * 2 for x in items}")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { dict } from "pythonlib"
 
-        py.dict(items.map((x) => [x, (x * 2)]));"
+        dict(items.map((x) => [x, (x * 2)]));"
       `)
     })
 
     it("should transform dict comprehension with condition", () => {
       expect(transpile("{x: x ** 2 for x in items if x > 0}")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { dict, pow } from "pythonlib"
 
-        py.dict(items.filter((x) => (x > 0)).map((x) => [x, py.pow(x, 2)]));"
+        dict(items.filter((x) => (x > 0)).map((x) => [x, pow(x, 2)]));"
       `)
     })
 
     it("should transform dict comprehension with range", () => {
       expect(transpile("{i: i * i for i in range(5)}")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { dict, range } from "pythonlib"
 
-        py.dict([...py.range(5)].map((i) => [i, (i * i)]));"
+        dict([...range(5)].map((i) => [i, (i * i)]));"
       `)
     })
   })
@@ -95,25 +95,25 @@ describe("E2E: Comprehensions", () => {
   describe("Set Comprehensions", () => {
     it("should transform simple set comprehension", () => {
       expect(transpile("{x * 2 for x in items}")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { set } from "pythonlib"
 
-        py.set(items.map((x) => (x * 2)));"
+        set(items.map((x) => (x * 2)));"
       `)
     })
 
     it("should transform set comprehension with condition", () => {
       expect(transpile("{x for x in items if x > 0}")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { set } from "pythonlib"
 
-        py.set(items.filter((x) => (x > 0)).map((x) => x));"
+        set(items.filter((x) => (x > 0)).map((x) => x));"
       `)
     })
 
     it("should transform set comprehension with function", () => {
       expect(transpile("{len(s) for s in strings}")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { len, set } from "pythonlib"
 
-        py.set(strings.map((s) => py.len(s)));"
+        set(strings.map((s) => len(s)));"
       `)
     })
   })
@@ -121,17 +121,17 @@ describe("E2E: Comprehensions", () => {
   describe("Set Expressions", () => {
     it("should transform set literal", () => {
       expect(transpile("{1, 2, 3}")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { set } from "pythonlib"
 
-        py.set([1, 2, 3]);"
+        set([1, 2, 3]);"
       `)
     })
 
     it("should transform empty set constructor", () => {
       expect(transpile("s = set()")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { set } from "pythonlib"
 
-        let s = py.set();"
+        let s = set();"
       `)
     })
   })
@@ -145,9 +145,9 @@ describe("E2E: Comprehensions", () => {
 
     it("should handle comprehension with nested function calls", () => {
       expect(transpile("[str(int(x)) for x in items]")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { int, str } from "pythonlib"
 
-        items.map((x) => py.str(py.int(x)));"
+        items.map((x) => str(int(x)));"
       `)
     })
 
@@ -161,9 +161,9 @@ describe("E2E: Comprehensions", () => {
   describe("Real-world Examples", () => {
     it("should transform filtering even numbers", () => {
       expect(transpile("evens = [x for x in numbers if x % 2 == 0]")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { mod } from "pythonlib"
 
-        let evens = numbers.filter((x) => (py.mod(x, 2) == 0)).map((x) => x);"
+        let evens = numbers.filter((x) => (mod(x, 2) == 0)).map((x) => x);"
       `)
     })
 
@@ -185,9 +185,9 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform creating pairs", () => {
       expect(transpile("pairs = [(x, y) for x in a for y in b]")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { tuple } from "pythonlib"
 
-        let pairs = a.flatMap((x) => b.map((y) => py.tuple(x, y)));"
+        let pairs = a.flatMap((x) => b.map((y) => tuple(x, y)));"
       `)
     })
   })
@@ -213,57 +213,57 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform generator inside sum()", () => {
       expect(transpile("sum(x for x in items)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { sum } from "pythonlib"
 
-        py.sum((function*() { for (const x of items) yield x; })());"
+        sum((function*() { for (const x of items) yield x; })());"
       `)
     })
 
     it("should transform generator inside any()", () => {
       expect(transpile("any(x > 0 for x in items)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { any } from "pythonlib"
 
-        py.any((function*() { for (const x of items) yield (x > 0); })());"
+        any((function*() { for (const x of items) yield (x > 0); })());"
       `)
     })
 
     it("should transform generator inside all()", () => {
       expect(transpile("all(x > 0 for x in items)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { all } from "pythonlib"
 
-        py.all((function*() { for (const x of items) yield (x > 0); })());"
+        all((function*() { for (const x of items) yield (x > 0); })());"
       `)
     })
 
     it("should transform generator with nested loops", () => {
       expect(transpile("((x, y) for x in a for y in b)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { tuple } from "pythonlib"
 
-        (function*() { for (const x of a)   for (const y of b) yield py.tuple(x, y); })();"
+        (function*() { for (const x of a)   for (const y of b) yield tuple(x, y); })();"
       `)
     })
 
     it("should transform generator with range", () => {
       expect(transpile("sum(x ** 2 for x in range(10))")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { pow, range, sum } from "pythonlib"
 
-        py.sum((function*() { for (const x of py.range(10)) yield py.pow(x, 2); })());"
+        sum((function*() { for (const x of range(10)) yield pow(x, 2); })());"
       `)
     })
 
     it("should transform max with generator", () => {
       expect(transpile("max(len(s) for s in strings)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { len, max } from "pythonlib"
 
-        py.max((function*() { for (const s of strings) yield py.len(s); })());"
+        max((function*() { for (const s of strings) yield len(s); })());"
       `)
     })
 
     it("should transform min with generator and condition", () => {
       expect(transpile("min(x for x in numbers if x > 0)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { min } from "pythonlib"
 
-        py.min((function*() { for (const x of numbers) if ((x > 0)) yield x; })());"
+        min((function*() { for (const x of numbers) if ((x > 0)) yield x; })());"
       `)
     })
   })

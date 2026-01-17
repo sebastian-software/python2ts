@@ -112,7 +112,7 @@ else:
       const python = `for item in items:
     print(item)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const item of py.iter(items)) {
+        "for (const item of iter(items)) {
           console.log(item);
         }"
       `)
@@ -122,9 +122,9 @@ else:
       const python = `for i in range(10):
     print(i)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { range } from "pythonlib"
 
-        for (const i of py.range(10)) {
+        for (const i of range(10)) {
           console.log(i);
         }"
       `)
@@ -134,9 +134,9 @@ else:
       const python = `for i, item in enumerate(items):
     print(i, item)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { enumerate } from "pythonlib"
 
-        for (const [i, item] of py.enumerate(items)) {
+        for (const [i, item] of enumerate(items)) {
           console.log(i, item);
         }"
       `)
@@ -146,7 +146,7 @@ else:
       const python = `for x, y in pairs:
     print(x, y)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const [x, y] of py.iter(pairs)) {
+        "for (const [x, y] of iter(pairs)) {
           console.log(x, y);
         }"
       `)
@@ -156,7 +156,7 @@ else:
       const python = `for i, (a, b) in items:
     print(i, a, b)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const [i, [a, b]] of py.iter(items)) {
+        "for (const [i, [a, b]] of iter(items)) {
           console.log(i, a, b);
         }"
       `)
@@ -166,7 +166,7 @@ else:
       const python = `for a, b, c in triples:
     print(a, b, c)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const [a, b, c] of py.iter(triples)) {
+        "for (const [a, b, c] of iter(triples)) {
           console.log(a, b, c);
         }"
       `)
@@ -186,9 +186,9 @@ else:
       const python = `for a, b in zip(list1, list2):
     print(a, b)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { zip } from "pythonlib"
 
-        for (const [a, b] of py.zip(list1, list2)) {
+        for (const [a, b] of zip(list1, list2)) {
           console.log(a, b);
         }"
       `)
@@ -199,7 +199,7 @@ else:
     if found:
         break`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const i of py.iter(items)) {
+        "for (const i of iter(items)) {
           if (found) {
             break;
         }
@@ -212,7 +212,7 @@ else:
     if skip:
         continue`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const i of py.iter(items)) {
+        "for (const i of iter(items)) {
           if (skip) {
             continue;
         }
@@ -258,10 +258,10 @@ else:
     for j in range(3):
         print(i, j)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { range } from "pythonlib"
 
-        for (const i of py.range(3)) {
-          for (const j of py.range(3)) {
+        for (const i of range(3)) {
+          for (const j of range(3)) {
             console.log(i, j);
         }
         }"
@@ -274,7 +274,7 @@ else:
         print(item)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "if (items) {
-          for (const item of py.iter(items)) {
+          for (const item of iter(items)) {
             console.log(item);
         }
         }"
@@ -286,7 +286,7 @@ else:
     if item > 0:
         print(item)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "for (const item of py.iter(items)) {
+        "for (const item of iter(items)) {
           if ((item > 0)) {
             console.log(item);
         }

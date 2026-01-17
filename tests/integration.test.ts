@@ -110,7 +110,7 @@ for i in range(10):
       const result = generate(python)
 
       expect(result.runtimeImport).not.toBeNull()
-      expect(result.code).toContain("import { py }")
+      expect(result.code).toContain("import { len }")
     })
 
     it("should not include runtime import when not needed", () => {

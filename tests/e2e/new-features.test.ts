@@ -414,53 +414,53 @@ print(process_point("invalid"))
 describe("Runtime Functions", () => {
   describe("py.sprintf", () => {
     it("formats %s correctly", () => {
-      expect(py.sprintf("Hello %s", "World")).toBe("Hello World")
+      expect(sprintf("Hello %s", "World")).toBe("Hello World")
     })
 
     it("formats %d correctly", () => {
-      expect(py.sprintf("Count: %d", 42)).toBe("Count: 42")
+      expect(sprintf("Count: %d", 42)).toBe("Count: 42")
     })
 
     it("formats multiple values", () => {
-      expect(py.sprintf("%s is %d years old", ["Alice", 30])).toBe("Alice is 30 years old")
+      expect(sprintf("%s is %d years old", ["Alice", 30])).toBe("Alice is 30 years old")
     })
 
     it("formats %.2f correctly", () => {
-      expect(py.sprintf("Pi: %.2f", 3.14159)).toBe("Pi: 3.14")
+      expect(sprintf("Pi: %.2f", 3.14159)).toBe("Pi: 3.14")
     })
 
     it("formats %x (hex) correctly", () => {
-      expect(py.sprintf("Hex: %x", 255)).toBe("Hex: ff")
+      expect(sprintf("Hex: %x", 255)).toBe("Hex: ff")
     })
 
     it("formats %X (HEX) correctly", () => {
-      expect(py.sprintf("Hex: %X", 255)).toBe("Hex: FF")
+      expect(sprintf("Hex: %X", 255)).toBe("Hex: FF")
     })
 
     it("handles %% escape", () => {
-      expect(py.sprintf("100%% complete")).toBe("100% complete")
+      expect(sprintf("100%% complete")).toBe("100% complete")
     })
   })
 
   describe("py.strFormat", () => {
     it("formats {} positional args", () => {
-      expect(py.strFormat("Hello {}", "World")).toBe("Hello World")
+      expect(strFormat("Hello {}", "World")).toBe("Hello World")
     })
 
     it("formats multiple {} args", () => {
-      expect(py.strFormat("{} + {} = {}", 1, 2, 3)).toBe("1 + 2 = 3")
+      expect(strFormat("{} + {} = {}", 1, 2, 3)).toBe("1 + 2 = 3")
     })
 
     it("formats {0} indexed args", () => {
-      expect(py.strFormat("{0} {1} {0}", "a", "b")).toBe("a b a")
+      expect(strFormat("{0} {1} {0}", "a", "b")).toBe("a b a")
     })
 
     it("formats {name} named args", () => {
-      expect(py.strFormat("Hello {name}", { name: "Alice" })).toBe("Hello Alice")
+      expect(strFormat("Hello {name}", { name: "Alice" })).toBe("Hello Alice")
     })
 
     it("handles mixed positional and named", () => {
-      expect(py.strFormat("{} is {age}", "Alice", { age: 30 })).toBe("Alice is 30")
+      expect(strFormat("{} is {age}", "Alice", { age: 30 })).toBe("Alice is 30")
     })
   })
 })

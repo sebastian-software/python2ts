@@ -101,201 +101,201 @@ describe("E2E: Functions", () => {
 
     it("should convert len", () => {
       expect(transpile("n = len(items)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { len } from "pythonlib"
 
-        let n = py.len(items);"
+        let n = len(items);"
       `)
     })
 
     it("should convert range with one argument", () => {
       expect(transpile("r = range(10)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { range } from "pythonlib"
 
-        let r = py.range(10);"
+        let r = range(10);"
       `)
     })
 
     it("should convert range with two arguments", () => {
       expect(transpile("r = range(1, 10)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { range } from "pythonlib"
 
-        let r = py.range(1, 10);"
+        let r = range(1, 10);"
       `)
     })
 
     it("should convert range with three arguments", () => {
       expect(transpile("r = range(0, 10, 2)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { range } from "pythonlib"
 
-        let r = py.range(0, 10, 2);"
+        let r = range(0, 10, 2);"
       `)
     })
 
     it("should convert enumerate", () => {
       expect(transpile("e = enumerate(items)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { enumerate } from "pythonlib"
 
-        let e = py.enumerate(items);"
+        let e = enumerate(items);"
       `)
     })
 
     it("should convert zip", () => {
       expect(transpile("z = zip(a, b)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { zip } from "pythonlib"
 
-        let z = py.zip(a, b);"
+        let z = zip(a, b);"
       `)
     })
 
     it("should convert sorted", () => {
       expect(transpile("s = sorted(items)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { sorted } from "pythonlib"
 
-        let s = py.sorted(items);"
+        let s = sorted(items);"
       `)
     })
 
     it("should convert reversed", () => {
       expect(transpile("r = reversed(items)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { reversed } from "pythonlib"
 
-        let r = py.reversed(items);"
+        let r = reversed(items);"
       `)
     })
 
     it("should convert abs", () => {
       expect(transpile("a = abs(-5)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { abs } from "pythonlib"
 
-        let a = py.abs((-5));"
+        let a = abs((-5));"
       `)
     })
 
     it("should convert min", () => {
       expect(transpile("m = min(1, 2, 3)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { min } from "pythonlib"
 
-        let m = py.min(1, 2, 3);"
+        let m = min(1, 2, 3);"
       `)
     })
 
     it("should convert max", () => {
       expect(transpile("m = max(1, 2, 3)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { max } from "pythonlib"
 
-        let m = py.max(1, 2, 3);"
+        let m = max(1, 2, 3);"
       `)
     })
 
     it("should convert sum", () => {
       expect(transpile("s = sum(numbers)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { sum } from "pythonlib"
 
-        let s = py.sum(numbers);"
+        let s = sum(numbers);"
       `)
     })
 
     it("should convert int", () => {
       expect(transpile('i = int("42")')).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { int } from "pythonlib"
 
-        let i = py.int("42");"
+        let i = int("42");"
       `)
     })
 
     it("should convert float", () => {
       expect(transpile('f = float("3.14")')).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { float } from "pythonlib"
 
-        let f = py.float("3.14");"
+        let f = float("3.14");"
       `)
     })
 
     it("should convert str", () => {
       expect(transpile("s = str(42)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { str } from "pythonlib"
 
-        let s = py.str(42);"
+        let s = str(42);"
       `)
     })
 
     it("should convert bool", () => {
       expect(transpile("b = bool(x)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { bool } from "pythonlib"
 
-        let b = py.bool(x);"
+        let b = bool(x);"
       `)
     })
 
     it("should convert list", () => {
       expect(transpile("l = list(items)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { list } from "pythonlib"
 
-        let l = py.list(items);"
+        let l = list(items);"
       `)
     })
 
     it("should convert dict", () => {
       expect(transpile("d = dict(entries)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { dict } from "pythonlib"
 
-        let d = py.dict(entries);"
+        let d = dict(entries);"
       `)
     })
 
     it("should convert set", () => {
       expect(transpile("s = set(items)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { set } from "pythonlib"
 
-        let s = py.set(items);"
+        let s = set(items);"
       `)
     })
 
     it("should convert tuple", () => {
       expect(transpile("t = tuple(items)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { tuple } from "pythonlib"
 
-        let t = py.tuple(items);"
+        let t = tuple(items);"
       `)
     })
 
     it("should convert isinstance", () => {
       expect(transpile("isinstance(x, int)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { isinstance } from "pythonlib"
 
-        py.isinstance(x, int);"
+        isinstance(x, int);"
       `)
     })
 
     it("should convert type", () => {
       expect(transpile("type(x)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { type } from "pythonlib"
 
-        py.type(x);"
+        type(x);"
       `)
     })
 
     it("should convert ord", () => {
       expect(transpile('ord("A")')).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { ord } from "pythonlib"
 
-        py.ord("A");"
+        ord("A");"
       `)
     })
 
     it("should convert chr", () => {
       expect(transpile("chr(65)")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { chr } from "pythonlib"
 
-        py.chr(65);"
+        chr(65);"
       `)
     })
 
     it("should convert input", () => {
       expect(transpile("input('prompt')")).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { input } from "pythonlib"
 
-        py.input('prompt');"
+        input('prompt');"
       `)
     })
   })

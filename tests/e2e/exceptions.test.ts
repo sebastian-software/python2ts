@@ -23,10 +23,10 @@ except:
 except ValueError:
     x = 0`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { int } from "pythonlib"
 
         try {
-          let x = py.int(s);
+          let x = int(s);
         } catch (e) {
           let x = 0;
         }"

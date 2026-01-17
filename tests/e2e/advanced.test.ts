@@ -1,6 +1,59 @@
 import { describe, it, expect } from "vitest"
 import { transpile } from "python2ts"
-import { py } from "pythonlib"
+import * as pythonlib from "pythonlib"
+const {
+  py,
+  len,
+  range,
+  floordiv,
+  mod,
+  pow,
+  slice,
+  at,
+  contains,
+  repeatValue,
+  string,
+  list,
+  dict,
+  set,
+  tuple,
+  itertools,
+  functools,
+  math,
+  random,
+  json,
+  os,
+  datetime,
+  re,
+  collections,
+  enumerate,
+  zip,
+  sorted,
+  reversed,
+  map,
+  filter,
+  min,
+  max,
+  sum,
+  abs,
+  all,
+  any,
+  int,
+  float,
+  str,
+  bool,
+  repr,
+  round,
+  ord,
+  chr,
+  hex,
+  oct,
+  bin,
+  isinstance,
+  type,
+  format,
+  ascii
+} = pythonlib
 
 describe("E2E: Advanced Features", () => {
   describe("Slicing", () => {
@@ -33,7 +86,7 @@ describe("E2E: Advanced Features", () => {
     it("should convert negative subscript", () => {
       const python = "x = arr[-1]"
       const ts = transpile(python, { includeRuntime: false })
-      expect(ts).toContain("py.at(arr, (-1))")
+      expect(ts).toContain("at(arr, (-1))")
     })
 
     it("should convert variable subscript", () => {
@@ -197,73 +250,73 @@ else:
 
   describe("Runtime: String Methods", () => {
     it("join should join strings with separator", () => {
-      expect(py.string.join("-", ["a", "b", "c"])).toBe("a-b-c")
-      expect(py.string.join("", ["a", "b", "c"])).toBe("abc")
+      expect(string.join("-", ["a", "b", "c"])).toBe("a-b-c")
+      expect(string.join("", ["a", "b", "c"])).toBe("abc")
     })
 
     it("split should handle various cases", () => {
-      expect(py.string.split("a,b,c", ",")).toEqual(["a", "b", "c"])
-      expect(py.string.split("  a  b  c  ")).toEqual(["a", "b", "c"])
-      expect(py.string.split("a,b,c,d", ",", 2)).toEqual(["a", "b", "c,d"])
+      expect(string.split("a,b,c", ",")).toEqual(["a", "b", "c"])
+      expect(string.split("  a  b  c  ")).toEqual(["a", "b", "c"])
+      expect(string.split("a,b,c,d", ",", 2)).toEqual(["a", "b", "c,d"])
     })
 
     it("strip should strip characters", () => {
-      expect(py.string.strip("  hello  ")).toBe("hello")
-      expect(py.string.strip("xxhelloxx", "x")).toBe("hello")
-      expect(py.string.strip("***test***", "*")).toBe("test")
+      expect(string.strip("  hello  ")).toBe("hello")
+      expect(string.strip("xxhelloxx", "x")).toBe("hello")
+      expect(string.strip("***test***", "*")).toBe("test")
     })
 
     it("startswith/endswith should check prefixes and suffixes", () => {
-      expect(py.string.startswith("hello world", "hello")).toBe(true)
-      expect(py.string.startswith("hello world", "world")).toBe(false)
-      expect(py.string.endswith("hello world", "world")).toBe(true)
-      expect(py.string.endswith("hello world", "hello")).toBe(false)
+      expect(string.startswith("hello world", "hello")).toBe(true)
+      expect(string.startswith("hello world", "world")).toBe(false)
+      expect(string.endswith("hello world", "world")).toBe(true)
+      expect(string.endswith("hello world", "hello")).toBe(false)
     })
 
     it("replace should replace substrings", () => {
-      expect(py.string.replace("hello", "l", "L")).toBe("heLLo")
-      expect(py.string.replace("hello", "l", "L", 1)).toBe("heLlo")
+      expect(string.replace("hello", "l", "L")).toBe("heLLo")
+      expect(string.replace("hello", "l", "L", 1)).toBe("heLlo")
     })
 
     it("find should find substrings", () => {
-      expect(py.string.find("hello", "l")).toBe(2)
-      expect(py.string.find("hello", "x")).toBe(-1)
-      expect(py.string.find("hello", "l", 3)).toBe(3)
+      expect(string.find("hello", "l")).toBe(2)
+      expect(string.find("hello", "x")).toBe(-1)
+      expect(string.find("hello", "l", 3)).toBe(3)
     })
 
     it("count should count substrings", () => {
-      expect(py.string.count("banana", "a")).toBe(3)
-      expect(py.string.count("banana", "na")).toBe(2)
-      expect(py.string.count("banana", "")).toBe(7) // Length + 1
+      expect(string.count("banana", "a")).toBe(3)
+      expect(string.count("banana", "na")).toBe(2)
+      expect(string.count("banana", "")).toBe(7) // Length + 1
     })
 
     it("format should format strings", () => {
-      expect(py.string.format("Hello, {}!", "World")).toBe("Hello, World!")
-      expect(py.string.format("{0} + {1} = {2}", 1, 2, 3)).toBe("1 + 2 = 3")
-      expect(py.string.format("{1} before {0}", "A", "B")).toBe("B before A")
+      expect(string.format("Hello, {}!", "World")).toBe("Hello, World!")
+      expect(string.format("{0} + {1} = {2}", 1, 2, 3)).toBe("1 + 2 = 3")
+      expect(string.format("{1} before {0}", "A", "B")).toBe("B before A")
     })
 
     it("upper/lower should change case", () => {
-      expect(py.string.upper("hello")).toBe("HELLO")
-      expect(py.string.lower("HELLO")).toBe("hello")
+      expect(string.upper("hello")).toBe("HELLO")
+      expect(string.lower("HELLO")).toBe("hello")
     })
   })
 
   describe("Runtime: Collection Operations", () => {
     it("sorted should sort with key function", () => {
       const items = ["banana", "apple", "cherry"]
-      const sortedByLen = py.sorted(items, { key: (s) => s.length })
+      const sortedByLen = sorted(items, { key: (s) => s.length })
       expect(sortedByLen).toEqual(["apple", "banana", "cherry"])
     })
 
     it("sorted should sort in reverse", () => {
       const items = [3, 1, 4, 1, 5, 9]
-      const sortedReverse = py.sorted(items, { reverse: true })
+      const sortedReverse = sorted(items, { reverse: true })
       expect(sortedReverse).toEqual([9, 5, 4, 3, 1, 1])
     })
 
     it("enumerate should start from specified index", () => {
-      const result = [...py.enumerate(["a", "b", "c"], 10)]
+      const result = [...enumerate(["a", "b", "c"], 10)]
       expect(result).toEqual([
         [10, "a"],
         [11, "b"],
@@ -274,7 +327,7 @@ else:
     it("zip should handle multiple iterables", () => {
       const a = [1, 2, 3]
       const b = ["a", "b", "c"]
-      const result = [...py.zip(a, b)]
+      const result = [...zip(a, b)]
       expect(result).toEqual([
         [1, "a"],
         [2, "b"],
@@ -285,15 +338,15 @@ else:
 
   describe("Runtime: Slice Edge Cases", () => {
     it("should handle empty slice", () => {
-      expect(py.slice([1, 2, 3], 1, 1)).toEqual([])
+      expect(slice([1, 2, 3], 1, 1)).toEqual([])
     })
 
     it("should handle step larger than array", () => {
-      expect(py.slice([1, 2, 3], 0, 10, 5)).toEqual([1])
+      expect(slice([1, 2, 3], 0, 10, 5)).toEqual([1])
     })
 
     it("should reverse string", () => {
-      expect(py.slice("hello", undefined, undefined, -1)).toBe("olleh")
+      expect(slice("hello", undefined, undefined, -1)).toBe("olleh")
     })
   })
 })

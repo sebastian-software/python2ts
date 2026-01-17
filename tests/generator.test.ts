@@ -12,8 +12,8 @@ describe("Generator", () => {
 
     it("should include runtime import when runtime functions are used", () => {
       const result = generate("x = 10 // 3")
-      expect(result.runtimeImport).toContain("import { py }")
-      expect(result.code).toContain("import { py }")
+      expect(result.runtimeImport).toContain("import { floordiv }")
+      expect(result.code).toContain("import { floordiv }")
     })
 
     it("should not include runtime import when no runtime functions are used", () => {
@@ -48,8 +48,8 @@ describe("Generator", () => {
 
     it("should include runtime import by default", () => {
       const result = transpile("x = len([1, 2, 3])")
-      expect(result).toContain("import { py }")
-      expect(result).toContain("py.len")
+      expect(result).toContain("import { len }")
+      expect(result).toContain("len(")
     })
   })
 
@@ -83,7 +83,7 @@ describe("Generator", () => {
 
     it("should generate valid TypeScript for for-loop with range", () => {
       const ts = transpile("for i in range(10):\n    print(i)")
-      expect(ts).toContain("for (const i of py.range(10))")
+      expect(ts).toContain("for (const i of range(10))")
     })
 
     it("should generate valid TypeScript for while-loop", () => {
@@ -94,7 +94,7 @@ describe("Generator", () => {
     it("should generate valid TypeScript for list operations", () => {
       const ts = transpile("items = [1, 2, 3]\nn = len(items)")
       expect(ts).toContain("[1, 2, 3]")
-      expect(ts).toContain("py.len(items)")
+      expect(ts).toContain("len(items)")
     })
 
     it("should generate valid TypeScript for multiple statements", () => {
@@ -115,7 +115,7 @@ print(z)
   describe("Runtime Import Options", () => {
     it("should use default runtime import path when includeRuntime is true but runtimeImportPath is not set", () => {
       const result = transpile("print(len([1, 2, 3]))", { includeRuntime: true })
-      expect(result).toContain("import { py }")
+      expect(result).toContain("import { len }")
       expect(result).toContain("pythonlib")
     })
 
@@ -124,7 +124,7 @@ print(z)
         includeRuntime: true,
         runtimeImportPath: "./my-runtime"
       })
-      expect(result).toContain("import { py }")
+      expect(result).toContain("import { len }")
       expect(result).toContain("my-runtime")
     })
   })

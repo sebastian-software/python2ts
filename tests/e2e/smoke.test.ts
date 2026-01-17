@@ -8,7 +8,7 @@
 import { describe, it } from "vitest"
 import { execSync } from "child_process"
 import { transpile } from "python2ts"
-import { py } from "pythonlib"
+import * as pythonlib from "pythonlib"
 
 /**
  * Run Python code and return stdout
@@ -44,15 +44,20 @@ function runTranspiled(pythonCode: string): string {
   }
 
   // Build executable code with runtime available
+  // Extract all pythonlib exports into scope (excluding 'default' which is reserved)
+  const runtimeExports = Object.keys(pythonlib)
+    .filter((k) => k !== "default")
+    .join(", ")
   const executableCode = `
     const console = mockConsole;
+    const { ${runtimeExports} } = runtime;
     ${tsCode}
   `
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const fn = new Function("py", "mockConsole", executableCode)
-    fn(py, mockConsole)
+    const fn = new Function("runtime", "mockConsole", executableCode)
+    fn(pythonlib, mockConsole)
     return outputs.join("\n")
   } catch (error) {
     throw new Error(`TypeScript execution failed: ${String(error)}\nCode: ${tsCode}`)

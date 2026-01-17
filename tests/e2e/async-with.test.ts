@@ -145,7 +145,7 @@ describe("E2E: With Statement", () => {
       const python = `async with session.get(url) as response:
     data = await response.json()`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "const response = py.dict.get(session, url);
+        "const response = dict.get(session, url);
         try {
           let data = await response.json();
         } finally {
@@ -181,7 +181,7 @@ describe("E2E: With Statement", () => {
         "async function fetch_json(url) {
             const session = aiohttp.ClientSession();
           try {
-                const response = py.dict.get(session, url);
+                const response = dict.get(session, url);
             try {
               return await response.json();
             } finally {

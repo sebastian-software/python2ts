@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { transpile } from "python2ts"
-import { py } from "pythonlib"
+import { itertools } from "pythonlib"
 
 describe("E2E: itertools module", () => {
   describe("Import Handling", () => {
@@ -20,9 +20,9 @@ describe("E2E: itertools module", () => {
       const python = `from itertools import chain
 result = list(chain([1, 2], [3, 4]))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { itertools, list } from "pythonlib"
 
-        let result = py.list(py.itertools.chain([1, 2], [3, 4]));"
+        let result = list(itertools.chain([1, 2], [3, 4]));"
       `)
     })
 
@@ -30,9 +30,9 @@ result = list(chain([1, 2], [3, 4]))`
       const python = `from itertools import zip_longest
 result = list(zip_longest([1, 2, 3], ['a', 'b']))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { itertools, list } from "pythonlib"
 
-        let result = py.list(py.itertools.zip_longest([1, 2, 3], ['a', 'b']));"
+        let result = list(itertools.zip_longest([1, 2, 3], ['a', 'b']));"
       `)
     })
 
@@ -40,9 +40,9 @@ result = list(zip_longest([1, 2, 3], ['a', 'b']))`
       const python = `from itertools import combinations
 result = list(combinations([1, 2, 3], 2))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { itertools, list } from "pythonlib"
 
-        let result = py.list(py.itertools.combinations([1, 2, 3], 2));"
+        let result = list(itertools.combinations([1, 2, 3], 2));"
       `)
     })
 
@@ -50,9 +50,9 @@ result = list(combinations([1, 2, 3], 2))`
       const python = `from itertools import permutations
 result = list(permutations([1, 2, 3], 2))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { itertools, list } from "pythonlib"
 
-        let result = py.list(py.itertools.permutations([1, 2, 3], 2));"
+        let result = list(itertools.permutations([1, 2, 3], 2));"
       `)
     })
 
@@ -60,28 +60,28 @@ result = list(permutations([1, 2, 3], 2))`
       const python = `from itertools import groupby
 result = list(groupby([1, 1, 2, 2, 3]))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { itertools, list } from "pythonlib"
 
-        let result = py.list(py.itertools.groupby([1, 1, 2, 2, 3]));"
+        let result = list(itertools.groupby([1, 1, 2, 2, 3]));"
       `)
     })
   })
 
   describe("Runtime: chain", () => {
     it("should chain iterables", () => {
-      const result = py.itertools.chain([1, 2], [3, 4])
+      const result = itertools.chain([1, 2], [3, 4])
       expect(result).toEqual([1, 2, 3, 4])
     })
 
     it("should handle empty iterables", () => {
-      const result = py.itertools.chain([], [1, 2], [])
+      const result = itertools.chain([], [1, 2], [])
       expect(result).toEqual([1, 2])
     })
   })
 
   describe("Runtime: combinations", () => {
     it("should return combinations", () => {
-      const result = py.itertools.combinations([1, 2, 3], 2)
+      const result = itertools.combinations([1, 2, 3], 2)
       expect(result).toEqual([
         [1, 2],
         [1, 3],
@@ -90,14 +90,14 @@ result = list(groupby([1, 1, 2, 2, 3]))`
     })
 
     it("should return empty for r > n", () => {
-      const result = py.itertools.combinations([1, 2], 3)
+      const result = itertools.combinations([1, 2], 3)
       expect(result).toEqual([])
     })
   })
 
   describe("Runtime: permutations", () => {
     it("should return permutations", () => {
-      const result = py.itertools.permutations([1, 2, 3], 2)
+      const result = itertools.permutations([1, 2, 3], 2)
       expect(result).toEqual([
         [1, 2],
         [1, 3],
@@ -111,7 +111,7 @@ result = list(groupby([1, 1, 2, 2, 3]))`
 
   describe("Runtime: product", () => {
     it("should return cartesian product", () => {
-      const result = py.itertools.product([1, 2], ["a", "b"])
+      const result = itertools.product([1, 2], ["a", "b"])
       expect(result).toEqual([
         [1, "a"],
         [1, "b"],
@@ -123,7 +123,7 @@ result = list(groupby([1, 1, 2, 2, 3]))`
 
   describe("Runtime: zip_longest", () => {
     it("should zip with fill value", () => {
-      const result = py.itertools.zip_longest([1, 2, 3], ["a", "b"], { fillvalue: "-" })
+      const result = itertools.zip_longest([1, 2, 3], ["a", "b"], { fillvalue: "-" })
       expect(result).toEqual([
         [1, "a"],
         [2, "b"],
@@ -132,7 +132,7 @@ result = list(groupby([1, 1, 2, 2, 3]))`
     })
 
     it("should zip without fill value", () => {
-      const result = py.itertools.zip_longest([1, 2, 3], ["a", "b"])
+      const result = itertools.zip_longest([1, 2, 3], ["a", "b"])
       expect(result).toEqual([
         [1, "a"],
         [2, "b"],
@@ -143,59 +143,59 @@ result = list(groupby([1, 1, 2, 2, 3]))`
 
   describe("Runtime: islice", () => {
     it("should slice iterable", () => {
-      const result = py.itertools.islice([1, 2, 3, 4, 5], 1, 4)
+      const result = itertools.islice([1, 2, 3, 4, 5], 1, 4)
       expect(result).toEqual([2, 3, 4])
     })
 
     it("should slice with just stop", () => {
-      const result = py.itertools.islice([1, 2, 3, 4, 5], 3)
+      const result = itertools.islice([1, 2, 3, 4, 5], 3)
       expect(result).toEqual([1, 2, 3])
     })
   })
 
   describe("Runtime: takewhile", () => {
     it("should take while predicate is true", () => {
-      const result = py.itertools.takewhile((x: number) => x < 5, [1, 4, 6, 4, 1])
+      const result = itertools.takewhile((x: number) => x < 5, [1, 4, 6, 4, 1])
       expect(result).toEqual([1, 4])
     })
   })
 
   describe("Runtime: dropwhile", () => {
     it("should drop while predicate is true", () => {
-      const result = py.itertools.dropwhile((x: number) => x < 5, [1, 4, 6, 4, 1])
+      const result = itertools.dropwhile((x: number) => x < 5, [1, 4, 6, 4, 1])
       expect(result).toEqual([6, 4, 1])
     })
   })
 
   describe("Runtime: compress", () => {
     it("should filter by selectors", () => {
-      const result = py.itertools.compress([1, 2, 3, 4, 5], [1, 0, 1, 0, 1])
+      const result = itertools.compress([1, 2, 3, 4, 5], [1, 0, 1, 0, 1])
       expect(result).toEqual([1, 3, 5])
     })
   })
 
   describe("Runtime: filterfalse", () => {
     it("should filter where predicate is false", () => {
-      const result = py.itertools.filterfalse((x: number) => x % 2, [1, 2, 3, 4, 5])
+      const result = itertools.filterfalse((x: number) => x % 2, [1, 2, 3, 4, 5])
       expect(result).toEqual([2, 4])
     })
   })
 
   describe("Runtime: accumulate", () => {
     it("should accumulate sums", () => {
-      const result = py.itertools.accumulate([1, 2, 3, 4, 5])
+      const result = itertools.accumulate([1, 2, 3, 4, 5])
       expect(result).toEqual([1, 3, 6, 10, 15])
     })
 
     it("should accumulate with custom function", () => {
-      const result = py.itertools.accumulate([1, 2, 3, 4, 5], (x: number, y: number) => x * y)
+      const result = itertools.accumulate([1, 2, 3, 4, 5], (x: number, y: number) => x * y)
       expect(result).toEqual([1, 2, 6, 24, 120])
     })
   })
 
   describe("Runtime: groupby", () => {
     it("should group consecutive equal elements", () => {
-      const result = py.itertools.groupby([1, 1, 2, 2, 2, 3, 1, 1])
+      const result = itertools.groupby([1, 1, 2, 2, 2, 3, 1, 1])
       expect(result).toEqual([
         [1, [1, 1]],
         [2, [2, 2, 2]],
@@ -205,7 +205,7 @@ result = list(groupby([1, 1, 2, 2, 3]))`
     })
 
     it("should group with key function", () => {
-      const result = py.itertools.groupby(["aa", "ab", "ba", "bb"], (s: string) => s[0])
+      const result = itertools.groupby(["aa", "ab", "ba", "bb"], (s: string) => s[0])
       expect(result).toEqual([
         ["a", ["aa", "ab"]],
         ["b", ["ba", "bb"]]
@@ -215,7 +215,7 @@ result = list(groupby([1, 1, 2, 2, 3]))`
 
   describe("Runtime: pairwise", () => {
     it("should return successive pairs", () => {
-      const result = py.itertools.pairwise([1, 2, 3, 4, 5])
+      const result = itertools.pairwise([1, 2, 3, 4, 5])
       expect(result).toEqual([
         [1, 2],
         [2, 3],
@@ -227,7 +227,7 @@ result = list(groupby([1, 1, 2, 2, 3]))`
 
   describe("Runtime: tee", () => {
     it("should return independent copies", () => {
-      const result = py.itertools.tee([1, 2, 3], 2)
+      const result = itertools.tee([1, 2, 3], 2)
       expect(result).toEqual([
         [1, 2, 3],
         [1, 2, 3]
@@ -237,7 +237,7 @@ result = list(groupby([1, 1, 2, 2, 3]))`
 
   describe("Runtime: combinations_with_replacement", () => {
     it("should return combinations with replacement", () => {
-      const result = py.itertools.combinations_with_replacement([1, 2, 3], 2)
+      const result = itertools.combinations_with_replacement([1, 2, 3], 2)
       expect(result).toEqual([
         [1, 1],
         [1, 2],

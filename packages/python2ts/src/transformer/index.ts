@@ -971,7 +971,7 @@ function transformSliceAssignment(
 
   ctx.usesRuntime.add("list.sliceAssign")
 
-  return `py.list.sliceAssign(${objCode}, ${start ?? "undefined"}, ${end ?? "undefined"}, ${step ?? "undefined"}, ${valuesCode})`
+  return `list.sliceAssign(${objCode}, ${start ?? "undefined"}, ${end ?? "undefined"}, ${step ?? "undefined"}, ${valuesCode})`
 }
 
 function transformAssignTarget(node: SyntaxNode, ctx: TransformContext): string {
@@ -1012,25 +1012,25 @@ function transformBinaryExpression(node: SyntaxNode, ctx: TransformContext): str
   switch (opText) {
     case "//":
       ctx.usesRuntime.add("floordiv")
-      return `py.floordiv(${leftCode}, ${rightCode})`
+      return `floordiv(${leftCode}, ${rightCode})`
     case "**":
       ctx.usesRuntime.add("pow")
-      return `py.pow(${leftCode}, ${rightCode})`
+      return `pow(${leftCode}, ${rightCode})`
     case "%":
       // Check for string formatting (e.g., "Hello %s" % name)
       if (left.name === "String" || left.name === "FormatString") {
         ctx.usesRuntime.add("sprintf")
-        return `py.sprintf(${leftCode}, ${rightCode})`
+        return `sprintf(${leftCode}, ${rightCode})`
       }
       ctx.usesRuntime.add("mod")
-      return `py.mod(${leftCode}, ${rightCode})`
+      return `mod(${leftCode}, ${rightCode})`
     case "and":
       return `(${leftCode} && ${rightCode})`
     case "or":
       return `(${leftCode} || ${rightCode})`
     case "in":
-      ctx.usesRuntime.add("in")
-      return `py.in(${leftCode}, ${rightCode})`
+      ctx.usesRuntime.add("contains")
+      return `contains(${leftCode}, ${rightCode})`
     case "is":
       return `(${leftCode} === ${rightCode})`
     case "+":
@@ -1042,12 +1042,12 @@ function transformBinaryExpression(node: SyntaxNode, ctx: TransformContext): str
     case "*":
       // Check for string/array repetition (e.g., 'ab' * 3 or [1, 2] * 3)
       if (isStringOrArrayLiteral(left) && isNumberLiteral(right)) {
-        ctx.usesRuntime.add("repeat")
-        return `py.repeat(${leftCode}, ${rightCode})`
+        ctx.usesRuntime.add("repeatValue")
+        return `repeatValue(${leftCode}, ${rightCode})`
       }
       if (isNumberLiteral(left) && isStringOrArrayLiteral(right)) {
-        ctx.usesRuntime.add("repeat")
-        return `py.repeat(${rightCode}, ${leftCode})`
+        ctx.usesRuntime.add("repeatValue")
+        return `repeatValue(${rightCode}, ${leftCode})`
       }
       return `(${leftCode} * ${rightCode})`
     default:
@@ -1242,20 +1242,20 @@ function transformFormatString(node: SyntaxNode, ctx: TransformContext): string 
 
       // Apply conversion first (!r, !s, !a)
       if (conversion === "r") {
-        exprCode = `py.repr(${exprCode})`
+        exprCode = `repr(${exprCode})`
         ctx.usesRuntime.add("repr")
       } else if (conversion === "s") {
-        exprCode = `py.str(${exprCode})`
+        exprCode = `str(${exprCode})`
         ctx.usesRuntime.add("str")
       } else if (conversion === "a") {
-        exprCode = `py.ascii(${exprCode})`
+        exprCode = `ascii(${exprCode})`
         ctx.usesRuntime.add("ascii")
       }
 
       // Apply format spec
       if (formatSpec) {
         ctx.usesRuntime.add("format")
-        result += `\${py.format(${exprCode}, "${formatSpec}")}`
+        result += `\${format(${exprCode}, "${formatSpec}")}`
       } else {
         // Simple case - just the expression (with optional conversion already applied)
         result += `\${${exprCode}}`
@@ -1316,229 +1316,229 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
       return `console.log(${args})`
     case "len":
       ctx.usesRuntime.add("len")
-      return `py.len(${args})`
+      return `len(${args})`
     case "range":
       ctx.usesRuntime.add("range")
-      return `py.range(${args})`
+      return `range(${args})`
     case "int":
       ctx.usesRuntime.add("int")
-      return `py.int(${args})`
+      return `int(${args})`
     case "float":
       ctx.usesRuntime.add("float")
-      return `py.float(${args})`
+      return `float(${args})`
     case "str":
       ctx.usesRuntime.add("str")
-      return `py.str(${args})`
+      return `str(${args})`
     case "bool":
       ctx.usesRuntime.add("bool")
-      return `py.bool(${args})`
+      return `bool(${args})`
     case "abs":
       ctx.usesRuntime.add("abs")
-      return `py.abs(${args})`
+      return `abs(${args})`
     case "min":
       ctx.usesRuntime.add("min")
-      return `py.min(${args})`
+      return `min(${args})`
     case "max":
       ctx.usesRuntime.add("max")
-      return `py.max(${args})`
+      return `max(${args})`
     case "sum":
       ctx.usesRuntime.add("sum")
-      return `py.sum(${args})`
+      return `sum(${args})`
     case "list":
       ctx.usesRuntime.add("list")
-      return `py.list(${args})`
+      return `list(${args})`
     case "dict":
       ctx.usesRuntime.add("dict")
-      return `py.dict(${args})`
+      return `dict(${args})`
     case "set":
       ctx.usesRuntime.add("set")
-      return `py.set(${args})`
+      return `set(${args})`
     case "tuple":
       ctx.usesRuntime.add("tuple")
-      return `py.tuple(${args})`
+      return `tuple(${args})`
     case "enumerate":
       ctx.usesRuntime.add("enumerate")
-      return `py.enumerate(${args})`
+      return `enumerate(${args})`
     case "zip":
       ctx.usesRuntime.add("zip")
-      return `py.zip(${args})`
+      return `zip(${args})`
     case "sorted":
       ctx.usesRuntime.add("sorted")
-      return `py.sorted(${args})`
+      return `sorted(${args})`
     case "reversed":
       ctx.usesRuntime.add("reversed")
-      return `py.reversed(${args})`
+      return `reversed(${args})`
     case "isinstance":
       ctx.usesRuntime.add("isinstance")
-      return `py.isinstance(${args})`
+      return `isinstance(${args})`
     case "type":
       ctx.usesRuntime.add("type")
-      return `py.type(${args})`
+      return `type(${args})`
     case "input":
       ctx.usesRuntime.add("input")
-      return `py.input(${args})`
+      return `input(${args})`
     case "ord":
       ctx.usesRuntime.add("ord")
-      return `py.ord(${args})`
+      return `ord(${args})`
     case "chr":
       ctx.usesRuntime.add("chr")
-      return `py.chr(${args})`
+      return `chr(${args})`
     case "all":
       ctx.usesRuntime.add("all")
-      return `py.all(${args})`
+      return `all(${args})`
     case "any":
       ctx.usesRuntime.add("any")
-      return `py.any(${args})`
+      return `any(${args})`
     case "map":
       ctx.usesRuntime.add("map")
-      return `py.map(${args})`
+      return `map(${args})`
     case "filter":
       ctx.usesRuntime.add("filter")
-      return `py.filter(${args})`
+      return `filter(${args})`
     case "repr":
       ctx.usesRuntime.add("repr")
-      return `py.repr(${args})`
+      return `repr(${args})`
     case "round":
       ctx.usesRuntime.add("round")
-      return `py.round(${args})`
+      return `round(${args})`
     case "divmod":
       ctx.usesRuntime.add("divmod")
-      return `py.divmod(${args})`
+      return `divmod(${args})`
     case "hex":
       ctx.usesRuntime.add("hex")
-      return `py.hex(${args})`
+      return `hex(${args})`
     case "oct":
       ctx.usesRuntime.add("oct")
-      return `py.oct(${args})`
+      return `oct(${args})`
     case "bin":
       ctx.usesRuntime.add("bin")
-      return `py.bin(${args})`
+      return `bin(${args})`
 
     // itertools functions
     case "chain":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.chain(${args})`
+      return `itertools.chain(${args})`
     case "combinations":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.combinations(${args})`
+      return `itertools.combinations(${args})`
     case "permutations":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.permutations(${args})`
+      return `itertools.permutations(${args})`
     case "product":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.product(${args})`
+      return `itertools.product(${args})`
     case "cycle":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.cycle(${args})`
+      return `itertools.cycle(${args})`
     case "repeat":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.repeat(${args})`
+      return `itertools.repeat(${args})`
     case "islice":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.islice(${args})`
+      return `itertools.islice(${args})`
     case "takewhile":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.takewhile(${args})`
+      return `itertools.takewhile(${args})`
     case "dropwhile":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.dropwhile(${args})`
+      return `itertools.dropwhile(${args})`
     case "zip_longest":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.zip_longest(${args})`
+      return `itertools.zip_longest(${args})`
     case "compress":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.compress(${args})`
+      return `itertools.compress(${args})`
     case "filterfalse":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.filterfalse(${args})`
+      return `itertools.filterfalse(${args})`
     case "accumulate":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.accumulate(${args})`
+      return `itertools.accumulate(${args})`
     case "groupby":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.groupby(${args})`
+      return `itertools.groupby(${args})`
     case "count":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.count(${args})`
+      return `itertools.count(${args})`
     case "tee":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.tee(${args})`
+      return `itertools.tee(${args})`
     case "pairwise":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.pairwise(${args})`
+      return `itertools.pairwise(${args})`
     case "combinations_with_replacement":
       ctx.usesRuntime.add("itertools")
-      return `py.itertools.combinations_with_replacement(${args})`
+      return `itertools.combinations_with_replacement(${args})`
 
     // collections classes/functions
     case "Counter":
       ctx.usesRuntime.add("Counter")
-      return `new py.Counter(${args})`
+      return `new collections.Counter(${args})`
     case "defaultdict":
       ctx.usesRuntime.add("defaultdict")
-      return `py.defaultdict(${args})`
+      return `collections.defaultdict(${args})`
     case "deque":
       ctx.usesRuntime.add("deque")
-      return `new py.deque(${args})`
+      return `new collections.deque(${args})`
 
     // functools functions
     case "partial":
       ctx.usesRuntime.add("functools")
-      return `py.functools.partial(${args})`
+      return `functools.partial(${args})`
     case "reduce":
       ctx.usesRuntime.add("functools")
-      return `py.functools.reduce(${args})`
+      return `functools.reduce(${args})`
     case "lru_cache":
       ctx.usesRuntime.add("functools")
-      return `py.functools.lru_cache(${args})`
+      return `functools.lru_cache(${args})`
     case "cache":
       ctx.usesRuntime.add("functools")
-      return `py.functools.cache(${args})`
+      return `functools.cache(${args})`
     case "wraps":
       ctx.usesRuntime.add("functools")
-      return `py.functools.wraps(${args})`
+      return `functools.wraps(${args})`
     case "cmp_to_key":
       ctx.usesRuntime.add("functools")
-      return `py.functools.cmp_to_key(${args})`
+      return `functools.cmp_to_key(${args})`
     case "total_ordering":
       ctx.usesRuntime.add("functools")
-      return `py.functools.total_ordering(${args})`
+      return `functools.total_ordering(${args})`
 
     // json functions
     case "dumps":
       ctx.usesRuntime.add("json")
-      return `py.json.dumps(${args})`
+      return `json.dumps(${args})`
     case "loads":
       ctx.usesRuntime.add("json")
-      return `py.json.loads(${args})`
+      return `json.loads(${args})`
     case "dump":
       ctx.usesRuntime.add("json")
-      return `py.json.dump(${args})`
+      return `json.dump(${args})`
     case "load":
       ctx.usesRuntime.add("json")
-      return `py.json.load(${args})`
+      return `json.load(${args})`
 
     // datetime classes
     case "datetime":
       ctx.usesRuntime.add("datetime")
-      return `new py.datetime.datetime(${args})`
+      return `new datetime.datetime(${args})`
     case "date":
       ctx.usesRuntime.add("datetime")
-      return `new py.datetime.date(${args})`
+      return `new datetime.date(${args})`
     case "time":
       ctx.usesRuntime.add("datetime")
-      return `new py.datetime.time(${args})`
+      return `new datetime.time(${args})`
     case "timedelta":
       ctx.usesRuntime.add("datetime")
-      return `new py.datetime.timedelta(${args})`
+      return `new datetime.timedelta(${args})`
 
     // string module
     case "Template":
       ctx.usesRuntime.add("string")
-      return `new py.Template(${args})`
+      return `new string.Template(${args})`
     case "capwords":
       ctx.usesRuntime.add("string")
-      return `py.capwords(${args})`
+      return `string.capwords(${args})`
 
     default:
       // Regular function call
@@ -1568,30 +1568,30 @@ function transformModuleCall(
 
     // Constants (no args)
     const mathConstants: Record<string, string> = {
-      pi: "py.math.pi",
-      e: "py.math.e",
-      tau: "py.math.tau",
-      inf: "py.math.inf",
-      nan: "py.math.nan"
+      pi: "math.pi",
+      e: "math.e",
+      tau: "math.tau",
+      inf: "math.inf",
+      nan: "math.nan"
     }
     if (funcName in mathConstants) {
       return mathConstants[funcName] as string
     }
 
     // Functions that map to py.math.*
-    return `py.math.${funcName}(${args})`
+    return `math.${funcName}(${args})`
   }
 
   // random module
   if (moduleName === "random") {
     ctx.usesRuntime.add("random")
-    return `py.random.${funcName}(${args})`
+    return `random.${funcName}(${args})`
   }
 
   // json module
   if (moduleName === "json") {
     ctx.usesRuntime.add("json")
-    return `py.json.${funcName}(${args})`
+    return `json.${funcName}(${args})`
   }
 
   // os module
@@ -1600,34 +1600,34 @@ function transformModuleCall(
     // os.path.* functions
     if (funcName.startsWith("path.")) {
       const pathFunc = funcName.slice(5)
-      return `py.os.path.${pathFunc}(${args})`
+      return `os.path.${pathFunc}(${args})`
     }
     // os.* functions
-    return `py.os.${funcName}(${args})`
+    return `os.${funcName}(${args})`
   }
 
   // datetime module
   if (moduleName === "datetime") {
     ctx.usesRuntime.add("datetime")
-    return `py.datetime.${funcName}(${args})`
+    return `datetime.${funcName}(${args})`
   }
 
   // re module
   if (moduleName === "re") {
     ctx.usesRuntime.add("re")
-    return `py.re.${funcName}(${args})`
+    return `re.${funcName}(${args})`
   }
 
   // string module
   if (moduleName === "string") {
     ctx.usesRuntime.add("string")
-    return `py.string.${funcName}(${args})`
+    return `string.${funcName}(${args})`
   }
 
   // functools module
   if (moduleName === "functools") {
     ctx.usesRuntime.add("functools")
-    return `py.functools.${funcName}(${args})`
+    return `functools.${funcName}(${args})`
   }
 
   return null
@@ -1668,13 +1668,13 @@ function transformMethodCall(
       return `${objCode}.toLowerCase()`
     case "capitalize":
       ctx.usesRuntime.add("string")
-      return `py.string.capitalize(${objCode})`
+      return `string.capitalize(${objCode})`
     case "title":
       ctx.usesRuntime.add("string")
-      return `py.string.title(${objCode})`
+      return `string.title(${objCode})`
     case "swapcase":
       ctx.usesRuntime.add("string")
-      return `py.string.swapcase(${objCode})`
+      return `string.swapcase(${objCode})`
     case "casefold":
       return `${objCode}.toLowerCase()`
 
@@ -1701,13 +1701,13 @@ function transformMethodCall(
       return `${objCode}.lastIndexOf(${args})`
     case "index":
       ctx.usesRuntime.add("string")
-      return `py.string.index(${objCode}, ${args})`
+      return `string.index(${objCode}, ${args})`
     case "rindex":
       ctx.usesRuntime.add("string")
-      return `py.string.rindex(${objCode}, ${args})`
+      return `string.rindex(${objCode}, ${args})`
     case "count":
       ctx.usesRuntime.add("string")
-      return `py.string.count(${objCode}, ${args})`
+      return `string.count(${objCode}, ${args})`
 
     // String testing
     case "isalpha":
@@ -1726,13 +1726,13 @@ function transformMethodCall(
     // String modification
     case "replace":
       ctx.usesRuntime.add("string")
-      return `py.string.replace(${objCode}, ${args})`
+      return `string.replace(${objCode}, ${args})`
     case "zfill":
       ctx.usesRuntime.add("string")
-      return `py.string.zfill(${objCode}, ${args})`
+      return `string.zfill(${objCode}, ${args})`
     case "center":
       ctx.usesRuntime.add("string")
-      return `py.string.center(${objCode}, ${args})`
+      return `string.center(${objCode}, ${args})`
     case "ljust":
       return `${objCode}.padEnd(${args})`
     case "rjust":
@@ -1745,20 +1745,20 @@ function transformMethodCall(
       return args ? `${objCode}.split(${args})` : `${objCode}.split(/\\s+/)`
     case "rsplit":
       ctx.usesRuntime.add("string")
-      return `py.string.rsplit(${objCode}, ${args})`
+      return `string.rsplit(${objCode}, ${args})`
     case "splitlines":
       return `${objCode}.split(/\\r?\\n/)`
     case "partition":
       ctx.usesRuntime.add("string")
-      return `py.string.partition(${objCode}, ${args})`
+      return `string.partition(${objCode}, ${args})`
     case "rpartition":
       ctx.usesRuntime.add("string")
-      return `py.string.rpartition(${objCode}, ${args})`
+      return `string.rpartition(${objCode}, ${args})`
 
     // String format method
     case "format":
       ctx.usesRuntime.add("strFormat")
-      return `py.strFormat(${objCode}, ${args})`
+      return `strFormat(${objCode}, ${args})`
 
     // List methods
     case "append":
@@ -1773,7 +1773,7 @@ function transformMethodCall(
     }
     case "remove":
       ctx.usesRuntime.add("list")
-      return `py.list.remove(${objCode}, ${args})`
+      return `list.remove(${objCode}, ${args})`
     case "pop":
       // pop() with no args works the same, pop(0) needs shift()
       if (!args) return `${objCode}.pop()`
@@ -1787,7 +1787,7 @@ function transformMethodCall(
       return `${objCode}.reverse()`
     case "sort":
       ctx.usesRuntime.add("list")
-      return args ? `py.list.sort(${objCode}, ${args})` : `${objCode}.sort()`
+      return args ? `list.sort(${objCode}, ${args})` : `${objCode}.sort()`
 
     // Dict methods
     case "keys":
@@ -1798,15 +1798,15 @@ function transformMethodCall(
       return `Object.entries(${objCode})`
     case "get":
       ctx.usesRuntime.add("dict")
-      return `py.dict.get(${objCode}, ${args})`
+      return `dict.get(${objCode}, ${args})`
     case "setdefault":
       ctx.usesRuntime.add("dict")
-      return `py.dict.setdefault(${objCode}, ${args})`
+      return `dict.setdefault(${objCode}, ${args})`
     case "update":
       return `Object.assign(${objCode}, ${args})`
     case "fromkeys":
       ctx.usesRuntime.add("dict")
-      return `py.dict.fromkeys(${args})`
+      return `dict.fromkeys(${args})`
 
     // Set methods
     case "add":
@@ -1817,19 +1817,19 @@ function transformMethodCall(
       return `new Set([...${objCode}, ...${args}])`
     case "intersection":
       ctx.usesRuntime.add("set")
-      return `py.set.intersection(${objCode}, ${args})`
+      return `set.intersection(${objCode}, ${args})`
     case "difference":
       ctx.usesRuntime.add("set")
-      return `py.set.difference(${objCode}, ${args})`
+      return `set.difference(${objCode}, ${args})`
     case "symmetric_difference":
       ctx.usesRuntime.add("set")
-      return `py.set.symmetricDifference(${objCode}, ${args})`
+      return `set.symmetricDifference(${objCode}, ${args})`
     case "issubset":
       ctx.usesRuntime.add("set")
-      return `py.set.issubset(${objCode}, ${args})`
+      return `set.issubset(${objCode}, ${args})`
     case "issuperset":
       ctx.usesRuntime.add("set")
-      return `py.set.issuperset(${objCode}, ${args})`
+      return `set.issuperset(${objCode}, ${args})`
 
     default:
       return null
@@ -1952,7 +1952,7 @@ function transformMemberExpression(node: SyntaxNode, ctx: TransformContext): str
     // Check if the index is a negative number literal (for py.at() support)
     if (isNegativeIndexLiteral(index, ctx)) {
       ctx.usesRuntime.add("at")
-      return `py.at(${objCode}, ${indexCode})`
+      return `at(${objCode}, ${indexCode})`
     }
 
     return `${objCode}[${indexCode}]`
@@ -1967,46 +1967,31 @@ function transformMemberExpression(node: SyntaxNode, ctx: TransformContext): str
     // Handle module constants (math.pi, math.e, etc.)
     if (objName === "math") {
       ctx.usesRuntime.add("math")
-      return `py.math.${propName}`
+      return `math.${propName}`
     }
 
     // os module constants (os.sep, os.path, etc.)
     if (objName === "os") {
       ctx.usesRuntime.add("os")
-      return `py.os.${propName}`
+      return `os.${propName}`
     }
 
-    // string module constants
+    // string module (constants like ascii_lowercase, digits, etc.)
     if (objName === "string") {
       ctx.usesRuntime.add("string")
-      // Constants like ascii_lowercase, digits, etc.
-      const stringConstants = [
-        "ascii_lowercase",
-        "ascii_uppercase",
-        "ascii_letters",
-        "digits",
-        "hexdigits",
-        "octdigits",
-        "punctuation",
-        "whitespace",
-        "printable"
-      ]
-      if (stringConstants.includes(propName)) {
-        return `py.${propName}`
-      }
-      return `py.string.${propName}`
+      return `string.${propName}`
     }
 
     // re module flags
     if (objName === "re") {
       ctx.usesRuntime.add("re")
-      return `py.re.${propName}`
+      return `re.${propName}`
     }
 
     // datetime module
     if (objName === "datetime") {
       ctx.usesRuntime.add("datetime")
-      return `py.datetime.${propName}`
+      return `datetime.${propName}`
     }
 
     const objCode = transformNode(obj, ctx)
@@ -2038,7 +2023,7 @@ function transformSliceFromMember(
 
   /* c8 ignore next 3 - defensive: subscript always has brackets */
   if (bracketStart === -1 || bracketEnd === -1) {
-    return `py.slice(${objCode})`
+    return `slice(${objCode})`
   }
 
   // Get all elements between brackets
@@ -2073,10 +2058,10 @@ function transformSliceFromMember(
   // If no colons, it's not a slice
   /* c8 ignore next 3 - defensive: slice detection already checked for colons */
   if (colonIndices.length === 0) {
-    return `py.slice(${objCode})`
+    return `slice(${objCode})`
   }
 
-  return `py.slice(${objCode}, ${parts.join(", ")})`
+  return `slice(${objCode}, ${parts.join(", ")})`
 }
 
 function transformArrayExpression(node: SyntaxNode, ctx: TransformContext): string {
@@ -2123,7 +2108,7 @@ function transformTupleExpression(node: SyntaxNode, ctx: TransformContext): stri
 
   ctx.usesRuntime.add("tuple")
   const elementCodes = elements.map((el) => transformNode(el, ctx))
-  return `py.tuple(${elementCodes.join(", ")})`
+  return `tuple(${elementCodes.join(", ")})`
 }
 
 function isNegativeIndexLiteral(node: SyntaxNode, ctx: TransformContext): boolean {
@@ -2738,7 +2723,7 @@ function transformForStatement(node: SyntaxNode, ctx: TransformContext): string 
   // Arrays/strings remain iterable, but dicts need Object.keys()
   if (iterableNode.name === "VariableName" && !isAsync) {
     ctx.usesRuntime.add("iter")
-    iterableCode = `py.iter(${iterableCode})`
+    iterableCode = `iter(${iterableCode})`
   }
 
   // Use 'for await' for async iteration
@@ -5418,7 +5403,7 @@ function transformSetExpression(node: SyntaxNode, ctx: TransformContext): string
 
   ctx.usesRuntime.add("set")
   const elementCodes = elements.map((el) => transformNode(el, ctx))
-  return `py.set([${elementCodes.join(", ")}])`
+  return `set([${elementCodes.join(", ")}])`
 }
 
 function transformSetComprehension(node: SyntaxNode, ctx: TransformContext): string {
@@ -5427,12 +5412,12 @@ function transformSetComprehension(node: SyntaxNode, ctx: TransformContext): str
 
   if (clauses.length === 0) {
     ctx.usesRuntime.add("set")
-    return `py.set([${outputExpr}])`
+    return `set([${outputExpr}])`
   }
 
   ctx.usesRuntime.add("set")
   const arrayComp = buildComprehensionChain(outputExpr, clauses, "array")
-  return `py.set(${arrayComp})`
+  return `set(${arrayComp})`
 }
 
 function transformGeneratorExpression(node: SyntaxNode, ctx: TransformContext): string {
@@ -5504,12 +5489,12 @@ function wrapIterableIfNeeded(iterable: string): string {
   // Check if iterable is py.range(), py.enumerate(), py.zip(), py.reversed(), py.filter(), py.map()
   // These return Iterables, not Arrays
   if (
-    iterable.startsWith("py.range(") ||
-    iterable.startsWith("py.enumerate(") ||
-    iterable.startsWith("py.zip(") ||
-    iterable.startsWith("py.reversed(") ||
-    iterable.startsWith("py.filter(") ||
-    iterable.startsWith("py.map(")
+    iterable.startsWith("range(") ||
+    iterable.startsWith("enumerate(") ||
+    iterable.startsWith("zip(") ||
+    iterable.startsWith("reversed(") ||
+    iterable.startsWith("filter(") ||
+    iterable.startsWith("map(")
   ) {
     return `[...${iterable}]`
   }
@@ -5623,7 +5608,7 @@ function buildDictComprehensionChain(
   clauses: ComprehensionClause[]
 ): string {
   if (clauses.length === 0) {
-    return `py.dict([[${keyExpr}, ${valueExpr}]])`
+    return `dict([[${keyExpr}, ${valueExpr}]])`
   }
 
   // Build array of [key, value] pairs, then wrap with py.dict
@@ -5645,13 +5630,13 @@ function buildDictComprehensionChain(
   }
 
   if (forClauses.length === 0) {
-    return `py.dict([[${keyExpr}, ${valueExpr}]])`
+    return `dict([[${keyExpr}, ${valueExpr}]])`
   }
 
   const pairExpr = `[${keyExpr}, ${valueExpr}]`
   const arrayComp = buildComprehensionChain(pairExpr, clauses, "array")
 
-  return `py.dict(${arrayComp})`
+  return `dict(${arrayComp})`
 }
 
 // ============================================================

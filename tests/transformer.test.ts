@@ -79,19 +79,19 @@ describe("Transformer", () => {
 
     it("should transform floor division to py.floordiv", () => {
       const result = transform("10 // 3")
-      expect(result.code).toBe("py.floordiv(10, 3);")
+      expect(result.code).toBe("floordiv(10, 3);")
       expect(result.usesRuntime.has("floordiv")).toBe(true)
     })
 
     it("should transform power to py.pow", () => {
       const result = transform("2 ** 8")
-      expect(result.code).toBe("py.pow(2, 8);")
+      expect(result.code).toBe("pow(2, 8);")
       expect(result.usesRuntime.has("pow")).toBe(true)
     })
 
     it("should transform modulo to py.mod", () => {
       const result = transform("7 % 3")
-      expect(result.code).toBe("py.mod(7, 3);")
+      expect(result.code).toBe("mod(7, 3);")
       expect(result.usesRuntime.has("mod")).toBe(true)
     })
   })
@@ -153,43 +153,43 @@ describe("Transformer", () => {
 
     it("should transform len to py.len", () => {
       const result = transform("len([1, 2, 3])")
-      expect(result.code).toContain("py.len")
+      expect(result.code).toContain("len")
       expect(result.usesRuntime.has("len")).toBe(true)
     })
 
     it("should transform range to py.range", () => {
       const result = transform("range(10)")
-      expect(result.code).toContain("py.range")
+      expect(result.code).toContain("range")
       expect(result.usesRuntime.has("range")).toBe(true)
     })
 
     it("should transform int to py.int", () => {
       const result = transform('int("42")')
-      expect(result.code).toContain("py.int")
+      expect(result.code).toContain("int")
       expect(result.usesRuntime.has("int")).toBe(true)
     })
 
     it("should transform str to py.str", () => {
       const result = transform("str(42)")
-      expect(result.code).toContain("py.str")
+      expect(result.code).toContain("str")
       expect(result.usesRuntime.has("str")).toBe(true)
     })
 
     it("should transform abs to py.abs", () => {
       const result = transform("abs(-5)")
-      expect(result.code).toContain("py.abs")
+      expect(result.code).toContain("abs")
       expect(result.usesRuntime.has("abs")).toBe(true)
     })
 
     it("should transform min to py.min", () => {
       const result = transform("min(1, 2, 3)")
-      expect(result.code).toContain("py.min")
+      expect(result.code).toContain("min")
       expect(result.usesRuntime.has("min")).toBe(true)
     })
 
     it("should transform max to py.max", () => {
       const result = transform("max(1, 2, 3)")
-      expect(result.code).toContain("py.max")
+      expect(result.code).toContain("max")
       expect(result.usesRuntime.has("max")).toBe(true)
     })
   })
@@ -294,7 +294,7 @@ describe("Transformer", () => {
   describe("Membership and Identity Operators (CompareOp)", () => {
     it("should transform 'in' operator", () => {
       const result = transform("x in items")
-      expect(result.code).toContain("py.in(x, items)")
+      expect(result.code).toContain("contains(x, items)")
       expect(result.usesRuntime.has("in")).toBe(true)
     })
 
@@ -334,49 +334,49 @@ describe("Transformer", () => {
   describe("Additional Built-in Functions", () => {
     it("should transform repr to py.repr", () => {
       const result = transform("repr(x)")
-      expect(result.code).toContain("py.repr")
+      expect(result.code).toContain("repr")
       expect(result.usesRuntime.has("repr")).toBe(true)
     })
 
     it("should transform round to py.round", () => {
       const result = transform("round(3.14159, 2)")
-      expect(result.code).toContain("py.round")
+      expect(result.code).toContain("round")
       expect(result.usesRuntime.has("round")).toBe(true)
     })
 
     it("should transform divmod to py.divmod", () => {
       const result = transform("divmod(10, 3)")
-      expect(result.code).toContain("py.divmod")
+      expect(result.code).toContain("divmod")
       expect(result.usesRuntime.has("divmod")).toBe(true)
     })
 
     it("should transform hex to py.hex", () => {
       const result = transform("hex(255)")
-      expect(result.code).toContain("py.hex")
+      expect(result.code).toContain("hex")
       expect(result.usesRuntime.has("hex")).toBe(true)
     })
 
     it("should transform oct to py.oct", () => {
       const result = transform("oct(64)")
-      expect(result.code).toContain("py.oct")
+      expect(result.code).toContain("oct")
       expect(result.usesRuntime.has("oct")).toBe(true)
     })
 
     it("should transform bin to py.bin", () => {
       const result = transform("bin(10)")
-      expect(result.code).toContain("py.bin")
+      expect(result.code).toContain("bin")
       expect(result.usesRuntime.has("bin")).toBe(true)
     })
 
     it("should transform map to py.map", () => {
       const result = transform("map(fn, items)")
-      expect(result.code).toContain("py.map")
+      expect(result.code).toContain("map")
       expect(result.usesRuntime.has("map")).toBe(true)
     })
 
     it("should transform filter to py.filter", () => {
       const result = transform("filter(fn, items)")
-      expect(result.code).toContain("py.filter")
+      expect(result.code).toContain("filter")
       expect(result.usesRuntime.has("filter")).toBe(true)
     })
   })
@@ -387,37 +387,37 @@ describe("Transformer", () => {
       expect(result.code).toBe("arr[0];")
     })
 
-    it("should transform negative index with py.at", () => {
+    it("should transform negative index with at", () => {
       const result = transform("arr[-1]")
-      expect(result.code).toContain("py.at(arr, (-1))")
+      expect(result.code).toContain("at(arr, (-1))")
       expect(result.usesRuntime.has("at")).toBe(true)
     })
 
     it("should transform slice with start and stop", () => {
       const result = transform("arr[1:5]")
-      expect(result.code).toContain("py.slice")
+      expect(result.code).toContain("slice")
       expect(result.usesRuntime.has("slice")).toBe(true)
     })
 
     it("should transform slice with step", () => {
       const result = transform("arr[::2]")
-      expect(result.code).toContain("py.slice")
+      expect(result.code).toContain("slice")
     })
 
     it("should transform reverse slice", () => {
       const result = transform("arr[::-1]")
-      expect(result.code).toContain("py.slice")
+      expect(result.code).toContain("slice")
       expect(result.code).toContain("-1")
     })
 
     it("should transform slice with only start", () => {
       const result = transform("arr[2:]")
-      expect(result.code).toContain("py.slice")
+      expect(result.code).toContain("slice")
     })
 
     it("should transform slice with only stop", () => {
       const result = transform("arr[:3]")
-      expect(result.code).toContain("py.slice")
+      expect(result.code).toContain("slice")
     })
   })
 
@@ -565,12 +565,12 @@ describe("Transformer", () => {
 
     it("should transform dict comprehension", () => {
       const result = transform("{k: v for k, v in items}")
-      expect(result.code).toContain("py.dict")
+      expect(result.code).toContain("dict")
     })
 
     it("should transform set comprehension", () => {
       const result = transform("{x for x in items}")
-      expect(result.code).toContain("py.set")
+      expect(result.code).toContain("set")
     })
 
     it("should transform generator expression", () => {
@@ -619,7 +619,7 @@ describe("Transformer", () => {
   describe("String Operations", () => {
     it("should transform string multiplication", () => {
       const result = transform("'ab' * 3")
-      expect(result.code).toContain("py.repeat")
+      expect(result.code).toContain("repeatValue")
       expect(result.usesRuntime.has("repeat")).toBe(true)
     })
 
@@ -640,13 +640,13 @@ describe("Transformer", () => {
   describe("F-String Formatting", () => {
     it("should transform f-string with format spec", () => {
       const result = transform('f"{x:.2f}"')
-      expect(result.code).toContain("py.format")
+      expect(result.code).toContain("format")
       expect(result.usesRuntime.has("format")).toBe(true)
     })
 
     it("should transform f-string with conversion", () => {
       const result = transform('f"{x!r}"')
-      expect(result.code).toContain("py.repr")
+      expect(result.code).toContain("repr")
     })
   })
 
@@ -752,7 +752,7 @@ describe("Transformer", () => {
 
     it("should handle dict comprehension with complex key/value", () => {
       const result = transform("{k.lower(): v.upper() for k, v in items}")
-      expect(result.code).toContain("py.dict")
+      expect(result.code).toContain("dict")
     })
   })
 

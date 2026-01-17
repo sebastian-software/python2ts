@@ -23,9 +23,9 @@ describe("E2E: Walrus Operator (:=)", () => {
       const python = `if (n := len(a)) > 10:
     print(n)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { len } from "pythonlib"
 
-        if (((n = py.len(a)) > 10)) {
+        if (((n = len(a)) > 10)) {
           console.log(n);
         }"
       `)
@@ -35,9 +35,9 @@ describe("E2E: Walrus Operator (:=)", () => {
       const python = `while (line := input()):
     print(line)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { input } from "pythonlib"
 
-        while ((line = py.input())) {
+        while ((line = input())) {
           console.log(line);
         }"
       `)
@@ -99,7 +99,7 @@ describe("E2E: Walrus Operator (:=)", () => {
       const python = `if (m := re.match(pattern, string)):
     print(m.group())`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "if ((m = py.re.match(pattern, string))) {
+        "if ((m = re.match(pattern, string))) {
           console.log(m.group());
         }"
       `)

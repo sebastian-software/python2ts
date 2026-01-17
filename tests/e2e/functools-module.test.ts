@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { transpile } from "python2ts"
-import { py } from "pythonlib"
+import { functools } from "pythonlib"
 
 describe("E2E: functools module", () => {
   describe("Import Handling", () => {
@@ -20,9 +20,9 @@ describe("E2E: functools module", () => {
       const python = `from functools import partial
 add5 = partial(add, 5)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { functools } from "pythonlib"
 
-        let add5 = py.functools.partial(add, 5);"
+        let add5 = functools.partial(add, 5);"
       `)
     })
 
@@ -30,9 +30,9 @@ add5 = partial(add, 5)`
       const python = `from functools import reduce
 result = reduce(lambda x, y: x + y, [1, 2, 3, 4, 5])`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { functools } from "pythonlib"
 
-        let result = py.functools.reduce((x, y) => (x + y), [1, 2, 3, 4, 5]);"
+        let result = functools.reduce((x, y) => (x + y), [1, 2, 3, 4, 5]);"
       `)
     })
 
@@ -52,9 +52,9 @@ def fib(n):
       const python = `import functools
 result = functools.reduce(add, numbers)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'pythonlib';
+        "import { functools } from "pythonlib"
 
-        let result = py.functools.reduce(add, numbers);"
+        let result = functools.reduce(add, numbers);"
       `)
     })
   })
@@ -62,35 +62,35 @@ result = functools.reduce(add, numbers)`
   describe("Runtime: partial", () => {
     it("should create partial function", () => {
       const add = (a: number, b: number) => a + b
-      const add5 = py.functools.partial(add, 5)
+      const add5 = functools.partial(add, 5)
       expect(add5(3)).toBe(8)
     })
 
     it("should support multiple partial args", () => {
       const greet = (greeting: string, name: string, punctuation: string) =>
         `${greeting}, ${name}${punctuation}`
-      const sayHello = py.functools.partial(greet, "Hello")
+      const sayHello = functools.partial(greet, "Hello")
       expect(sayHello("World", "!")).toBe("Hello, World!")
     })
   })
 
   describe("Runtime: reduce", () => {
     it("should reduce with function", () => {
-      const result = py.functools.reduce((x: number, y: number) => x + y, [1, 2, 3, 4, 5])
+      const result = functools.reduce((x: number, y: number) => x + y, [1, 2, 3, 4, 5])
       expect(result).toBe(15)
     })
 
     it("should reduce with initializer", () => {
-      const result = py.functools.reduce((x: number, y: number) => x + y, [1, 2, 3, 4, 5], 10)
+      const result = functools.reduce((x: number, y: number) => x + y, [1, 2, 3, 4, 5], 10)
       expect(result).toBe(25)
     })
 
     it("should throw on empty sequence without initializer", () => {
-      expect(() => py.functools.reduce((x: number, y: number) => x + y, [])).toThrow()
+      expect(() => functools.reduce((x: number, y: number) => x + y, [])).toThrow()
     })
 
     it("should return initializer for empty sequence", () => {
-      const result = py.functools.reduce((x: number, y: number) => x + y, [], 42)
+      const result = functools.reduce((x: number, y: number) => x + y, [], 42)
       expect(result).toBe(42)
     })
   })
@@ -98,7 +98,7 @@ result = functools.reduce(add, numbers)`
   describe("Runtime: lru_cache", () => {
     it("should cache function results", () => {
       let callCount = 0
-      const expensive = py.functools.lru_cache((n: number) => {
+      const expensive = functools.lru_cache((n: number) => {
         callCount++
         return n * 2
       })
@@ -112,7 +112,7 @@ result = functools.reduce(add, numbers)`
     })
 
     it("should provide cache_info", () => {
-      const cached = py.functools.lru_cache((n: number) => n * 2)
+      const cached = functools.lru_cache((n: number) => n * 2)
       cached(1)
       cached(1)
       cached(2)
@@ -125,7 +125,7 @@ result = functools.reduce(add, numbers)`
 
     it("should clear cache", () => {
       let callCount = 0
-      const cached = py.functools.lru_cache((n: number) => {
+      const cached = functools.lru_cache((n: number) => {
         callCount++
         return n
       })
@@ -143,7 +143,7 @@ result = functools.reduce(add, numbers)`
   describe("Runtime: cache", () => {
     it("should cache all results", () => {
       let callCount = 0
-      const cached = py.functools.cache((n: number) => {
+      const cached = functools.cache((n: number) => {
         callCount++
         return n * 2
       })
@@ -156,63 +156,63 @@ result = functools.reduce(add, numbers)`
 
   describe("Runtime: attrgetter", () => {
     it("should get single attribute", () => {
-      const getName = py.functools.attrgetter<string>("name")
+      const getName = functools.attrgetter<string>("name")
       expect(getName({ name: "John", age: 30 })).toBe("John")
     })
 
     it("should get nested attribute", () => {
-      const getCity = py.functools.attrgetter<string>("address.city")
+      const getCity = functools.attrgetter<string>("address.city")
       expect(getCity({ address: { city: "NYC" } })).toBe("NYC")
     })
 
     it("should get multiple attributes", () => {
-      const getNameAge = py.functools.attrgetter<string | number>("name", "age")
+      const getNameAge = functools.attrgetter<string | number>("name", "age")
       expect(getNameAge({ name: "John", age: 30 })).toEqual(["John", 30])
     })
   })
 
   describe("Runtime: itemgetter", () => {
     it("should get single item by index", () => {
-      const getSecond = py.functools.itemgetter<number>(1)
+      const getSecond = functools.itemgetter<number>(1)
       expect(getSecond([10, 20, 30])).toBe(20)
     })
 
     it("should get single item by key", () => {
-      const getName = py.functools.itemgetter<string>("name")
+      const getName = functools.itemgetter<string>("name")
       expect(getName({ name: "John" })).toBe("John")
     })
 
     it("should get multiple items", () => {
-      const getItems = py.functools.itemgetter<number>(0, 2)
+      const getItems = functools.itemgetter<number>(0, 2)
       expect(getItems([10, 20, 30])).toEqual([10, 30])
     })
   })
 
   describe("Runtime: methodcaller", () => {
     it("should call method without args", () => {
-      const upper = py.functools.methodcaller("toUpperCase")
+      const upper = functools.methodcaller("toUpperCase")
       expect(upper("hello")).toBe("HELLO")
     })
 
     it("should call method with args", () => {
-      const split = py.functools.methodcaller("split", ",")
+      const split = functools.methodcaller("split", ",")
       expect(split("a,b,c")).toEqual(["a", "b", "c"])
     })
   })
 
   describe("Runtime: identity", () => {
     it("should return the same value", () => {
-      expect(py.functools.identity(42)).toBe(42)
-      expect(py.functools.identity("hello")).toBe("hello")
+      expect(functools.identity(42)).toBe(42)
+      expect(functools.identity("hello")).toBe("hello")
       const obj = { a: 1 }
-      expect(py.functools.identity(obj)).toBe(obj)
+      expect(functools.identity(obj)).toBe(obj)
     })
   })
 
   describe("Runtime: cmp_to_key", () => {
     it("should convert comparison function to key", () => {
       const compare = (a: number, b: number) => a - b
-      const key = py.functools.cmp_to_key(compare)
+      const key = functools.cmp_to_key(compare)
       const k1 = key(5)
       const k2 = key(3)
       expect(k1.__lt__(k2)).toBe(false)

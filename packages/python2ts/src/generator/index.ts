@@ -46,8 +46,9 @@ export function generate(
 
   let runtimeImport: string | null = null
   if (opts.includeRuntime && usedRuntimeFunctions.length > 0) {
-    const importPath = opts.runtimeImportPath ?? "python2ts/runtime"
-    runtimeImport = `import { py } from '${importPath}';`
+    const importPath = opts.runtimeImportPath ?? "pythonlib"
+    const imports = buildRuntimeImports(usedRuntimeFunctions)
+    runtimeImport = `import { ${imports.join(", ")} } from "${importPath}"`
   }
 
   let code = result.code
@@ -62,6 +63,119 @@ export function generate(
     runtimeImport,
     usedRuntimeFunctions
   }
+}
+
+/**
+ * Build the list of imports needed from pythonlib based on what's used
+ */
+function buildRuntimeImports(usedFunctions: string[]): string[] {
+  const imports = new Set<string>()
+
+  for (const func of usedFunctions) {
+    // Module namespaces - import the whole module
+    if (
+      [
+        "itertools",
+        "functools",
+        "math",
+        "random",
+        "json",
+        "os",
+        "datetime",
+        "re",
+        "string",
+        "collections"
+      ].includes(func)
+    ) {
+      imports.add(func)
+      continue
+    }
+
+    // Helper namespaces with methods (list.remove, dict.get, set.add, etc.)
+    if (func.startsWith("list.") || func === "list") {
+      imports.add("list")
+      continue
+    }
+    if (func.startsWith("dict.") || func === "dict") {
+      imports.add("dict")
+      continue
+    }
+    if (func.startsWith("set.") || func === "set") {
+      imports.add("set")
+      continue
+    }
+
+    // Collections classes (Counter, defaultdict, deque)
+    if (["Counter", "defaultdict", "deque"].includes(func)) {
+      imports.add("collections")
+      continue
+    }
+
+    // Core operations
+    if (
+      [
+        "floordiv",
+        "pow",
+        "mod",
+        "sprintf",
+        "slice",
+        "at",
+        "contains",
+        "repeatValue",
+        "strFormat",
+        "divmod"
+      ].includes(func)
+    ) {
+      imports.add(func)
+      continue
+    }
+
+    // Builtin functions - import directly
+    if (
+      [
+        "len",
+        "range",
+        "int",
+        "float",
+        "str",
+        "bool",
+        "abs",
+        "min",
+        "max",
+        "sum",
+        "tuple",
+        "enumerate",
+        "zip",
+        "sorted",
+        "reversed",
+        "isinstance",
+        "type",
+        "input",
+        "ord",
+        "chr",
+        "all",
+        "any",
+        "map",
+        "filter",
+        "repr",
+        "round",
+        "hex",
+        "oct",
+        "bin",
+        "iter",
+        "ascii",
+        "format"
+      ].includes(func)
+    ) {
+      imports.add(func)
+      continue
+    }
+
+    // Unknown - add as-is (for future compatibility)
+    imports.add(func)
+  }
+
+  return Array.from(imports).sort()
 }
 
 /**
