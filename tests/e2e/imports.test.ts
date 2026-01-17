@@ -4,9 +4,9 @@ import { transpile } from "../../src/generator/index.js"
 describe("E2E: Imports", () => {
   describe("Simple Imports", () => {
     it("should convert simple import", () => {
-      const python = `import os`
+      const python = `import sys`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
-        `"import * as os from "os""`
+        `"import * as sys from "sys""`
       )
     })
 
@@ -18,33 +18,32 @@ describe("E2E: Imports", () => {
     })
 
     it("should convert import with longer module name", () => {
-      const python = `import datetime`
+      const python = `import pathlib`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
-        `"import * as datetime from "datetime""`
+        `"import * as pathlib from "pathlib""`
       )
     })
   })
 
   describe("From Imports", () => {
     it("should convert from import single", () => {
-      const python = `from os import path`
+      const python = `from pathlib import Path`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
-        `"import { path } from "os""`
+        `"import { Path } from "pathlib""`
       )
     })
 
     it("should convert from import multiple", () => {
-      const python = `from os import path, getcwd, chdir`
+      const python = `from pathlib import Path, PurePath, PosixPath`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
-        `"import { path, getcwd, chdir } from "os""`
+        `"import { Path, PurePath, PosixPath } from "pathlib""`
       )
     })
 
     it("should convert from import with alias", () => {
-      // Note: collections imports are now stripped as they're provided by the runtime
-      const python = `from os import path as p`
+      const python = `from pathlib import Path as P`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
-        `"import { path as p } from "os""`
+        `"import { Path as P } from "pathlib""`
       )
     })
 
@@ -54,9 +53,9 @@ describe("E2E: Imports", () => {
     })
 
     it("should convert from import star", () => {
-      const python = `from datetime import *`
+      const python = `from pathlib import *`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
-        `"import * as datetime from "datetime""`
+        `"import * as pathlib from "pathlib""`
       )
     })
   })
@@ -93,11 +92,11 @@ describe("E2E: Imports", () => {
 
   describe("Import with Code", () => {
     it("should convert import followed by code", () => {
-      const python = `import os
-x = os.path.join("a", "b")`
+      const python = `import sys
+x = sys.path[0]`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "import * as os from "os"
-        let x = os.path.join("a", "b");"
+        "import * as sys from "sys"
+        let x = sys.path[0];"
       `)
     })
 
@@ -111,12 +110,12 @@ result = Path("/home")`
     })
 
     it("should convert multiple imports", () => {
-      const python = `import os
-from sys import argv
+      const python = `import sys
+from argparse import ArgumentParser
 from pathlib import Path`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "import * as os from "os"
-        import { argv } from "sys"
+        "import * as sys from "sys"
+        import { ArgumentParser } from "argparse"
         import { Path } from "pathlib""
       `)
     })
@@ -124,13 +123,13 @@ from pathlib import Path`
 
   describe("Real-world Examples", () => {
     it("should convert typical Python script header", () => {
-      const python = `import os
-import sys
+      const python = `import sys
+import argparse
 from typing import List, Optional
 from dataclasses import dataclass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "import * as os from "os"
-        import * as sys from "sys"
+        "import * as sys from "sys"
+        import * as argparse from "argparse"
         import { dataclass } from "dataclasses""
       `)
     })

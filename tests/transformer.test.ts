@@ -539,15 +539,15 @@ describe("Transformer", () => {
 
   describe("Import Statements", () => {
     it("should transform simple import", () => {
-      const result = transform("import os")
+      const result = transform("import sys")
       expect(result.code).toContain("import")
-      expect(result.code).toContain("os")
+      expect(result.code).toContain("sys")
     })
 
     it("should transform from import", () => {
-      const result = transform("from os import path")
+      const result = transform("from pathlib import Path")
       expect(result.code).toContain("import")
-      expect(result.code).toContain("path")
+      expect(result.code).toContain("Path")
     })
   })
 
@@ -828,13 +828,13 @@ describe("Transformer", () => {
 
   describe("Edge Cases - Imports", () => {
     it("should handle import with multiple modules", () => {
-      const result = transform("import os, sys, json")
-      expect(result.code).toContain("os")
+      const result = transform("import argparse, sys, pathlib")
+      expect(result.code).toContain("argparse")
       expect(result.code).toContain("sys")
     })
 
     it("should handle from import star", () => {
-      const result = transform("from datetime import *")
+      const result = transform("from pathlib import *")
       expect(result.code).toContain("import")
     })
 

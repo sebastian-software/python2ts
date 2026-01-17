@@ -1,10 +1,112 @@
 /**
- * Python string methods for TypeScript
- * Usage: py.string.join(), py.string.split(), etc.
+ * Python string methods and constants for TypeScript
+ * Usage: py.string.join(), py.string.split(), py.string.ascii_lowercase, etc.
  */
 
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+// ============================================================================
+// String constants (Python string module)
+// ============================================================================
+
+/** The lowercase letters 'abcdefghijklmnopqrstuvwxyz' */
+export const ascii_lowercase = "abcdefghijklmnopqrstuvwxyz"
+
+/** The uppercase letters 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' */
+export const ascii_uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+/** The concatenation of ascii_lowercase and ascii_uppercase */
+export const ascii_letters = ascii_lowercase + ascii_uppercase
+
+/** The string '0123456789' */
+export const digits = "0123456789"
+
+/** The string '0123456789abcdefABCDEF' */
+export const hexdigits = "0123456789abcdefABCDEF"
+
+/** The string '01234567' */
+export const octdigits = "01234567"
+
+/** String of ASCII characters which are considered punctuation */
+export const punctuation = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+
+/** String of ASCII characters which are considered whitespace */
+export const whitespace = " \t\n\r\x0b\x0c"
+
+/** String of ASCII characters which are considered printable */
+export const printable = digits + ascii_letters + punctuation + whitespace
+
+// ============================================================================
+// Template class
+// ============================================================================
+
+export class Template {
+  readonly template: string
+
+  constructor(template: string) {
+    this.template = template
+  }
+
+  /** Perform substitution, raising KeyError for missing keys */
+  substitute(mapping?: Record<string, unknown>): string {
+    const combined = { ...mapping }
+    return this.template.replace(
+      /\$\$|\$(\w+)|\$\{(\w+)\}/g,
+      (match, name1: string, name2: string) => {
+        if (match === "$$") return "$"
+        const name = name1 || name2
+        if (!(name in combined)) {
+          throw new Error(`KeyError: '${name}'`)
+        }
+        return String(combined[name])
+      }
+    )
+  }
+
+  /** Perform substitution, returning original placeholder for missing keys */
+  safe_substitute(mapping?: Record<string, unknown>): string {
+    const combined = { ...mapping }
+    return this.template.replace(
+      /\$\$|\$(\w+)|\$\{(\w+)\}/g,
+      (match, name1: string, name2: string) => {
+        if (match === "$$") return "$"
+        const name = name1 || name2
+        if (!(name in combined)) {
+          return match
+        }
+        return String(combined[name])
+      }
+    )
+  }
+
+  /** Get identifiers in template */
+  get_identifiers(): string[] {
+    const identifiers: string[] = []
+    const regex = /\$(\w+)|\$\{(\w+)\}/g
+    let match: RegExpExecArray | null
+    while ((match = regex.exec(this.template)) !== null) {
+      const name = match[1] || match[2]
+      if (name && !identifiers.includes(name)) {
+        identifiers.push(name)
+      }
+    }
+    return identifiers
+  }
+}
+
+/** Capitalize words in string */
+export function capwords(s: string, sep?: string): string {
+  const separator = sep ?? " "
+  return s
+    .split(separator)
+    .map((word) => {
+      if (!word) return ""
+      const first = word[0]
+      return first ? first.toUpperCase() + word.slice(1).toLowerCase() : word
+    })
+    .join(separator)
 }
 
 export const string = {

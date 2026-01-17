@@ -13,6 +13,7 @@
  */
 
 import { string } from "./string.js"
+import * as stringModule from "./string.js"
 import { list as listMethods } from "./list.js"
 import { dict as dictMethods } from "./dict.js"
 import { set as setMethods } from "./set.js"
@@ -22,6 +23,9 @@ import * as itertools from "./itertools.js"
 import * as math from "./math.js"
 import * as random from "./random.js"
 import * as json from "./json.js"
+import * as os from "./os.js"
+import * as datetime from "./datetime.js"
+import * as re from "./re.js"
 import { Counter, defaultdict, deque } from "./collections.js"
 
 // Create callable objects that are both functions and have methods
@@ -159,7 +163,37 @@ export const py = {
   // ============================================================
   // json module
   // ============================================================
-  json
+  json,
+
+  // ============================================================
+  // os module
+  // ============================================================
+  os,
+
+  // ============================================================
+  // datetime module
+  // ============================================================
+  datetime,
+
+  // ============================================================
+  // re module
+  // ============================================================
+  re,
+
+  // ============================================================
+  // string module constants and classes
+  // ============================================================
+  Template: stringModule.Template,
+  ascii_lowercase: stringModule.ascii_lowercase,
+  ascii_uppercase: stringModule.ascii_uppercase,
+  ascii_letters: stringModule.ascii_letters,
+  digits: stringModule.digits,
+  hexdigits: stringModule.hexdigits,
+  octdigits: stringModule.octdigits,
+  punctuation: stringModule.punctuation,
+  whitespace: stringModule.whitespace,
+  printable: stringModule.printable,
+  capwords: stringModule.capwords
 }
 
 // Set the py reference for builtins (needed for str() and repr())

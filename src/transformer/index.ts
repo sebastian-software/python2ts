@@ -1468,6 +1468,28 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
       ctx.usesRuntime.add("json")
       return `py.json.load(${args})`
 
+    // datetime classes
+    case "datetime":
+      ctx.usesRuntime.add("datetime")
+      return `new py.datetime.datetime(${args})`
+    case "date":
+      ctx.usesRuntime.add("datetime")
+      return `new py.datetime.date(${args})`
+    case "time":
+      ctx.usesRuntime.add("datetime")
+      return `new py.datetime.time(${args})`
+    case "timedelta":
+      ctx.usesRuntime.add("datetime")
+      return `new py.datetime.timedelta(${args})`
+
+    // string module
+    case "Template":
+      ctx.usesRuntime.add("string")
+      return `new py.Template(${args})`
+    case "capwords":
+      ctx.usesRuntime.add("string")
+      return `py.capwords(${args})`
+
     default:
       // Regular function call
       return `${transformNode(callee, ctx)}(${args})`
@@ -1520,6 +1542,36 @@ function transformModuleCall(
   if (moduleName === "json") {
     ctx.usesRuntime.add("json")
     return `py.json.${funcName}(${args})`
+  }
+
+  // os module
+  if (moduleName === "os") {
+    ctx.usesRuntime.add("os")
+    // os.path.* functions
+    if (funcName.startsWith("path.")) {
+      const pathFunc = funcName.slice(5)
+      return `py.os.path.${pathFunc}(${args})`
+    }
+    // os.* functions
+    return `py.os.${funcName}(${args})`
+  }
+
+  // datetime module
+  if (moduleName === "datetime") {
+    ctx.usesRuntime.add("datetime")
+    return `py.datetime.${funcName}(${args})`
+  }
+
+  // re module
+  if (moduleName === "re") {
+    ctx.usesRuntime.add("re")
+    return `py.re.${funcName}(${args})`
+  }
+
+  // string module
+  if (moduleName === "string") {
+    ctx.usesRuntime.add("string")
+    return `py.string.${funcName}(${args})`
   }
 
   return null
@@ -1860,6 +1912,45 @@ function transformMemberExpression(node: SyntaxNode, ctx: TransformContext): str
     if (objName === "math") {
       ctx.usesRuntime.add("math")
       return `py.math.${propName}`
+    }
+
+    // os module constants (os.sep, os.path, etc.)
+    if (objName === "os") {
+      ctx.usesRuntime.add("os")
+      return `py.os.${propName}`
+    }
+
+    // string module constants
+    if (objName === "string") {
+      ctx.usesRuntime.add("string")
+      // Constants like ascii_lowercase, digits, etc.
+      const stringConstants = [
+        "ascii_lowercase",
+        "ascii_uppercase",
+        "ascii_letters",
+        "digits",
+        "hexdigits",
+        "octdigits",
+        "punctuation",
+        "whitespace",
+        "printable"
+      ]
+      if (stringConstants.includes(propName)) {
+        return `py.${propName}`
+      }
+      return `py.string.${propName}`
+    }
+
+    // re module flags
+    if (objName === "re") {
+      ctx.usesRuntime.add("re")
+      return `py.re.${propName}`
+    }
+
+    // datetime module
+    if (objName === "datetime") {
+      ctx.usesRuntime.add("datetime")
+      return `py.datetime.${propName}`
     }
 
     const objCode = transformNode(obj, ctx)
@@ -2934,7 +3025,17 @@ const TYPING_MODULES = new Set([
 ])
 
 /** Runtime modules whose imports should be stripped (provided by runtime) */
-const RUNTIME_MODULES = new Set(["itertools", "collections", "math", "random", "json"])
+const RUNTIME_MODULES = new Set([
+  "itertools",
+  "collections",
+  "math",
+  "random",
+  "json",
+  "os",
+  "datetime",
+  "re",
+  "string"
+])
 
 function transformFromImport(children: SyntaxNode[], ctx: TransformContext): string {
   // from os import path -> import { path } from "os"
