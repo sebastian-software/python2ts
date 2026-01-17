@@ -18,7 +18,7 @@ Arguments:
 Options:
   -o, --output <file>   Write output to file (prints to stdout if omitted)
   --no-runtime          Don't include runtime import statement
-  --runtime-path <path> Custom runtime import path (default: python2ts/runtime)
+  --runtime-path <path> Custom runtime import path (default: pythonlib)
   -h, --help            Show this help message
   -v, --version         Show version number
 

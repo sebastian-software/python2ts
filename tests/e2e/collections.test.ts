@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
-import { transpile } from "../../src/index"
-import { py } from "../../src/runtime"
+import { transpile } from "python2ts"
+import { py } from "pythonlib"
 
 describe("E2E: collections", () => {
   describe("Transformer", () => {

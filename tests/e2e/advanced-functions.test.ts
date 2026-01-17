@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { transpile } from "../../src/generator/index.js"
+import { transpile } from "python2ts"
 
 describe("E2E: Advanced Functions", () => {
   describe("Default Parameter Values", () => {
@@ -99,7 +99,7 @@ describe("E2E: Advanced Functions", () => {
     it("should convert lambda in map()", () => {
       const python = "list(map(lambda x: x * 2, items))"
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.list(py.map((x) => (x * 2), items));"
       `)
@@ -108,7 +108,7 @@ describe("E2E: Advanced Functions", () => {
     it("should convert lambda in filter()", () => {
       const python = "list(filter(lambda x: x > 0, items))"
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.list(py.filter((x) => (x > 0), items));"
       `)
@@ -117,7 +117,7 @@ describe("E2E: Advanced Functions", () => {
     it("should convert lambda in sorted() with key", () => {
       const python = "sorted(items, key=lambda x: x.name)"
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.sorted(items, { key: (x) => x.name });"
       `)
@@ -136,7 +136,7 @@ describe("E2E: Advanced Functions", () => {
       const python = `def sum_all(*args):
     return sum(args)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         function sum_all(...args) {
           return py.sum(args);

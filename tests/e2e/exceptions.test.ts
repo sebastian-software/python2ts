@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { transpile } from "../../src/generator/index.js"
+import { transpile } from "python2ts"
 
 describe("E2E: Exception Handling", () => {
   describe("Try/Except", () => {
@@ -23,7 +23,7 @@ except:
 except ValueError:
     x = 0`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         try {
           let x = py.int(s);

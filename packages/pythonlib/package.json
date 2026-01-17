@@ -1,0 +1,79 @@
+{
+  "name": "pythonlib",
+  "version": "0.1.0",
+  "description": "Python standard library for TypeScript - itertools, functools, collections, and more",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./collections": {
+      "import": "./dist/collections.js",
+      "types": "./dist/collections.d.ts"
+    },
+    "./itertools": {
+      "import": "./dist/itertools.js",
+      "types": "./dist/itertools.d.ts"
+    },
+    "./functools": {
+      "import": "./dist/functools.js",
+      "types": "./dist/functools.d.ts"
+    },
+    "./math": {
+      "import": "./dist/math.js",
+      "types": "./dist/math.d.ts"
+    },
+    "./random": {
+      "import": "./dist/random.js",
+      "types": "./dist/random.d.ts"
+    },
+    "./datetime": {
+      "import": "./dist/datetime.js",
+      "types": "./dist/datetime.d.ts"
+    },
+    "./re": {
+      "import": "./dist/re.js",
+      "types": "./dist/re.d.ts"
+    },
+    "./json": {
+      "import": "./dist/json.js",
+      "types": "./dist/json.d.ts"
+    },
+    "./os": {
+      "import": "./dist/os.js",
+      "types": "./dist/os.d.ts"
+    },
+    "./string": {
+      "import": "./dist/string.js",
+      "types": "./dist/string.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "python",
+    "typescript",
+    "itertools",
+    "functools",
+    "collections",
+    "stdlib"
+  ],
+  "author": "Sebastian Software GmbH",
+  "license": "MIT",
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

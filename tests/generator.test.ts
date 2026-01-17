@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { generate, transpile } from "../src/generator/index.js"
+import { generate, transpile } from "python2ts"
 
 describe("Generator", () => {
   describe("generate()", () => {
@@ -116,7 +116,7 @@ print(z)
     it("should use default runtime import path when includeRuntime is true but runtimeImportPath is not set", () => {
       const result = transpile("print(len([1, 2, 3]))", { includeRuntime: true })
       expect(result).toContain("import { py }")
-      expect(result).toContain("python2ts/runtime")
+      expect(result).toContain("pythonlib")
     })
 
     it("should use custom runtime import path when specified", () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
-import { transpile } from "../../src/generator/index.js"
-import { py } from "../../src/runtime/index.js"
+import { transpile } from "python2ts"
+import { py } from "pythonlib"
 
 describe("E2E: functools module", () => {
   describe("Import Handling", () => {
@@ -20,7 +20,7 @@ describe("E2E: functools module", () => {
       const python = `from functools import partial
 add5 = partial(add, 5)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let add5 = py.functools.partial(add, 5);"
       `)
@@ -30,7 +30,7 @@ add5 = partial(add, 5)`
       const python = `from functools import reduce
 result = reduce(lambda x, y: x + y, [1, 2, 3, 4, 5])`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let result = py.functools.reduce((x, y) => (x + y), [1, 2, 3, 4, 5]);"
       `)
@@ -52,7 +52,7 @@ def fib(n):
       const python = `import functools
 result = functools.reduce(add, numbers)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let result = py.functools.reduce(add, numbers);"
       `)

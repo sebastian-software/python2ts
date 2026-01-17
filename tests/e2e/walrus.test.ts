@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { transpile } from "../../src/generator/index.js"
+import { transpile } from "python2ts"
 
 describe("E2E: Walrus Operator (:=)", () => {
   describe("Basic Usage", () => {
@@ -23,7 +23,7 @@ describe("E2E: Walrus Operator (:=)", () => {
       const python = `if (n := len(a)) > 10:
     print(n)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         if (((n = py.len(a)) > 10)) {
           console.log(n);
@@ -35,7 +35,7 @@ describe("E2E: Walrus Operator (:=)", () => {
       const python = `while (line := input()):
     print(line)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         while ((line = py.input())) {
           console.log(line);

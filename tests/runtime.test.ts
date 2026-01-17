@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { py } from "../src/runtime/index.js"
+import { py } from "pythonlib"
 
 describe("Runtime Library (py.*)", () => {
   describe("Arithmetic Operations", () => {

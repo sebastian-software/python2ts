@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
-import { transpile } from "../../src/generator/index.js"
-import { py } from "../../src/runtime/index.js"
+import { transpile } from "python2ts"
+import { py } from "pythonlib"
 
 describe("E2E: F-Strings", () => {
   describe("Basic F-Strings", () => {
@@ -53,7 +53,7 @@ describe("E2E: F-Strings", () => {
     it("should convert f-string with float precision", () => {
       const python = `x = f"{value:.2f}"`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let x = \`\${py.format(value, ".2f")}\`;"
       `)
@@ -62,7 +62,7 @@ describe("E2E: F-Strings", () => {
     it("should convert f-string with width", () => {
       const python = `x = f"{value:10}"`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let x = \`\${py.format(value, "10")}\`;"
       `)
@@ -71,7 +71,7 @@ describe("E2E: F-Strings", () => {
     it("should convert f-string with alignment", () => {
       const python = `x = f"{value:>10}"`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let x = \`\${py.format(value, ">10")}\`;"
       `)
@@ -80,7 +80,7 @@ describe("E2E: F-Strings", () => {
     it("should convert f-string with center alignment", () => {
       const python = `x = f"{value:^10}"`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let x = \`\${py.format(value, "^10")}\`;"
       `)
@@ -91,7 +91,7 @@ describe("E2E: F-Strings", () => {
     it("should convert f-string with !r (repr)", () => {
       const python = `x = f"{name!r}"`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let x = \`\${py.repr(name)}\`;"
       `)
@@ -100,7 +100,7 @@ describe("E2E: F-Strings", () => {
     it("should convert f-string with !s (str)", () => {
       const python = `x = f"{value!s}"`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let x = \`\${py.str(value)}\`;"
       `)
@@ -109,7 +109,7 @@ describe("E2E: F-Strings", () => {
     it("should convert f-string with !a (ascii)", () => {
       const python = `x = f"{text!a}"`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let x = \`\${py.ascii(text)}\`;"
       `)
@@ -134,7 +134,7 @@ describe("E2E: F-Strings", () => {
     it("should handle function calls in f-string", () => {
       const python = `x = f"Length: {len(items)}"`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let x = \`Length: \${py.len(items)}\`;"
       `)
@@ -152,7 +152,7 @@ describe("E2E: F-Strings", () => {
     it("should convert formatted number output", () => {
       const python = 'output = f"Price: {price:.2f}"'
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let output = \`Price: \${py.format(price, ".2f")}\`;"
       `)
@@ -161,7 +161,7 @@ describe("E2E: F-Strings", () => {
     it("should convert debug output with repr", () => {
       const python = `debug = f"Value of x: {x!r}"`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let debug = \`Value of x: \${py.repr(x)}\`;"
       `)

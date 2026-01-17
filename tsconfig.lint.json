@@ -2,7 +2,11 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "rootDir": ".",
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "pythonlib": ["./packages/pythonlib/src/index.ts"],
+      "python2ts": ["./packages/python2ts/src/index.ts"]
+    }
   },
-  "include": ["src/**/*", "tests/**/*"]
+  "include": ["packages/*/src/**/*", "tests/**/*"]
 }

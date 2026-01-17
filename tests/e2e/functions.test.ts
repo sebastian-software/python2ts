@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { transpile } from "../../src/generator/index.js"
+import { transpile } from "python2ts"
 
 describe("E2E: Functions", () => {
   describe("Function Definitions", () => {
@@ -101,7 +101,7 @@ describe("E2E: Functions", () => {
 
     it("should convert len", () => {
       expect(transpile("n = len(items)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let n = py.len(items);"
       `)
@@ -109,7 +109,7 @@ describe("E2E: Functions", () => {
 
     it("should convert range with one argument", () => {
       expect(transpile("r = range(10)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let r = py.range(10);"
       `)
@@ -117,7 +117,7 @@ describe("E2E: Functions", () => {
 
     it("should convert range with two arguments", () => {
       expect(transpile("r = range(1, 10)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let r = py.range(1, 10);"
       `)
@@ -125,7 +125,7 @@ describe("E2E: Functions", () => {
 
     it("should convert range with three arguments", () => {
       expect(transpile("r = range(0, 10, 2)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let r = py.range(0, 10, 2);"
       `)
@@ -133,7 +133,7 @@ describe("E2E: Functions", () => {
 
     it("should convert enumerate", () => {
       expect(transpile("e = enumerate(items)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let e = py.enumerate(items);"
       `)
@@ -141,7 +141,7 @@ describe("E2E: Functions", () => {
 
     it("should convert zip", () => {
       expect(transpile("z = zip(a, b)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let z = py.zip(a, b);"
       `)
@@ -149,7 +149,7 @@ describe("E2E: Functions", () => {
 
     it("should convert sorted", () => {
       expect(transpile("s = sorted(items)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let s = py.sorted(items);"
       `)
@@ -157,7 +157,7 @@ describe("E2E: Functions", () => {
 
     it("should convert reversed", () => {
       expect(transpile("r = reversed(items)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let r = py.reversed(items);"
       `)
@@ -165,7 +165,7 @@ describe("E2E: Functions", () => {
 
     it("should convert abs", () => {
       expect(transpile("a = abs(-5)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let a = py.abs((-5));"
       `)
@@ -173,7 +173,7 @@ describe("E2E: Functions", () => {
 
     it("should convert min", () => {
       expect(transpile("m = min(1, 2, 3)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let m = py.min(1, 2, 3);"
       `)
@@ -181,7 +181,7 @@ describe("E2E: Functions", () => {
 
     it("should convert max", () => {
       expect(transpile("m = max(1, 2, 3)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let m = py.max(1, 2, 3);"
       `)
@@ -189,7 +189,7 @@ describe("E2E: Functions", () => {
 
     it("should convert sum", () => {
       expect(transpile("s = sum(numbers)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let s = py.sum(numbers);"
       `)
@@ -197,7 +197,7 @@ describe("E2E: Functions", () => {
 
     it("should convert int", () => {
       expect(transpile('i = int("42")')).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let i = py.int("42");"
       `)
@@ -205,7 +205,7 @@ describe("E2E: Functions", () => {
 
     it("should convert float", () => {
       expect(transpile('f = float("3.14")')).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let f = py.float("3.14");"
       `)
@@ -213,7 +213,7 @@ describe("E2E: Functions", () => {
 
     it("should convert str", () => {
       expect(transpile("s = str(42)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let s = py.str(42);"
       `)
@@ -221,7 +221,7 @@ describe("E2E: Functions", () => {
 
     it("should convert bool", () => {
       expect(transpile("b = bool(x)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let b = py.bool(x);"
       `)
@@ -229,7 +229,7 @@ describe("E2E: Functions", () => {
 
     it("should convert list", () => {
       expect(transpile("l = list(items)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let l = py.list(items);"
       `)
@@ -237,7 +237,7 @@ describe("E2E: Functions", () => {
 
     it("should convert dict", () => {
       expect(transpile("d = dict(entries)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let d = py.dict(entries);"
       `)
@@ -245,7 +245,7 @@ describe("E2E: Functions", () => {
 
     it("should convert set", () => {
       expect(transpile("s = set(items)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let s = py.set(items);"
       `)
@@ -253,7 +253,7 @@ describe("E2E: Functions", () => {
 
     it("should convert tuple", () => {
       expect(transpile("t = tuple(items)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let t = py.tuple(items);"
       `)
@@ -261,7 +261,7 @@ describe("E2E: Functions", () => {
 
     it("should convert isinstance", () => {
       expect(transpile("isinstance(x, int)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.isinstance(x, int);"
       `)
@@ -269,7 +269,7 @@ describe("E2E: Functions", () => {
 
     it("should convert type", () => {
       expect(transpile("type(x)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.type(x);"
       `)
@@ -277,7 +277,7 @@ describe("E2E: Functions", () => {
 
     it("should convert ord", () => {
       expect(transpile('ord("A")')).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.ord("A");"
       `)
@@ -285,7 +285,7 @@ describe("E2E: Functions", () => {
 
     it("should convert chr", () => {
       expect(transpile("chr(65)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.chr(65);"
       `)
@@ -293,7 +293,7 @@ describe("E2E: Functions", () => {
 
     it("should convert input", () => {
       expect(transpile("input('prompt')")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.input('prompt');"
       `)

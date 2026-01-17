@@ -7,7 +7,7 @@ import {
   getChildrenByType,
   walkTree,
   debugTree
-} from "../src/parser/index.js"
+} from "python2ts"
 
 describe("Parser", () => {
   describe("parse()", () => {

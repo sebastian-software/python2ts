@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { transpile } from "../../src/generator/index.js"
+import { transpile } from "python2ts"
 
 describe("E2E: Comprehensions", () => {
   describe("List Comprehensions", () => {
@@ -37,7 +37,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform list comprehension with function call", () => {
       expect(transpile("[len(x) for x in items]")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         items.map((x) => py.len(x));"
       `)
@@ -45,7 +45,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform list comprehension with range", () => {
       expect(transpile("[x ** 2 for x in range(10)]")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         [...py.range(10)].map((x) => py.pow(x, 2));"
       `)
@@ -59,7 +59,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform list comprehension with complex expression", () => {
       expect(transpile("[x + 1 for x in items if x % 2 == 0]")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         items.filter((x) => (py.mod(x, 2) == 0)).map((x) => (x + 1));"
       `)
@@ -69,7 +69,7 @@ describe("E2E: Comprehensions", () => {
   describe("Dict Comprehensions", () => {
     it("should transform simple dict comprehension", () => {
       expect(transpile("{x: x * 2 for x in items}")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.dict(items.map((x) => [x, (x * 2)]));"
       `)
@@ -77,7 +77,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform dict comprehension with condition", () => {
       expect(transpile("{x: x ** 2 for x in items if x > 0}")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.dict(items.filter((x) => (x > 0)).map((x) => [x, py.pow(x, 2)]));"
       `)
@@ -85,7 +85,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform dict comprehension with range", () => {
       expect(transpile("{i: i * i for i in range(5)}")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.dict([...py.range(5)].map((i) => [i, (i * i)]));"
       `)
@@ -95,7 +95,7 @@ describe("E2E: Comprehensions", () => {
   describe("Set Comprehensions", () => {
     it("should transform simple set comprehension", () => {
       expect(transpile("{x * 2 for x in items}")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.set(items.map((x) => (x * 2)));"
       `)
@@ -103,7 +103,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform set comprehension with condition", () => {
       expect(transpile("{x for x in items if x > 0}")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.set(items.filter((x) => (x > 0)).map((x) => x));"
       `)
@@ -111,7 +111,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform set comprehension with function", () => {
       expect(transpile("{len(s) for s in strings}")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.set(strings.map((s) => py.len(s)));"
       `)
@@ -121,7 +121,7 @@ describe("E2E: Comprehensions", () => {
   describe("Set Expressions", () => {
     it("should transform set literal", () => {
       expect(transpile("{1, 2, 3}")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.set([1, 2, 3]);"
       `)
@@ -129,7 +129,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform empty set constructor", () => {
       expect(transpile("s = set()")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let s = py.set();"
       `)
@@ -145,7 +145,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should handle comprehension with nested function calls", () => {
       expect(transpile("[str(int(x)) for x in items]")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         items.map((x) => py.str(py.int(x)));"
       `)
@@ -161,7 +161,7 @@ describe("E2E: Comprehensions", () => {
   describe("Real-world Examples", () => {
     it("should transform filtering even numbers", () => {
       expect(transpile("evens = [x for x in numbers if x % 2 == 0]")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let evens = numbers.filter((x) => (py.mod(x, 2) == 0)).map((x) => x);"
       `)
@@ -185,7 +185,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform creating pairs", () => {
       expect(transpile("pairs = [(x, y) for x in a for y in b]")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let pairs = a.flatMap((x) => b.map((y) => py.tuple(x, y)));"
       `)
@@ -213,7 +213,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform generator inside sum()", () => {
       expect(transpile("sum(x for x in items)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.sum((function*() { for (const x of items) yield x; })());"
       `)
@@ -221,7 +221,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform generator inside any()", () => {
       expect(transpile("any(x > 0 for x in items)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.any((function*() { for (const x of items) yield (x > 0); })());"
       `)
@@ -229,7 +229,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform generator inside all()", () => {
       expect(transpile("all(x > 0 for x in items)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.all((function*() { for (const x of items) yield (x > 0); })());"
       `)
@@ -237,7 +237,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform generator with nested loops", () => {
       expect(transpile("((x, y) for x in a for y in b)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         (function*() { for (const x of a)   for (const y of b) yield py.tuple(x, y); })();"
       `)
@@ -245,7 +245,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform generator with range", () => {
       expect(transpile("sum(x ** 2 for x in range(10))")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.sum((function*() { for (const x of py.range(10)) yield py.pow(x, 2); })());"
       `)
@@ -253,7 +253,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform max with generator", () => {
       expect(transpile("max(len(s) for s in strings)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.max((function*() { for (const s of strings) yield py.len(s); })());"
       `)
@@ -261,7 +261,7 @@ describe("E2E: Comprehensions", () => {
 
     it("should transform min with generator and condition", () => {
       expect(transpile("min(x for x in numbers if x > 0)")).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         py.min((function*() { for (const x of numbers) if ((x > 0)) yield x; })());"
       `)

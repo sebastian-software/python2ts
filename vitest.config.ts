@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config"
+import { resolve } from "path"
 
 export default defineConfig({
   test: {
@@ -6,8 +7,8 @@ export default defineConfig({
     include: ["tests/**/*.test.ts"],
     coverage: {
       provider: "v8",
-      include: ["src/**/*.ts"],
-      exclude: ["src/**/*.d.ts"],
+      include: ["packages/*/src/**/*.ts"],
+      exclude: ["packages/*/src/**/*.d.ts"],
       thresholds: {
         lines: 85,
         functions: 85,
@@ -15,6 +16,12 @@ export default defineConfig({
         statements: 85
       },
       reporter: ["text", "html", "lcov"]
+    }
+  },
+  resolve: {
+    alias: {
+      pythonlib: resolve(__dirname, "packages/pythonlib/src/index.ts"),
+      python2ts: resolve(__dirname, "packages/python2ts/src/index.ts")
     }
   }
 })

@@ -8,7 +8,7 @@ import {
   debugTree,
   getNodeText,
   getChildren
-} from "../src/index.js"
+} from "python2ts"
 
 describe("Integration Tests", () => {
   describe("Main exports", () => {

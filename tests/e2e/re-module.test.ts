@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect } from "vitest"
-import { transpile } from "../../src/generator/index.js"
-import { py } from "../../src/runtime/index.js"
+import { transpile } from "python2ts"
+import { py } from "pythonlib"
 
 describe("E2E: re module", () => {
   describe("Import Handling", () => {

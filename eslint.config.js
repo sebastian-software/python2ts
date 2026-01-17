@@ -21,6 +21,14 @@ export default tseslint.config(
     }
   },
   {
-    ignores: ["dist/**", "coverage/**", "*.config.ts", "*.config.js"]
+    ignores: [
+      "dist/**",
+      "coverage/**",
+      "*.config.ts",
+      "*.config.js",
+      "packages/*/dist/**",
+      "packages/*/node_modules/**",
+      "docs/**"
+    ]
   }
 )

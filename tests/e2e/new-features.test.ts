@@ -15,8 +15,8 @@
 
 import { describe, it, expect } from "vitest"
 import { execSync } from "child_process"
-import { transpile } from "../../src/generator/index.js"
-import { py } from "../../src/runtime/index.js"
+import { transpile } from "python2ts"
+import { py } from "pythonlib"
 
 /**
  * Strip TypeScript type annotations for JavaScript execution

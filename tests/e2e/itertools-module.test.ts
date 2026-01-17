@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
-import { transpile } from "../../src/generator/index.js"
-import { py } from "../../src/runtime/index.js"
+import { transpile } from "python2ts"
+import { py } from "pythonlib"
 
 describe("E2E: itertools module", () => {
   describe("Import Handling", () => {
@@ -20,7 +20,7 @@ describe("E2E: itertools module", () => {
       const python = `from itertools import chain
 result = list(chain([1, 2], [3, 4]))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let result = py.list(py.itertools.chain([1, 2], [3, 4]));"
       `)
@@ -30,7 +30,7 @@ result = list(chain([1, 2], [3, 4]))`
       const python = `from itertools import zip_longest
 result = list(zip_longest([1, 2, 3], ['a', 'b']))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let result = py.list(py.itertools.zip_longest([1, 2, 3], ['a', 'b']));"
       `)
@@ -40,7 +40,7 @@ result = list(zip_longest([1, 2, 3], ['a', 'b']))`
       const python = `from itertools import combinations
 result = list(combinations([1, 2, 3], 2))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let result = py.list(py.itertools.combinations([1, 2, 3], 2));"
       `)
@@ -50,7 +50,7 @@ result = list(combinations([1, 2, 3], 2))`
       const python = `from itertools import permutations
 result = list(permutations([1, 2, 3], 2))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let result = py.list(py.itertools.permutations([1, 2, 3], 2));"
       `)
@@ -60,7 +60,7 @@ result = list(permutations([1, 2, 3], 2))`
       const python = `from itertools import groupby
 result = list(groupby([1, 1, 2, 2, 3]))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         let result = py.list(py.itertools.groupby([1, 1, 2, 2, 3]));"
       `)

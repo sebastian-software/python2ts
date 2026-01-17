@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
-import { transpile } from "../../src/generator/index.js"
-import { py } from "../../src/runtime/index.js"
+import { transpile } from "python2ts"
+import { py } from "pythonlib"
 
 describe("E2E: datetime module", () => {
   describe("Import Handling", () => {

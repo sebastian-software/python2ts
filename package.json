@@ -1,46 +1,29 @@
 {
-  "name": "python2ts",
+  "name": "python2ts-monorepo",
   "version": "0.1.0",
-  "description": "AST-based Python to TypeScript transpiler",
+  "private": true,
+  "description": "Python to TypeScript transpiler monorepo",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./runtime": {
-      "import": "./dist/runtime/index.js",
-      "types": "./dist/runtime/index.d.ts"
-    }
-  },
-  "bin": {
-    "python2ts": "./dist/cli/index.js"
-  },
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "pnpm -r build",
+    "dev": "pnpm -r --parallel dev",
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:coverage": "vitest --run --coverage",
-    "lint": "eslint src tests",
+    "lint": "eslint packages/*/src tests",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "pnpm -r typecheck",
+    "docs:dev": "pnpm --filter docs start",
+    "docs:build": "pnpm --filter docs build",
     "prepare": "husky"
   },
   "keywords": [
     "python",
     "typescript",
-    "transpiler",
-    "ast",
-    "converter"
+    "transpiler"
   ],
-  "author": "",
+  "author": "Sebastian Software GmbH",
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^9.0.0",
@@ -49,19 +32,16 @@
     "eslint": "^9.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "tsup": "^8.3.0",
+    "prettier": "^3.8.0",
     "typescript": "^5.6.0",
     "typescript-eslint": "^8.0.0",
     "vitest": "^2.1.0"
   },
-  "dependencies": {
-    "@lezer/common": "^1.2.0",
-    "@lezer/python": "^1.1.0",
-    "prettier": "^3.8.0"
-  },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
   },
+  "packageManager": "pnpm@9.15.4",
   "lint-staged": {
     "*.{ts,js,json,md}": "prettier --write"
   }

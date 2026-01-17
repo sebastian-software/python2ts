@@ -1,0 +1,46 @@
+{
+  "name": "python2ts",
+  "version": "0.1.0",
+  "description": "AST-based Python to TypeScript transpiler",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "bin": {
+    "python2ts": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "python",
+    "typescript",
+    "transpiler",
+    "ast",
+    "converter"
+  ],
+  "author": "Sebastian Software GmbH",
+  "license": "MIT",
+  "dependencies": {
+    "@lezer/common": "^1.2.0",
+    "@lezer/python": "^1.1.0",
+    "pythonlib": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

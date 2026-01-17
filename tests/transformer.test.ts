@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { transform } from "../src/transformer/index.js"
+import { transform } from "python2ts"
 
 describe("Transformer", () => {
   describe("Literals", () => {

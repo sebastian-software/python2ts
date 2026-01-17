@@ -4,7 +4,7 @@ import { writeFileSync, unlinkSync, readFileSync } from "fs"
 import { join } from "path"
 import { tmpdir } from "os"
 
-const CLI_PATH = join(__dirname, "..", "dist", "cli", "index.js")
+const CLI_PATH = join(__dirname, "..", "packages", "python2ts", "dist", "cli", "index.js")
 
 function runCLI(args: string, input?: string): { stdout: string; stderr: string; code: number } {
   try {
@@ -75,7 +75,7 @@ describe("CLI", () => {
       try {
         const result = runCLI(testFile)
         expect(result.code).toBe(0)
-        expect(result.stdout).toContain('import { py } from "python2ts/runtime"')
+        expect(result.stdout).toContain('import { py } from "pythonlib"')
         expect(result.stdout).toContain("py.range(5)")
       } finally {
         unlinkSync(testFile)

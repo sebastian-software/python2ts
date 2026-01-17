@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { py } from "../../src/runtime/index.js"
+import { py } from "pythonlib"
 
 describe("E2E: Built-in Functions Execution", () => {
   describe("type()", () => {

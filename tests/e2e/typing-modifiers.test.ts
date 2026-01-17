@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { transpile } from "../../src/index"
+import { transpile } from "python2ts"
 
 describe("E2E: Typing Modifiers", () => {
   describe("Final[T]", () => {

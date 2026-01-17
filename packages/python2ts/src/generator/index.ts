@@ -15,7 +15,7 @@ export interface GeneratedCode {
 
 const defaultOptions: GeneratorOptions = {
   includeRuntime: true,
-  runtimeImportPath: "python2ts/runtime"
+  runtimeImportPath: "pythonlib"
 }
 
 /** Prettier configuration for generated TypeScript code */

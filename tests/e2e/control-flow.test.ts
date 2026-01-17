@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { transpile } from "../../src/generator/index.js"
+import { transpile } from "python2ts"
 
 describe("E2E: Control Flow", () => {
   describe("If Statements", () => {
@@ -122,7 +122,7 @@ else:
       const python = `for i in range(10):
     print(i)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         for (const i of py.range(10)) {
           console.log(i);
@@ -134,7 +134,7 @@ else:
       const python = `for i, item in enumerate(items):
     print(i, item)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         for (const [i, item] of py.enumerate(items)) {
           console.log(i, item);
@@ -186,7 +186,7 @@ else:
       const python = `for a, b in zip(list1, list2):
     print(a, b)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         for (const [a, b] of py.zip(list1, list2)) {
           console.log(a, b);
@@ -258,7 +258,7 @@ else:
     for j in range(3):
         print(i, j)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { py } from 'python2ts/runtime';
+        "import { py } from 'pythonlib';
 
         for (const i of py.range(3)) {
           for (const j of py.range(3)) {
