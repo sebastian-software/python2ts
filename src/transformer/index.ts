@@ -1296,6 +1296,12 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
     if (methodResult !== null) {
       return methodResult
     }
+
+    // Handle module-qualified calls (math.sqrt(), random.randint(), json.dumps())
+    const moduleCallResult = transformModuleCall(calleeName, args, ctx)
+    if (moduleCallResult !== null) {
+      return moduleCallResult
+    }
     // Fall through to regular call handling if no special mapping
   }
 
@@ -1448,10 +1454,75 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
       ctx.usesRuntime.add("deque")
       return `new py.deque(${args})`
 
+    // json functions
+    case "dumps":
+      ctx.usesRuntime.add("json")
+      return `py.json.dumps(${args})`
+    case "loads":
+      ctx.usesRuntime.add("json")
+      return `py.json.loads(${args})`
+    case "dump":
+      ctx.usesRuntime.add("json")
+      return `py.json.dump(${args})`
+    case "load":
+      ctx.usesRuntime.add("json")
+      return `py.json.load(${args})`
+
     default:
       // Regular function call
       return `${transformNode(callee, ctx)}(${args})`
   }
+}
+
+/**
+ * Transform module-qualified function calls (math.sqrt(), random.randint(), etc.)
+ * Returns null if no special mapping is needed.
+ */
+function transformModuleCall(
+  calleeName: string,
+  args: string,
+  ctx: TransformContext
+): string | null {
+  // Parse module.function pattern
+  const dotIndex = calleeName.indexOf(".")
+  if (dotIndex === -1) return null
+
+  const moduleName = calleeName.slice(0, dotIndex)
+  const funcName = calleeName.slice(dotIndex + 1)
+
+  // math module - most map directly to Math.*
+  if (moduleName === "math") {
+    ctx.usesRuntime.add("math")
+
+    // Constants (no args)
+    const mathConstants: Record<string, string> = {
+      pi: "py.math.pi",
+      e: "py.math.e",
+      tau: "py.math.tau",
+      inf: "py.math.inf",
+      nan: "py.math.nan"
+    }
+    if (funcName in mathConstants) {
+      return mathConstants[funcName] as string
+    }
+
+    // Functions that map to py.math.*
+    return `py.math.${funcName}(${args})`
+  }
+
+  // random module
+  if (moduleName === "random") {
+    ctx.usesRuntime.add("random")
+    return `py.random.${funcName}(${args})`
+  }
+
+  // json module
+  if (moduleName === "json") {
+    ctx.usesRuntime.add("json")
+    return `py.json.${funcName}(${args})`
+  }
+
+  return null
 }
 
 /**
@@ -1782,8 +1853,16 @@ function transformMemberExpression(node: SyntaxNode, ctx: TransformContext): str
     const prop = children[children.length - 1]
     if (!prop) return getNodeText(node, ctx.source)
 
-    const objCode = transformNode(obj, ctx)
+    const objName = getNodeText(obj, ctx.source)
     const propName = getNodeText(prop, ctx.source)
+
+    // Handle module constants (math.pi, math.e, etc.)
+    if (objName === "math") {
+      ctx.usesRuntime.add("math")
+      return `py.math.${propName}`
+    }
+
+    const objCode = transformNode(obj, ctx)
 
     // Map Python special attributes to JavaScript equivalents
     const attrMap: Record<string, string> = {
@@ -2827,8 +2906,17 @@ function transformSimpleImport(children: SyntaxNode[], ctx: TransformContext): s
     i++
   }
 
+  // Filter out runtime modules (provided by py runtime) and typing modules
+  const filteredNames = names.filter(
+    ({ module }) => !RUNTIME_MODULES.has(module) && !TYPING_MODULES.has(module)
+  )
+
+  if (filteredNames.length === 0) {
+    return ""
+  }
+
   // Generate import statements
-  return names
+  return filteredNames
     .map(({ module, alias }) => {
       const importName = alias || module
       return `import * as ${importName} from "${module}"`
@@ -2846,7 +2934,7 @@ const TYPING_MODULES = new Set([
 ])
 
 /** Runtime modules whose imports should be stripped (provided by runtime) */
-const RUNTIME_MODULES = new Set(["itertools", "collections"])
+const RUNTIME_MODULES = new Set(["itertools", "collections", "math", "random", "json"])
 
 function transformFromImport(children: SyntaxNode[], ctx: TransformContext): string {
   // from os import path -> import { path } from "os"

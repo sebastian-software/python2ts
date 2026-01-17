@@ -834,7 +834,7 @@ describe("Transformer", () => {
     })
 
     it("should handle from import star", () => {
-      const result = transform("from math import *")
+      const result = transform("from datetime import *")
       expect(result.code).toContain("import")
     })
 

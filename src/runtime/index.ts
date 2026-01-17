@@ -19,6 +19,9 @@ import { set as setMethods } from "./set.js"
 import * as core from "./core.js"
 import * as builtins from "./builtins.js"
 import * as itertools from "./itertools.js"
+import * as math from "./math.js"
+import * as random from "./random.js"
+import * as json from "./json.js"
 import { Counter, defaultdict, deque } from "./collections.js"
 
 // Create callable objects that are both functions and have methods
@@ -141,7 +144,22 @@ export const py = {
   // ============================================================
   Counter,
   defaultdict,
-  deque
+  deque,
+
+  // ============================================================
+  // math module
+  // ============================================================
+  math,
+
+  // ============================================================
+  // random module
+  // ============================================================
+  random,
+
+  // ============================================================
+  // json module
+  // ============================================================
+  json
 }
 
 // Set the py reference for builtins (needed for str() and repr())

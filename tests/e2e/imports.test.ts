@@ -18,9 +18,9 @@ describe("E2E: Imports", () => {
     })
 
     it("should convert import with longer module name", () => {
-      const python = `import collections`
+      const python = `import datetime`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
-        `"import * as collections from "collections""`
+        `"import * as datetime from "datetime""`
       )
     })
   })
@@ -54,9 +54,9 @@ describe("E2E: Imports", () => {
     })
 
     it("should convert from import star", () => {
-      const python = `from math import *`
+      const python = `from datetime import *`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
-        `"import * as math from "math""`
+        `"import * as datetime from "datetime""`
       )
     })
   })
@@ -102,11 +102,11 @@ x = os.path.join("a", "b")`
     })
 
     it("should convert from import followed by code", () => {
-      const python = `from math import sqrt
-result = sqrt(16)`
+      const python = `from pathlib import Path
+result = Path("/home")`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "import { sqrt } from "math"
-        let result = sqrt(16);"
+        "import { Path } from "pathlib"
+        let result = Path("/home");"
       `)
     })
 
@@ -136,14 +136,14 @@ from dataclasses import dataclass`
     })
 
     it("should convert function using imported module", () => {
-      const python = `from json import loads, dumps
+      const python = `from pathlib import Path, PurePath
 
-def parse_json(data):
-    return loads(data)`
+def get_path(data):
+    return Path(data)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "import { loads, dumps } from "json"
-        function parse_json(data) {
-          return loads(data);
+        "import { Path, PurePath } from "pathlib"
+        function get_path(data) {
+          return Path(data);
         }"
       `)
     })
