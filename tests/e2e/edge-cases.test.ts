@@ -175,7 +175,7 @@ x = 1`
     it("should handle slice with all parameters", () => {
       const python = "x = arr[1:10:2]"
       const ts = transpile(python)
-      expect(ts).toContain("py.slice")
+      expect(ts).toContain("slice")
       expect(ts).toContain("1")
       expect(ts).toContain("10")
       expect(ts).toContain("2")
@@ -184,21 +184,21 @@ x = 1`
     it("should handle slice with only start", () => {
       const python = "x = arr[5:]"
       const ts = transpile(python)
-      expect(ts).toContain("py.slice")
+      expect(ts).toContain("slice")
       expect(ts).toContain("5")
     })
 
     it("should handle slice with only stop", () => {
       const python = "x = arr[:5]"
       const ts = transpile(python)
-      expect(ts).toContain("py.slice")
+      expect(ts).toContain("slice")
       expect(ts).toContain("5")
     })
 
     it("should handle reverse slice", () => {
       const python = "x = arr[::-1]"
       const ts = transpile(python)
-      expect(ts).toContain("py.slice")
+      expect(ts).toContain("slice")
       expect(ts).toContain("-1")
     })
   })
@@ -211,8 +211,8 @@ x = 1`
 
     it("should sort with key and reverse", () => {
       const items = [{ name: "z" }, { name: "a" }, { name: "m" }]
-      const sorted = sorted(items, { key: (x) => x.name, reverse: true })
-      expect(sorted.map((x) => x.name)).toEqual(["z", "m", "a"])
+      const result = sorted(items, { key: (x) => x.name, reverse: true })
+      expect(result.map((x) => x.name)).toEqual(["z", "m", "a"])
     })
   })
 
@@ -322,7 +322,7 @@ x = 1`
 
     it("should handle tuple expression", () => {
       const result = transpile("(1, 2, 3)")
-      expect(result).toContain("py.tuple")
+      expect(result).toContain("tuple")
     })
   })
 
@@ -509,7 +509,7 @@ x = 1`
 
     it("should handle set expression", () => {
       const result = transpile("{1, 2, 3}")
-      expect(result).toContain("py.set")
+      expect(result).toContain("set")
     })
   })
 })

@@ -352,11 +352,11 @@ print(greet('World', 'Hi'))
 
     it("recursive function", () => {
       verifyEquivalence(`
-def factorial(n):
+def my_factorial(n):
     if n <= 1:
         return 1
-    return n * factorial(n - 1)
-print(factorial(5))
+    return n * my_factorial(n - 1)
+print(my_factorial(5))
 `)
     })
   })

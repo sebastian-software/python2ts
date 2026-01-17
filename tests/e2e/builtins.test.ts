@@ -12,7 +12,12 @@ import {
   ord,
   repr,
   round,
-  str
+  str,
+  slice,
+  range,
+  map,
+  filter,
+  divmod
 } from "pythonlib"
 
 describe("E2E: Built-in Functions Execution", () => {
@@ -273,10 +278,10 @@ describe("E2E: Built-in Functions Execution", () => {
 
     it("should convert set with entries", () => {
       const s = new Set([1, 2, 3])
-      const str = str(s)
-      expect(str).toContain("1")
-      expect(str).toContain("2")
-      expect(str).toContain("3")
+      const result = str(s)
+      expect(result).toContain("1")
+      expect(result).toContain("2")
+      expect(result).toContain("3")
     })
   })
 })

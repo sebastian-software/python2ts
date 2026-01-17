@@ -216,7 +216,7 @@ describe("Transformer", () => {
 
     it("should transform for loop", () => {
       const result = transform("for i in items:\n    print(i)")
-      expect(result.code).toContain("for (const i of py.iter(items))")
+      expect(result.code).toContain("for (const i of iter(items))")
     })
 
     it("should transform break", () => {
@@ -295,7 +295,7 @@ describe("Transformer", () => {
     it("should transform 'in' operator", () => {
       const result = transform("x in items")
       expect(result.code).toContain("contains(x, items)")
-      expect(result.usesRuntime.has("in")).toBe(true)
+      expect(result.usesRuntime.has("contains")).toBe(true)
     })
 
     it("should transform 'not in' operator", () => {
@@ -620,7 +620,7 @@ describe("Transformer", () => {
     it("should transform string multiplication", () => {
       const result = transform("'ab' * 3")
       expect(result.code).toContain("repeatValue")
-      expect(result.usesRuntime.has("repeat")).toBe(true)
+      expect(result.usesRuntime.has("repeatValue")).toBe(true)
     })
 
     it("should transform list concatenation", () => {

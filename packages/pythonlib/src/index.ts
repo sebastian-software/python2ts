@@ -55,7 +55,23 @@ export const json = jsonModule
 export const os = osModule
 export const datetime = datetimeModule
 export const re = reModule
-export const string = stringModule
+// Merge string methods (count, join, split, etc.) with module-level exports (ascii_lowercase, Template, capwords)
+export const string = {
+  ...stringModule.string,
+  // Module-level constants
+  ascii_lowercase: stringModule.ascii_lowercase,
+  ascii_uppercase: stringModule.ascii_uppercase,
+  ascii_letters: stringModule.ascii_letters,
+  digits: stringModule.digits,
+  hexdigits: stringModule.hexdigits,
+  octdigits: stringModule.octdigits,
+  punctuation: stringModule.punctuation,
+  whitespace: stringModule.whitespace,
+  printable: stringModule.printable,
+  // Module-level functions/classes
+  capwords: stringModule.capwords,
+  Template: stringModule.Template
+}
 
 // =============================================================================
 // Direct function re-exports (for: import { chain, reduce } from "pythonlib")

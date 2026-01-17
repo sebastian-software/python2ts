@@ -60,19 +60,19 @@ describe("E2E: Advanced Features", () => {
     it("should convert array slice", () => {
       const python = "x = arr[1:3]"
       const ts = transpile(python)
-      expect(ts).toContain("py.slice")
+      expect(ts).toContain("slice")
     })
 
     it("should convert array slice with step", () => {
       const python = "x = arr[::2]"
       const ts = transpile(python)
-      expect(ts).toContain("py.slice")
+      expect(ts).toContain("slice")
     })
 
     it("should convert negative slice", () => {
       const python = "x = arr[-3:]"
       const ts = transpile(python)
-      expect(ts).toContain("py.slice")
+      expect(ts).toContain("slice")
     })
   })
 
@@ -114,7 +114,7 @@ describe("E2E: Advanced Features", () => {
     it("should convert tuple", () => {
       const python = "x = (1, 2, 3)"
       const ts = transpile(python)
-      expect(ts).toContain("py.tuple")
+      expect(ts).toContain("tuple")
     })
   })
 
@@ -171,9 +171,9 @@ describe("E2E: Advanced Features", () => {
       expect(ts).toContain("-")
       expect(ts).toContain("*")
       expect(ts).toContain("/")
-      expect(ts).toContain("py.floordiv")
-      expect(ts).toContain("py.mod")
-      expect(ts).toContain("py.pow")
+      expect(ts).toContain("floordiv")
+      expect(ts).toContain("mod")
+      expect(ts).toContain("pow")
     })
   })
 

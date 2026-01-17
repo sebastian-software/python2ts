@@ -272,12 +272,12 @@ describe("E2E: Operators", () => {
   describe("Repetition Operators", () => {
     it("should handle number * string repetition (reversed)", () => {
       const result = transpile("x = 3 * 'ab'")
-      expect(result).toContain("py.repeat")
+      expect(result).toContain("repeatValue")
     })
 
     it("should handle number * array repetition (reversed)", () => {
       const result = transpile("x = 3 * [1, 2]")
-      expect(result).toContain("py.repeat")
+      expect(result).toContain("repeatValue")
     })
   })
 
