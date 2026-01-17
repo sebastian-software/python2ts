@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { transpile } from "python2ts"
-import { floordiv, mod, pow, contains, slice, at, repeatValue } from "pythonlib"
+import { floordiv, mod, pow, contains } from "pythonlib"
 
 describe("E2E: Operators", () => {
   describe("Arithmetic Operators", () => {

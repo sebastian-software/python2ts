@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest"
 import {
+  py,
   type,
   len,
   all,
@@ -17,7 +18,11 @@ import {
   range,
   map,
   filter,
-  divmod
+  divmod,
+  min,
+  max,
+  int,
+  float
 } from "pythonlib"
 
 describe("E2E: Built-in Functions Execution", () => {
