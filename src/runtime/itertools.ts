@@ -228,3 +228,226 @@ export function dropwhile<T>(predicate: (x: T) => boolean, iterable: Iterable<T>
   }
   return result
 }
+
+/**
+ * Zip iterables together, filling missing values with fillvalue
+ * zip_longest([1, 2, 3], ['a', 'b'], { fillvalue: '-' }) -> [[1, 'a'], [2, 'b'], [3, '-']]
+ */
+export function zip_longest<T>(
+  ...args: [...Iterable<T>[], { fillvalue?: T }] | Iterable<T>[]
+): T[][] {
+  let fillvalue: T | undefined
+  let iterables: Iterable<T>[]
+
+  // Check if last argument is options object
+  const lastArg = args[args.length - 1]
+  if (
+    lastArg &&
+    typeof lastArg === "object" &&
+    !Array.isArray(lastArg) &&
+    !(Symbol.iterator in lastArg)
+  ) {
+    fillvalue = (lastArg as { fillvalue?: T }).fillvalue
+    iterables = args.slice(0, -1) as Iterable<T>[]
+  } else {
+    iterables = args as Iterable<T>[]
+  }
+
+  if (iterables.length === 0) return []
+
+  const arrays = iterables.map((it) => [...it])
+  const maxLen = Math.max(...arrays.map((a) => a.length))
+  const result: T[][] = []
+
+  for (let i = 0; i < maxLen; i++) {
+    const tuple: T[] = []
+    for (const arr of arrays) {
+      tuple.push(i < arr.length ? (arr[i] as T) : (fillvalue as T))
+    }
+    result.push(tuple)
+  }
+
+  return result
+}
+
+/**
+ * Return elements from iterable where the corresponding selector is true
+ * compress([1, 2, 3, 4, 5], [1, 0, 1, 0, 1]) -> [1, 3, 5]
+ */
+export function compress<T>(data: Iterable<T>, selectors: Iterable<unknown>): T[] {
+  const result: T[] = []
+  const dataArr = [...data]
+  const selectorsArr = [...selectors]
+  const len = Math.min(dataArr.length, selectorsArr.length)
+
+  for (let i = 0; i < len; i++) {
+    if (selectorsArr[i]) {
+      result.push(dataArr[i] as T)
+    }
+  }
+  return result
+}
+
+/**
+ * Return elements for which predicate is false
+ * filterfalse(x => x % 2, [1, 2, 3, 4, 5]) -> [2, 4]
+ */
+export function filterfalse<T>(predicate: (x: T) => unknown, iterable: Iterable<T>): T[] {
+  const result: T[] = []
+  for (const element of iterable) {
+    if (!predicate(element)) {
+      result.push(element)
+    }
+  }
+  return result
+}
+
+/**
+ * Make an iterator that returns accumulated sums or accumulated results
+ * accumulate([1, 2, 3, 4, 5]) -> [1, 3, 6, 10, 15]
+ * accumulate([1, 2, 3, 4, 5], (x, y) => x * y) -> [1, 2, 6, 24, 120]
+ */
+export function accumulate<T>(
+  iterable: Iterable<T>,
+  func?: (acc: T, val: T) => T,
+  initial?: T
+): T[] {
+  const result: T[] = []
+  const arr = [...iterable]
+
+  if (arr.length === 0) {
+    if (initial !== undefined) {
+      return [initial]
+    }
+    return []
+  }
+
+  const operation = func ?? ((a: T, b: T): T => ((a as number) + (b as number)) as unknown as T)
+
+  let acc: T
+  let startIdx: number
+
+  if (initial !== undefined) {
+    acc = initial
+    startIdx = 0
+    result.push(acc)
+  } else {
+    acc = arr[0] as T
+    startIdx = 1
+    result.push(acc)
+  }
+
+  for (let i = startIdx; i < arr.length; i++) {
+    acc = operation(acc, arr[i] as T)
+    result.push(acc)
+  }
+
+  return result
+}
+
+/**
+ * Return consecutive keys and groups from the iterable
+ * groupby([1, 1, 2, 2, 2, 3, 1, 1]) -> [[1, [1, 1]], [2, [2, 2, 2]], [3, [3]], [1, [1, 1]]]
+ */
+export function groupby<T, K = T>(iterable: Iterable<T>, key?: (x: T) => K): [K, T[]][] {
+  const result: [K, T[]][] = []
+  const keyFunc = key ?? ((x: T) => x as unknown as K)
+
+  let currentKey: K | undefined
+  let currentGroup: T[] = []
+  let first = true
+
+  for (const element of iterable) {
+    const k = keyFunc(element)
+    if (first) {
+      currentKey = k
+      currentGroup = [element]
+      first = false
+    } else if (k === currentKey) {
+      currentGroup.push(element)
+    } else {
+      result.push([currentKey as K, currentGroup])
+      currentKey = k
+      currentGroup = [element]
+    }
+  }
+
+  if (!first) {
+    result.push([currentKey as K, currentGroup])
+  }
+
+  return result
+}
+
+/**
+ * Make an iterator that returns evenly spaced values starting with n
+ * count(10, 2) -> 10, 12, 14, 16, 18, ...  (INFINITE Generator)
+ */
+export function* count(start: number = 0, step: number = 1): Generator<number> {
+  let n = start
+  for (;;) {
+    yield n
+    n += step
+  }
+}
+
+/**
+ * Return n independent iterators from a single iterable
+ * tee([1, 2, 3], 2) -> [[1, 2, 3], [1, 2, 3]]
+ */
+export function tee<T>(iterable: Iterable<T>, n: number = 2): T[][] {
+  const arr = [...iterable]
+  return Array.from({ length: n }, () => [...arr])
+}
+
+/**
+ * Return successive overlapping pairs from the iterable
+ * pairwise([1, 2, 3, 4, 5]) -> [[1, 2], [2, 3], [3, 4], [4, 5]]
+ */
+export function pairwise<T>(iterable: Iterable<T>): [T, T][] {
+  const arr = [...iterable]
+  const result: [T, T][] = []
+  for (let i = 0; i < arr.length - 1; i++) {
+    result.push([arr[i] as T, arr[i + 1] as T])
+  }
+  return result
+}
+
+/**
+ * Cartesian product with repeat (product(range(3), repeat=2) like nested loops)
+ * productRepeat([0, 1], 2) -> [[0, 0], [0, 1], [1, 0], [1, 1]]
+ */
+export function productRepeat<T>(iterable: Iterable<T>, repeat: number = 1): T[][] {
+  const pool = [...iterable]
+  if (repeat < 1 || pool.length === 0) return repeat === 0 ? [[]] : []
+
+  const pools = Array.from({ length: repeat }, () => pool)
+  return product(...pools)
+}
+
+/**
+ * Return r-length combinations with replacement
+ * combinations_with_replacement([1, 2, 3], 2) -> [[1, 1], [1, 2], [1, 3], [2, 2], [2, 3], [3, 3]]
+ */
+export function combinations_with_replacement<T>(iterable: Iterable<T>, r: number): T[][] {
+  const pool = [...iterable]
+  const n = pool.length
+  if (r < 0 || n === 0) return r === 0 ? [[]] : []
+
+  const result: T[][] = []
+  const indices: number[] = new Array<number>(r).fill(0)
+  result.push(indices.map((i) => pool[i] as T))
+
+  for (;;) {
+    let i = r - 1
+    while (i >= 0 && indices[i] === n - 1) i--
+    if (i < 0) break
+    const newVal = (indices[i] as number) + 1
+    for (let j = i; j < r; j++) {
+      indices[j] = newVal
+    }
+    result.push(indices.map((idx) => pool[idx] as T))
+  }
+
+  return result
+}

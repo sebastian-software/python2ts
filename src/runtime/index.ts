@@ -26,6 +26,7 @@ import * as json from "./json.js"
 import * as os from "./os.js"
 import * as datetime from "./datetime.js"
 import * as re from "./re.js"
+import * as functools from "./functools.js"
 import { Counter, defaultdict, deque } from "./collections.js"
 
 // Create callable objects that are both functions and have methods
@@ -179,6 +180,11 @@ export const py = {
   // re module
   // ============================================================
   re,
+
+  // ============================================================
+  // functools module
+  // ============================================================
+  functools,
 
   // ============================================================
   // string module constants and classes

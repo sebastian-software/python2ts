@@ -1442,6 +1442,33 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
     case "dropwhile":
       ctx.usesRuntime.add("itertools")
       return `py.itertools.dropwhile(${args})`
+    case "zip_longest":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.zip_longest(${args})`
+    case "compress":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.compress(${args})`
+    case "filterfalse":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.filterfalse(${args})`
+    case "accumulate":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.accumulate(${args})`
+    case "groupby":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.groupby(${args})`
+    case "count":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.count(${args})`
+    case "tee":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.tee(${args})`
+    case "pairwise":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.pairwise(${args})`
+    case "combinations_with_replacement":
+      ctx.usesRuntime.add("itertools")
+      return `py.itertools.combinations_with_replacement(${args})`
 
     // collections classes/functions
     case "Counter":
@@ -1453,6 +1480,29 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
     case "deque":
       ctx.usesRuntime.add("deque")
       return `new py.deque(${args})`
+
+    // functools functions
+    case "partial":
+      ctx.usesRuntime.add("functools")
+      return `py.functools.partial(${args})`
+    case "reduce":
+      ctx.usesRuntime.add("functools")
+      return `py.functools.reduce(${args})`
+    case "lru_cache":
+      ctx.usesRuntime.add("functools")
+      return `py.functools.lru_cache(${args})`
+    case "cache":
+      ctx.usesRuntime.add("functools")
+      return `py.functools.cache(${args})`
+    case "wraps":
+      ctx.usesRuntime.add("functools")
+      return `py.functools.wraps(${args})`
+    case "cmp_to_key":
+      ctx.usesRuntime.add("functools")
+      return `py.functools.cmp_to_key(${args})`
+    case "total_ordering":
+      ctx.usesRuntime.add("functools")
+      return `py.functools.total_ordering(${args})`
 
     // json functions
     case "dumps":
@@ -1572,6 +1622,12 @@ function transformModuleCall(
   if (moduleName === "string") {
     ctx.usesRuntime.add("string")
     return `py.string.${funcName}(${args})`
+  }
+
+  // functools module
+  if (moduleName === "functools") {
+    ctx.usesRuntime.add("functools")
+    return `py.functools.${funcName}(${args})`
   }
 
   return null
@@ -3034,7 +3090,8 @@ const RUNTIME_MODULES = new Set([
   "os",
   "datetime",
   "re",
-  "string"
+  "string",
+  "functools"
 ])
 
 function transformFromImport(children: SyntaxNode[], ctx: TransformContext): string {

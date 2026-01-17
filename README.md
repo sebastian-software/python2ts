@@ -146,6 +146,42 @@ const s2 = new Set([2, 3, 4])
 py.set.intersection(s1, s2) // Set {2, 3}
 py.set.union(s1, s2) // Set {1, 2, 3, 4}
 py.set.difference(s1, s2) // Set {1}
+
+// py.itertools.* - Iterator tools
+py.itertools.chain([1, 2], [3, 4]) // [1, 2, 3, 4]
+py.itertools.combinations([1, 2, 3], 2) // [[1,2], [1,3], [2,3]]
+py.itertools.permutations([1, 2, 3], 2) // [[1,2], [1,3], [2,1], ...]
+py.itertools.zip_longest([1, 2], ["a"]) // [[1,"a"], [2,undefined]]
+
+// py.functools.* - Higher-order functions
+const add5 = py.functools.partial((a, b) => a + b, 5)
+add5(3) // 8
+py.functools.reduce((a, b) => a + b, [1, 2, 3, 4, 5]) // 15
+
+// py.collections - Specialized containers
+const counter = new py.Counter("abracadabra")
+counter.mostCommon(3) // [["a", 5], ["b", 2], ["r", 2]]
+const dd = py.defaultdict(() => [])
+dd.get("key").push(1) // Creates [] automatically
+
+// py.math.* - Math functions
+py.math.sqrt(16) // 4
+py.math.gcd(12, 8) // 4
+py.math.factorial(5) // 120
+
+// py.random.* - Random functions
+py.random.randint(1, 10) // Random integer 1-10
+py.random.choice(["a", "b", "c"]) // Random element
+py.random.shuffle([1, 2, 3]) // Shuffles in place
+
+// py.datetime.* - Date/time classes
+const now = py.datetime.datetime.now()
+const d = new py.datetime.date(2024, 1, 15)
+d.isoformat() // "2024-01-15"
+
+// py.re.* - Regular expressions
+const m = py.re.search("\\d+", "abc123")
+m?.group() // "123"
 ```
 
 ### Advanced API
@@ -318,6 +354,19 @@ console.log(generated.usedRuntimeFunctions) // ['range', 'len', ...]
 | `ord()` / `chr()`                         | `py.ord()` / `py.chr()`                               |                        |
 | `all()` / `any()`                         | `py.all()` / `py.any()`                               |                        |
 | `map()` / `filter()`                      | `py.map()` / `py.filter()`                            |                        |
+| **Standard Library Modules**              |                                                       |                        |
+| `from math import sqrt`                   | → uses `py.math.sqrt()`                               | math functions         |
+| `from random import randint`              | → uses `py.random.randint()`                          | random functions       |
+| `from json import dumps`                  | → uses `py.json.dumps()`                              | JSON operations        |
+| `from os.path import join`                | → uses `py.os.path.join()`                            | Path operations        |
+| `from datetime import datetime`           | → uses `py.datetime.datetime`                         | Date/time classes      |
+| `from re import match`                    | → uses `py.re.match()`                                | Regex operations       |
+| `from itertools import chain`             | → uses `py.itertools.chain()`                         | Iterator tools         |
+| `from functools import partial`           | → uses `py.functools.partial()`                       | Higher-order functions |
+| `from collections import Counter`         | → uses `py.Counter`                                   | Specialized containers |
+| `from string import ascii_lowercase`      | → uses `py.ascii_lowercase`                           | String constants       |
+| `Final[T]`                                | `const` / `readonly`                                  | Immutable declarations |
+| `ClassVar[T]`                             | `static`                                              | Class-level variables  |
 
 ### Docstrings Example
 
@@ -400,6 +449,11 @@ class Person {
 - [x] **Protocol**: Protocol classes → TypeScript interfaces
 - [x] **ABC/@abstractmethod**: Abstract base classes → TypeScript abstract classes
 - [x] **@overload**: Function overloads → TypeScript function signatures
+- [x] **Final[T]/ClassVar[T]**: Immutable and class-level type modifiers
+- [x] **Enhanced Callable**: `Callable[[int, str], bool]` →
+      `(arg0: number, arg1: string) => boolean`
+- [x] **Runtime Modules**: math, random, json, os, datetime, re, itertools, functools, collections,
+      string
 
 ## Architecture
 
