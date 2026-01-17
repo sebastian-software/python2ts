@@ -8,6 +8,7 @@ packages/*/dist/
 # Docusaurus
 docs/.docusaurus/
 docs/build/
+docs/docs/api/
 
 # Coverage
 coverage/

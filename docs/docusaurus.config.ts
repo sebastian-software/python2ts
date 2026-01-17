@@ -11,6 +11,10 @@ const config: Config = {
     v4: true
   },
 
+  markdown: {
+    format: "detect"
+  },
+
   url: "https://sebastian-software.github.io",
   baseUrl: "/python2ts/",
 
@@ -41,6 +45,38 @@ const config: Config = {
     ]
   ],
 
+  plugins: [
+    [
+      "docusaurus-plugin-typedoc",
+      {
+        entryPoints: [
+          "../packages/pythonlib/src/index.ts",
+          "../packages/pythonlib/src/itertools.ts",
+          "../packages/pythonlib/src/functools.ts",
+          "../packages/pythonlib/src/collections.ts",
+          "../packages/pythonlib/src/datetime.ts",
+          "../packages/pythonlib/src/re.ts",
+          "../packages/pythonlib/src/math.ts",
+          "../packages/pythonlib/src/random.ts",
+          "../packages/pythonlib/src/string.ts",
+          "../packages/pythonlib/src/json.ts",
+          "../packages/pythonlib/src/os.ts"
+        ],
+        entryPointStrategy: "expand",
+        tsconfig: "../packages/pythonlib/tsconfig.json",
+        out: "docs/api",
+        readme: "none",
+        indexFormat: "table",
+        parametersFormat: "table",
+        enumMembersFormat: "table",
+        typeDeclarationFormat: "table",
+        sanitizeComments: true,
+        useCodeBlocks: true,
+        expandParameters: true
+      }
+    ]
+  ],
+
   themeConfig: {
     colorMode: {
       respectPrefersColorScheme: true
@@ -53,6 +89,11 @@ const config: Config = {
           sidebarId: "docsSidebar",
           position: "left",
           label: "Docs"
+        },
+        {
+          to: "/docs/api",
+          label: "API",
+          position: "left"
         },
         {
           href: "https://www.npmjs.com/package/python2ts",
@@ -83,6 +124,10 @@ const config: Config = {
             {
               label: "Runtime Library",
               to: "/docs/runtime"
+            },
+            {
+              label: "API Reference",
+              to: "/docs/api"
             }
           ]
         },
