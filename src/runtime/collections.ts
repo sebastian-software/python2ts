@@ -103,17 +103,22 @@ export class Counter<T> extends Map<T, number> {
 export function defaultdict<K, V>(factory: () => V): Map<K, V> & { get(key: K): V } {
   const map = new Map<K, V>()
   return new Proxy(map, {
-    get(target, prop, receiver) {
+    get(target, prop, receiver): unknown {
       if (prop === "get") {
         return (key: K): V => {
           if (!target.has(key)) {
-            target.set(key, factory())
+            const defaultValue = factory()
+            target.set(key, defaultValue)
+            return defaultValue
           }
-          return target.get(key)!
+          return target.get(key) as V
         }
       }
-      const val = Reflect.get(target, prop, receiver)
-      return typeof val === "function" ? val.bind(target) : val
+      const val: unknown = Reflect.get(target, prop, receiver)
+      if (typeof val === "function") {
+        return (val as (...args: unknown[]) => unknown).bind(target)
+      }
+      return val
     }
   }) as Map<K, V> & { get(key: K): V }
 }
@@ -189,16 +194,17 @@ export class deque<T> {
    * Rotate the deque n steps to the right (negative n rotates left)
    */
   rotate(n: number = 1): void {
-    if (this.items.length === 0) return
-    n = n % this.items.length
+    const len = this.items.length
+    if (len === 0) return
+    n = n % len
     if (n > 0) {
-      for (let i = 0; i < n; i++) {
-        this.appendleft(this.pop()!)
-      }
+      // Move last n elements to the front
+      const tail = this.items.splice(-n, n)
+      this.items.unshift(...tail)
     } else if (n < 0) {
-      for (let i = 0; i < -n; i++) {
-        this.append(this.popleft()!)
-      }
+      // Move first -n elements to the end
+      const head = this.items.splice(0, -n)
+      this.items.push(...head)
     }
   }
 

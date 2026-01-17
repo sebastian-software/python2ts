@@ -334,7 +334,7 @@ function transformCallableType(rawTypeArgNodes: SyntaxNode[], ctx: TransformCont
 
     if (hasBrackets) {
       // It's a list notation - could be empty or have params
-      const params = paramTypes.map((t, i) => `arg${i}: ${t}`).join(", ")
+      const params = paramTypes.map((t, i) => `arg${String(i)}: ${t}`).join(", ")
       return `(${params}) => ${returnType}`
     }
   }
@@ -2009,14 +2009,36 @@ function transformMatchStatement(node: SyntaxNode, ctx: TransformContext): strin
   const hasComplexPatterns = clauseNodes.some((clause) => {
     const clauseChildren = getChildren(clause)
     const pattern = clauseChildren.find(
-      (c) => c.name !== "case" && c.name !== ":" && c.name !== "Body"
+      (c) => c.name !== "case" && c.name !== ":" && c.name !== "Body" && c.name !== "Guard"
     )
-    return (
-      pattern &&
-      (pattern.name === "SequencePattern" ||
-        pattern.name === "MappingPattern" ||
-        pattern.name === "ClassPattern")
-    )
+    const hasGuard = clauseChildren.some((c) => c.name === "Guard")
+
+    if (hasGuard) return true
+    if (!pattern) return false
+
+    // Complex patterns that need if/else
+    if (
+      pattern.name === "SequencePattern" ||
+      pattern.name === "MappingPattern" ||
+      pattern.name === "ClassPattern" ||
+      pattern.name === "AsPattern"
+    ) {
+      return true
+    }
+
+    // OrPattern with complex sub-patterns needs if/else
+    if (pattern.name === "OrPattern") {
+      const orChildren = getChildren(pattern)
+      return orChildren.some(
+        (c) =>
+          c.name === "SequencePattern" ||
+          c.name === "MappingPattern" ||
+          c.name === "ClassPattern" ||
+          c.name === "AsPattern"
+      )
+    }
+
+    return false
   })
 
   if (hasComplexPatterns) {
@@ -2045,11 +2067,14 @@ function transformMatchAsIfElse(
 
     let pattern: SyntaxNode | null = null
     let body: SyntaxNode | null = null
+    let guard: SyntaxNode | null = null
 
     for (const child of children) {
       if (child.name === "case" || child.name === ":") continue
       if (child.name === "Body") {
         body = child
+      } else if (child.name === "Guard") {
+        guard = child
       } else if (!pattern) {
         pattern = child
       }
@@ -2065,8 +2090,29 @@ function transformMatchAsIfElse(
     const isWildcard =
       patternText === "_" || (pattern.name === "CapturePattern" && patternText === "_")
 
-    if (isWildcard) {
-      // Wildcard/default case
+    // Extract guard condition if present
+    let guardCondition: string | null = null
+    if (guard) {
+      const guardChildren = getChildren(guard)
+      const guardExpr = guardChildren.find((c) => c.name !== "if")
+      if (guardExpr) {
+        let guardCode = transformNode(guardExpr, ctx)
+        // If pattern is a CapturePattern, substitute the variable with the subject in the guard
+        if (pattern.name === "CapturePattern") {
+          const captureVar = getNodeText(pattern, ctx.source)
+          if (captureVar !== "_") {
+            // Replace the captured variable with the subject in the guard condition
+            // Use word boundary regex to avoid partial matches
+            const varRegex = new RegExp(`\\b${captureVar}\\b`, "g")
+            guardCode = guardCode.replace(varRegex, subjectCode)
+          }
+        }
+        guardCondition = guardCode
+      }
+    }
+
+    if (isWildcard && !guardCondition) {
+      // Wildcard/default case without guard
       if (i === 0) {
         parts.push(`${indent}${bodyCode.trim()}`)
       } else {
@@ -2075,12 +2121,22 @@ function transformMatchAsIfElse(
     } else {
       const { condition, bindings } = transformComplexPattern(pattern, subjectCode, ctx)
 
+      // Combine pattern condition with guard condition
+      let fullCondition = condition
+      if (guardCondition) {
+        if (condition === "true") {
+          fullCondition = guardCondition
+        } else {
+          fullCondition = `${condition} && ${guardCondition}`
+        }
+      }
+
       const keyword = i === 0 ? "if" : " else if"
       const bindingsCode =
         bindings.length > 0 ? `\n${indent}  ${bindings.join(`\n${indent}  `)}` : ""
 
       parts.push(
-        `${keyword} (${condition}) {${bindingsCode}\n${indent}  ${bodyCode.trim()}\n${indent}}`
+        `${keyword} (${fullCondition}) {${bindingsCode}\n${indent}  ${bodyCode.trim()}\n${indent}}`
       )
     }
   }
@@ -2105,6 +2161,10 @@ function transformComplexPattern(
       return transformMappingPattern(pattern, subject, ctx)
     case "ClassPattern":
       return transformClassPattern(pattern, subject, ctx)
+    case "OrPattern":
+      return transformOrPattern(pattern, subject, ctx)
+    case "AsPattern":
+      return transformAsPattern(pattern, subject, ctx)
     case "LiteralPattern": {
       const children = getChildren(pattern)
       const literal = children[0]
@@ -2257,6 +2317,54 @@ function transformClassPattern(
   return { condition: conditions.length > 0 ? conditions.join(" && ") : "true", bindings }
 }
 
+function transformOrPattern(
+  pattern: SyntaxNode,
+  subject: string,
+  ctx: TransformContext
+): PatternResult {
+  const children = getChildren(pattern)
+  // Filter out LogicOp (|) tokens, keep only actual patterns
+  const subPatterns = children.filter((c) => c.name !== "LogicOp")
+
+  const conditions: string[] = []
+  // OR patterns cannot have bindings (each alternative must bind the same variables)
+  // For simplicity, we just create OR conditions
+  for (const subPattern of subPatterns) {
+    const { condition } = transformComplexPattern(subPattern, subject, ctx)
+    conditions.push(condition)
+  }
+
+  return { condition: conditions.join(" || "), bindings: [] }
+}
+
+function transformAsPattern(
+  pattern: SyntaxNode,
+  subject: string,
+  ctx: TransformContext
+): PatternResult {
+  const children = getChildren(pattern)
+  // AsPattern: [inner_pattern, "as", VariableName]
+  const innerPattern = children.find(
+    (c) => c.name !== "as" && c.name !== "VariableName" && c.name !== "⚠"
+  )
+  const asName = children.find((c) => c.name === "VariableName")
+
+  if (!innerPattern) {
+    return { condition: "true", bindings: [] }
+  }
+
+  // Transform the inner pattern
+  const { condition, bindings } = transformComplexPattern(innerPattern, subject, ctx)
+
+  // Add the "as" binding for the whole subject
+  if (asName) {
+    const varName = getNodeText(asName, ctx.source)
+    bindings.push(`const ${varName} = ${subject};`)
+  }
+
+  return { condition, bindings }
+}
+
 function transformMatchBody(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
   const clauses: string[] = []
@@ -2303,6 +2411,18 @@ function transformMatchClause(node: SyntaxNode, ctx: TransformContext, indent: s
     if (captureVar === "_") {
       return `${indent}default:\n${bodyIndent}${bodyCode.trim()}\n${bodyIndent}break;`
     }
+  }
+
+  // Handle OR patterns with multiple case labels
+  if (pattern.name === "OrPattern") {
+    const orChildren = getChildren(pattern)
+    const subPatterns = orChildren.filter((c) => c.name !== "LogicOp")
+    const caseLabels = subPatterns.map((p) => {
+      const caseValue = transformMatchPatternSimple(p, ctx)
+      return `${indent}case ${caseValue}:`
+    })
+    // Join all case labels, then add the body after the last one
+    return `${caseLabels.join("\n")}\n${bodyIndent}${bodyCode.trim()}\n${bodyIndent}break;`
   }
 
   // Handle literal patterns

@@ -355,6 +355,59 @@ print(greet("de"))
 print(greet("es"))
 `)
     })
+
+    it("match with OR patterns", () => {
+      verifyEquivalence(`
+def categorize(status):
+    match status:
+        case 200 | 201 | 204:
+            return "success"
+        case 400 | 404 | 405:
+            return "client error"
+        case 500 | 502 | 503:
+            return "server error"
+        case _:
+            return "unknown"
+
+print(categorize(200))
+print(categorize(201))
+print(categorize(404))
+print(categorize(500))
+print(categorize(999))
+`)
+    })
+
+    it("match with guards", () => {
+      verifyEquivalence(`
+def classify(n):
+    match n:
+        case x if x > 0:
+            return "positive"
+        case x if x < 0:
+            return "negative"
+        case _:
+            return "zero"
+
+print(classify(5))
+print(classify(-3))
+print(classify(0))
+`)
+    })
+
+    it("match with sequence and AS pattern", () => {
+      verifyEquivalence(`
+def process_point(point):
+    match point:
+        case [x, y] as p:
+            return str(len(p)) + " elements: " + str(x) + "," + str(y)
+        case _:
+            return "not a point"
+
+print(process_point([1, 2]))
+print(process_point([3, 4]))
+print(process_point("invalid"))
+`)
+    })
   })
 })
 

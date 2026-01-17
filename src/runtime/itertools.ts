@@ -26,18 +26,18 @@ export function combinations<T>(iterable: Iterable<T>, r: number): T[][] {
   if (r > n || r < 0) return []
 
   const result: T[][] = []
-  const indices = Array.from({ length: r }, (_, i) => i)
-  result.push(indices.map((i) => pool[i]!))
+  const indices: number[] = Array.from({ length: r }, (_, i) => i)
+  result.push(indices.map((i) => pool[i] as T))
 
-  while (true) {
+  for (;;) {
     let i = r - 1
     while (i >= 0 && indices[i] === i + n - r) i--
     if (i < 0) break
-    indices[i]!++
+    ;(indices[i] as number)++
     for (let j = i + 1; j < r; j++) {
-      indices[j] = indices[j - 1]! + 1
+      indices[j] = (indices[j - 1] as number) + 1
     }
-    result.push(indices.map((i) => pool[i]!))
+    result.push(indices.map((idx) => pool[idx] as T))
   }
 
   return result
@@ -50,30 +50,32 @@ export function combinations<T>(iterable: Iterable<T>, r: number): T[][] {
 export function permutations<T>(iterable: Iterable<T>, r?: number): T[][] {
   const pool = [...iterable]
   const n = pool.length
-  r = r === undefined ? n : r
-  if (r > n || r < 0) return []
+  const rLen = r === undefined ? n : r
+  if (rLen > n || rLen < 0) return []
 
   const result: T[][] = []
-  const indices = Array.from({ length: n }, (_, i) => i)
-  const cycles = Array.from({ length: r }, (_, i) => n - i)
+  const indices: number[] = Array.from({ length: n }, (_, i) => i)
+  const cycles: number[] = Array.from({ length: rLen }, (_, i) => n - i)
 
-  result.push(indices.slice(0, r).map((i) => pool[i]!))
+  result.push(indices.slice(0, rLen).map((i) => pool[i] as T))
 
-  outer: while (true) {
-    for (let i = r - 1; i >= 0; i--) {
-      cycles[i]!--
+  outer: for (;;) {
+    for (let i = rLen - 1; i >= 0; i--) {
+      ;(cycles[i] as number)--
       if (cycles[i] === 0) {
         // Rotate indices[i:] left by one
-        const temp = indices[i]!
+        const temp = indices[i] as number
         for (let j = i; j < n - 1; j++) {
-          indices[j] = indices[j + 1]!
+          indices[j] = indices[j + 1] as number
         }
         indices[n - 1] = temp
         cycles[i] = n - i
       } else {
-        const j = n - cycles[i]!
-        ;[indices[i], indices[j]] = [indices[j]!, indices[i]!]
-        result.push(indices.slice(0, r).map((i) => pool[i]!))
+        const j = n - (cycles[i] as number)
+        const swap = indices[j] as number
+        indices[j] = indices[i] as number
+        indices[i] = swap
+        result.push(indices.slice(0, rLen).map((idx) => pool[idx] as T))
         continue outer
       }
     }
@@ -96,15 +98,16 @@ export function product<T>(...iterables: Iterable<T>[]): T[][] {
   if (pools.some((p) => p.length === 0)) return []
 
   const result: T[][] = []
-  const indices = new Array(pools.length).fill(0)
-  result.push(pools.map((p, i) => p[indices[i]!]!))
+  const indices: number[] = new Array<number>(pools.length).fill(0)
+  result.push(pools.map((p, i) => p[indices[i] as number] as T))
 
-  while (true) {
+  for (;;) {
     let i = pools.length - 1
     while (i >= 0) {
-      indices[i]!++
-      if (indices[i]! < pools[i]!.length) {
-        result.push(pools.map((p, j) => p[indices[j]!]!))
+      ;(indices[i] as number)++
+      const currentPool = pools[i] as T[]
+      if ((indices[i] as number) < currentPool.length) {
+        result.push(pools.map((p, j) => p[indices[j] as number] as T))
         break
       }
       indices[i] = 0
@@ -129,7 +132,7 @@ export function* cycle<T>(iterable: Iterable<T>): Generator<T> {
     saved.push(element)
   }
   if (saved.length === 0) return
-  while (true) {
+  for (;;) {
     yield* saved
   }
 }
@@ -148,7 +151,7 @@ export function repeat<T>(obj: T, times?: number): T[] | Generator<T> {
   }
   // Infinite: return generator
   return (function* () {
-    while (true) {
+    for (;;) {
       yield obj
     }
   })()
@@ -166,9 +169,11 @@ export function islice<T>(
   step: number = 1
 ): T[] {
   // Handle single argument (stop only): islice(it, 5) means islice(it, 0, 5, 1)
-  if (stop === undefined) {
-    stop = start
-    start = 0
+  let actualStart = start
+  let actualStop = stop
+  if (actualStop === undefined) {
+    actualStop = start
+    actualStart = 0
   }
 
   if (step < 1) {
@@ -177,10 +182,10 @@ export function islice<T>(
 
   const result: T[] = []
   let index = 0
-  let nextIndex = start
+  let nextIndex = actualStart
 
   for (const element of iterable) {
-    if (index >= stop) break
+    if (index >= actualStop) break
     if (index === nextIndex) {
       result.push(element)
       nextIndex += step
