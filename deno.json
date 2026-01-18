@@ -1,0 +1,15 @@
+{
+  "$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
+  "nodeModulesDir": "auto",
+  "tasks": {
+    "test": "deno test --allow-read --allow-env --allow-run tests/"
+  },
+  "imports": {
+    "pythonlib": "./packages/pythonlib/src/index.ts",
+    "pythonlib/": "./packages/pythonlib/src/",
+    "python2ts": "./packages/python2ts/src/index.ts"
+  },
+  "test": {
+    "include": ["tests/runtime-modules.test.ts", "tests/runtime.test.ts"]
+  }
+}

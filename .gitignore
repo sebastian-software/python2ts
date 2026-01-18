@@ -29,3 +29,4 @@ npm-debug.log*
 
 # Test
 .vitest/
+tests/__screenshots__/

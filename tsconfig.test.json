@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "pythonlib": ["./packages/pythonlib/src/index.ts"],
+      "pythonlib/*": ["./packages/pythonlib/src/*"],
+      "python2ts": ["./packages/python2ts/src/index.ts"]
+    }
+  },
+  "include": ["tests/**/*.ts"]
+}

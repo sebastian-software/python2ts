@@ -991,9 +991,16 @@ describe("os module", () => {
   })
 
   describe("environment", () => {
-    it("getenv should return environment variable", () => {
+    it("getenv should return environment variable or undefined in browser", () => {
       const path = os.getenv("PATH")
-      expect(path).toBeDefined()
+      // In Node.js, PATH is defined; in browser, environ is empty
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      const isNode = typeof process !== "undefined" && process.env !== undefined
+      if (isNode) {
+        expect(path).toBeDefined()
+      } else {
+        expect(path).toBeUndefined()
+      }
     })
 
     it("getenv should return default for missing variable", () => {

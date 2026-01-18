@@ -1,0 +1,9 @@
+# Bun configuration for module resolution in tests
+# See https://bun.sh/docs/runtime/bunfig
+
+[test]
+# Preload test globals
+preload = ["./tests/bun-preload.ts"]
+
+# Use tsconfig.test.json for path resolution
+tsconfig = "./tsconfig.test.json"
