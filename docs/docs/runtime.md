@@ -26,7 +26,9 @@ import { Counter, defaultdict } from "pythonlib/collections"
 import { partial, reduce } from "pythonlib/functools"
 ```
 
-See [ADR-0009](../adr/0009-subpath-exports-architecture.md) for the architectural rationale.
+See
+[ADR-0009](https://github.com/sebastian-software/python2ts/blob/main/docs/adr/0009-subpath-exports-architecture.md)
+for the architectural rationale.
 
 ## Builtins (pythonlib)
 
