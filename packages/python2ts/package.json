@@ -1,11 +1,19 @@
 {
   "name": "python2ts",
   "version": "0.1.0",
-  "description": "AST-based Python to TypeScript transpiler",
+  "description": "AST-based Python to TypeScript transpiler. Convert Python code to clean, idiomatic TypeScript with full type preservation.",
+  "homepage": "https://sebastian-software.github.io/python2ts/",
   "repository": {
     "type": "git",
     "url": "https://github.com/sebastian-software/python2ts.git",
     "directory": "packages/python2ts"
+  },
+  "bugs": {
+    "url": "https://github.com/sebastian-software/python2ts/issues"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/sebastian-software"
   },
   "type": "module",
   "main": "dist/index.js",
@@ -32,8 +40,14 @@
     "python",
     "typescript",
     "transpiler",
+    "compiler",
     "ast",
-    "converter"
+    "converter",
+    "code-generation",
+    "type-inference",
+    "migration",
+    "ai",
+    "machine-learning"
   ],
   "author": "Sebastian Software GmbH",
   "license": "MIT",

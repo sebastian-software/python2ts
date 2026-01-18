@@ -1,11 +1,19 @@
 {
   "name": "pythonlib",
   "version": "0.1.0",
-  "description": "Python standard library for TypeScript - itertools, functools, collections, and more",
+  "description": "Python standard library for TypeScript - itertools, functools, collections, datetime, re, and more. Zero dependencies. Full TypeScript support.",
+  "homepage": "https://sebastian-software.github.io/python2ts/",
   "repository": {
     "type": "git",
     "url": "https://github.com/sebastian-software/python2ts.git",
     "directory": "packages/pythonlib"
+  },
+  "bugs": {
+    "url": "https://github.com/sebastian-software/python2ts/issues"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/sebastian-software"
   },
   "type": "module",
   "main": "dist/index.js",
@@ -71,7 +79,16 @@
     "itertools",
     "functools",
     "collections",
-    "stdlib"
+    "stdlib",
+    "datetime",
+    "regex",
+    "range",
+    "enumerate",
+    "zip",
+    "combinations",
+    "permutations",
+    "counter",
+    "lru-cache"
   ],
   "author": "Sebastian Software GmbH",
   "license": "MIT",
