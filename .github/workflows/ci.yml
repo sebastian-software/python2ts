@@ -34,14 +34,14 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
+      - name: Build packages
+        run: pnpm build
+
       - name: Type check
         run: pnpm typecheck
 
       - name: Lint
         run: pnpm lint
-
-      - name: Build packages
-        run: pnpm build
 
       - name: Run tests
         run: pnpm test:coverage
