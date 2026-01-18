@@ -2,6 +2,11 @@
   "name": "python2ts",
   "version": "0.1.0",
   "description": "AST-based Python to TypeScript transpiler",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sebastian-software/python2ts.git",
+    "directory": "packages/python2ts"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

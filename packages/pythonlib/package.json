@@ -2,6 +2,11 @@
   "name": "pythonlib",
   "version": "0.1.0",
   "description": "Python standard library for TypeScript - itertools, functools, collections, and more",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sebastian-software/python2ts.git",
+    "directory": "packages/pythonlib"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

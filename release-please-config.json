@@ -1,0 +1,23 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    "packages/pythonlib": {
+      "release-type": "node",
+      "package-name": "pythonlib",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true
+    },
+    "packages/python2ts": {
+      "release-type": "node",
+      "package-name": "python2ts",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true
+    }
+  },
+  "separate-pull-requests": false,
+  "group-pull-request-title-pattern": "chore: release ${component}",
+  "pull-request-title-pattern": "chore: release${component} ${version}",
+  "include-component-in-tag": true
+}
