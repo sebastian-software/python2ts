@@ -15,7 +15,8 @@
     "python2ts": "./dist/cli/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "build": "tsup",
