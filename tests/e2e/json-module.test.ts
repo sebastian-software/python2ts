@@ -17,23 +17,27 @@ describe("E2E: json module", () => {
 
   describe("Function Transformations", () => {
     it("should transform json.loads", () => {
-      const result = transpile("x = json.loads('{\"a\": 1}')", { includeRuntime: false })
-      expect(result).toContain("json.loads")
+      const result = transpile("x = json.loads('{\"a\": 1}')")
+      expect(result).toContain('from "pythonlib/json"')
+      expect(result).toContain("loads(")
     })
 
     it("should transform json.dumps", () => {
-      const result = transpile("x = json.dumps(data)", { includeRuntime: false })
-      expect(result).toContain("json.dumps(data)")
+      const result = transpile("x = json.dumps(data)")
+      expect(result).toContain('from "pythonlib/json"')
+      expect(result).toContain("dumps(data)")
     })
 
     it("should transform bare loads call", () => {
-      const result = transpile("x = loads('{\"a\": 1}')", { includeRuntime: false })
-      expect(result).toContain("json.loads")
+      const result = transpile("x = loads('{\"a\": 1}')")
+      expect(result).toContain('from "pythonlib/json"')
+      expect(result).toContain("loads(")
     })
 
     it("should transform bare dumps call", () => {
-      const result = transpile("x = dumps(data)", { includeRuntime: false })
-      expect(result).toContain("json.dumps(data)")
+      const result = transpile("x = dumps(data)")
+      expect(result).toContain('from "pythonlib/json"')
+      expect(result).toContain("dumps(data)")
     })
   })
 

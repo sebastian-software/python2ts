@@ -20,9 +20,9 @@ describe("E2E: functools module", () => {
       const python = `from functools import partial
 add5 = partial(add, 5)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { functools } from "pythonlib"
+        "import { partial } from "pythonlib/functools"
 
-        let add5 = functools.partial(add, 5);"
+        let add5 = partial(add, 5);"
       `)
     })
 
@@ -30,9 +30,9 @@ add5 = partial(add, 5)`
       const python = `from functools import reduce
 result = reduce(lambda x, y: x + y, [1, 2, 3, 4, 5])`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { functools } from "pythonlib"
+        "import { reduce } from "pythonlib/functools"
 
-        let result = functools.reduce((x, y) => (x + y), [1, 2, 3, 4, 5]);"
+        let result = reduce((x, y) => (x + y), [1, 2, 3, 4, 5]);"
       `)
     })
 
@@ -52,9 +52,9 @@ def fib(n):
       const python = `import functools
 result = functools.reduce(add, numbers)`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { functools } from "pythonlib"
+        "import { reduce } from "pythonlib/functools"
 
-        let result = functools.reduce(add, numbers);"
+        let result = reduce(add, numbers);"
       `)
     })
   })

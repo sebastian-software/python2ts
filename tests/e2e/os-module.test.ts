@@ -17,18 +17,21 @@ describe("E2E: os module", () => {
 
   describe("Function Transformations", () => {
     it("should transform os.path.join", () => {
-      const result = transpile("x = os.path.join('a', 'b')", { includeRuntime: false })
-      expect(result).toContain("os.path.join")
+      const result = transpile("x = os.path.join('a', 'b')")
+      expect(result).toContain('from "pythonlib/os"')
+      expect(result).toContain("path.join(")
     })
 
     it("should transform os.getcwd", () => {
-      const result = transpile("x = os.getcwd()", { includeRuntime: false })
-      expect(result).toContain("os.getcwd()")
+      const result = transpile("x = os.getcwd()")
+      expect(result).toContain('from "pythonlib/os"')
+      expect(result).toContain("getcwd()")
     })
 
     it("should transform os.sep", () => {
-      const result = transpile("x = os.sep", { includeRuntime: false })
-      expect(result).toContain("os.sep")
+      const result = transpile("x = os.sep")
+      expect(result).toContain('from "pythonlib/os"')
+      expect(result).toContain("sep")
     })
   })
 

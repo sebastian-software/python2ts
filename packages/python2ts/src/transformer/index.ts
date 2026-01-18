@@ -1416,129 +1416,129 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
 
     // itertools functions
     case "chain":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.chain(${args})`
+      ctx.usesRuntime.add("itertools/chain")
+      return `chain(${args})`
     case "combinations":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.combinations(${args})`
+      ctx.usesRuntime.add("itertools/combinations")
+      return `combinations(${args})`
     case "permutations":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.permutations(${args})`
+      ctx.usesRuntime.add("itertools/permutations")
+      return `permutations(${args})`
     case "product":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.product(${args})`
+      ctx.usesRuntime.add("itertools/product")
+      return `product(${args})`
     case "cycle":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.cycle(${args})`
+      ctx.usesRuntime.add("itertools/cycle")
+      return `cycle(${args})`
     case "repeat":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.repeat(${args})`
+      ctx.usesRuntime.add("itertools/repeat")
+      return `repeat(${args})`
     case "islice":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.islice(${args})`
+      ctx.usesRuntime.add("itertools/islice")
+      return `islice(${args})`
     case "takewhile":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.takewhile(${args})`
+      ctx.usesRuntime.add("itertools/takewhile")
+      return `takewhile(${args})`
     case "dropwhile":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.dropwhile(${args})`
+      ctx.usesRuntime.add("itertools/dropwhile")
+      return `dropwhile(${args})`
     case "zip_longest":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.zip_longest(${args})`
+      ctx.usesRuntime.add("itertools/zip_longest")
+      return `zip_longest(${args})`
     case "compress":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.compress(${args})`
+      ctx.usesRuntime.add("itertools/compress")
+      return `compress(${args})`
     case "filterfalse":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.filterfalse(${args})`
+      ctx.usesRuntime.add("itertools/filterfalse")
+      return `filterfalse(${args})`
     case "accumulate":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.accumulate(${args})`
+      ctx.usesRuntime.add("itertools/accumulate")
+      return `accumulate(${args})`
     case "groupby":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.groupby(${args})`
+      ctx.usesRuntime.add("itertools/groupby")
+      return `groupby(${args})`
     case "count":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.count(${args})`
+      ctx.usesRuntime.add("itertools/count")
+      return `count(${args})`
     case "tee":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.tee(${args})`
+      ctx.usesRuntime.add("itertools/tee")
+      return `tee(${args})`
     case "pairwise":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.pairwise(${args})`
+      ctx.usesRuntime.add("itertools/pairwise")
+      return `pairwise(${args})`
     case "combinations_with_replacement":
-      ctx.usesRuntime.add("itertools")
-      return `itertools.combinations_with_replacement(${args})`
+      ctx.usesRuntime.add("itertools/combinations_with_replacement")
+      return `combinations_with_replacement(${args})`
 
     // collections classes/functions
     case "Counter":
-      ctx.usesRuntime.add("Counter")
-      return `new collections.Counter(${args})`
+      ctx.usesRuntime.add("collections/Counter")
+      return `new Counter(${args})`
     case "defaultdict":
-      ctx.usesRuntime.add("defaultdict")
-      return `collections.defaultdict(${args})`
+      ctx.usesRuntime.add("collections/defaultdict")
+      return `defaultdict(${args})`
     case "deque":
-      ctx.usesRuntime.add("deque")
-      return `new collections.deque(${args})`
+      ctx.usesRuntime.add("collections/deque")
+      return `new deque(${args})`
 
     // functools functions
     case "partial":
-      ctx.usesRuntime.add("functools")
-      return `functools.partial(${args})`
+      ctx.usesRuntime.add("functools/partial")
+      return `partial(${args})`
     case "reduce":
-      ctx.usesRuntime.add("functools")
-      return `functools.reduce(${args})`
+      ctx.usesRuntime.add("functools/reduce")
+      return `reduce(${args})`
     case "lru_cache":
-      ctx.usesRuntime.add("functools")
-      return `functools.lru_cache(${args})`
+      ctx.usesRuntime.add("functools/lru_cache")
+      return `lru_cache(${args})`
     case "cache":
-      ctx.usesRuntime.add("functools")
-      return `functools.cache(${args})`
+      ctx.usesRuntime.add("functools/cache")
+      return `cache(${args})`
     case "wraps":
-      ctx.usesRuntime.add("functools")
-      return `functools.wraps(${args})`
+      ctx.usesRuntime.add("functools/wraps")
+      return `wraps(${args})`
     case "cmp_to_key":
-      ctx.usesRuntime.add("functools")
-      return `functools.cmp_to_key(${args})`
+      ctx.usesRuntime.add("functools/cmp_to_key")
+      return `cmp_to_key(${args})`
     case "total_ordering":
-      ctx.usesRuntime.add("functools")
-      return `functools.total_ordering(${args})`
+      ctx.usesRuntime.add("functools/total_ordering")
+      return `total_ordering(${args})`
 
     // json functions
     case "dumps":
-      ctx.usesRuntime.add("json")
-      return `json.dumps(${args})`
+      ctx.usesRuntime.add("json/dumps")
+      return `dumps(${args})`
     case "loads":
-      ctx.usesRuntime.add("json")
-      return `json.loads(${args})`
+      ctx.usesRuntime.add("json/loads")
+      return `loads(${args})`
     case "dump":
-      ctx.usesRuntime.add("json")
-      return `json.dump(${args})`
+      ctx.usesRuntime.add("json/dump")
+      return `dump(${args})`
     case "load":
-      ctx.usesRuntime.add("json")
-      return `json.load(${args})`
+      ctx.usesRuntime.add("json/load")
+      return `load(${args})`
 
     // datetime classes
     case "datetime":
-      ctx.usesRuntime.add("datetime")
-      return `new datetime.datetime(${args})`
+      ctx.usesRuntime.add("datetime/datetime")
+      return `new datetime(${args})`
     case "date":
-      ctx.usesRuntime.add("datetime")
-      return `new datetime.date(${args})`
+      ctx.usesRuntime.add("datetime/date")
+      return `new date(${args})`
     case "time":
-      ctx.usesRuntime.add("datetime")
-      return `new datetime.time(${args})`
+      ctx.usesRuntime.add("datetime/time")
+      return `new time(${args})`
     case "timedelta":
-      ctx.usesRuntime.add("datetime")
-      return `new datetime.timedelta(${args})`
+      ctx.usesRuntime.add("datetime/timedelta")
+      return `new timedelta(${args})`
 
     // string module
     case "Template":
-      ctx.usesRuntime.add("string")
-      return `new string.Template(${args})`
+      ctx.usesRuntime.add("string/Template")
+      return `new Template(${args})`
     case "capwords":
-      ctx.usesRuntime.add("string")
-      return `string.capwords(${args})`
+      ctx.usesRuntime.add("string/capwords")
+      return `capwords(${args})`
 
     default:
       // Regular function call
@@ -1562,72 +1562,96 @@ function transformModuleCall(
   const moduleName = calleeName.slice(0, dotIndex)
   const funcName = calleeName.slice(dotIndex + 1)
 
-  // math module - most map directly to Math.*
+  // math module
   if (moduleName === "math") {
-    ctx.usesRuntime.add("math")
-
-    // Constants (no args)
+    // Constants (no args) - these need special handling as they're properties not functions
     const mathConstants: Record<string, string> = {
-      pi: "math.pi",
-      e: "math.e",
-      tau: "math.tau",
-      inf: "math.inf",
-      nan: "math.nan"
+      pi: "pi",
+      e: "e",
+      tau: "tau",
+      inf: "inf",
+      nan: "nan"
     }
     if (funcName in mathConstants) {
+      ctx.usesRuntime.add(`math/${funcName}`)
       return mathConstants[funcName] as string
     }
 
-    // Functions that map to py.math.*
-    return `math.${funcName}(${args})`
+    // Functions
+    ctx.usesRuntime.add(`math/${funcName}`)
+    return `${funcName}(${args})`
   }
 
   // random module
   if (moduleName === "random") {
-    ctx.usesRuntime.add("random")
-    return `random.${funcName}(${args})`
+    ctx.usesRuntime.add(`random/${funcName}`)
+    return `${funcName}(${args})`
   }
 
   // json module
   if (moduleName === "json") {
-    ctx.usesRuntime.add("json")
-    return `json.${funcName}(${args})`
+    ctx.usesRuntime.add(`json/${funcName}`)
+    return `${funcName}(${args})`
   }
 
   // os module
   if (moduleName === "os") {
-    ctx.usesRuntime.add("os")
-    // os.path.* functions
+    // os.path.* functions - keep as namespace since path is a nested module
     if (funcName.startsWith("path.")) {
-      const pathFunc = funcName.slice(5)
-      return `os.path.${pathFunc}(${args})`
+      ctx.usesRuntime.add("os/path")
+      return `path.${funcName.slice(5)}(${args})`
     }
     // os.* functions
-    return `os.${funcName}(${args})`
+    ctx.usesRuntime.add(`os/${funcName}`)
+    return `${funcName}(${args})`
   }
 
   // datetime module
   if (moduleName === "datetime") {
-    ctx.usesRuntime.add("datetime")
-    return `datetime.${funcName}(${args})`
+    ctx.usesRuntime.add(`datetime/${funcName}`)
+    // Classes need 'new'
+    if (["datetime", "date", "time", "timedelta"].includes(funcName)) {
+      return `new ${funcName}(${args})`
+    }
+    return `${funcName}(${args})`
   }
 
   // re module
   if (moduleName === "re") {
-    ctx.usesRuntime.add("re")
-    return `re.${funcName}(${args})`
+    ctx.usesRuntime.add(`re/${funcName}`)
+    return `${funcName}(${args})`
   }
 
-  // string module
+  // string module - constants and functions
   if (moduleName === "string") {
-    ctx.usesRuntime.add("string")
-    return `string.${funcName}(${args})`
+    ctx.usesRuntime.add(`string/${funcName}`)
+    // Template is a class
+    if (funcName === "Template") {
+      return `new Template(${args})`
+    }
+    return funcName.includes("(") ? `${funcName}(${args})` : funcName
   }
 
   // functools module
   if (moduleName === "functools") {
-    ctx.usesRuntime.add("functools")
-    return `functools.${funcName}(${args})`
+    ctx.usesRuntime.add(`functools/${funcName}`)
+    return `${funcName}(${args})`
+  }
+
+  // itertools module (for itertools.chain() style calls)
+  if (moduleName === "itertools") {
+    ctx.usesRuntime.add(`itertools/${funcName}`)
+    return `${funcName}(${args})`
+  }
+
+  // collections module
+  if (moduleName === "collections") {
+    ctx.usesRuntime.add(`collections/${funcName}`)
+    // Classes need 'new'
+    if (["Counter", "deque"].includes(funcName)) {
+      return `new ${funcName}(${args})`
+    }
+    return `${funcName}(${args})`
   }
 
   return null
@@ -1966,32 +1990,37 @@ function transformMemberExpression(node: SyntaxNode, ctx: TransformContext): str
 
     // Handle module constants (math.pi, math.e, etc.)
     if (objName === "math") {
-      ctx.usesRuntime.add("math")
-      return `math.${propName}`
+      ctx.usesRuntime.add(`math/${propName}`)
+      return propName
     }
 
     // os module constants (os.sep, os.path, etc.)
     if (objName === "os") {
-      ctx.usesRuntime.add("os")
-      return `os.${propName}`
+      // os.path is a nested module, needs special handling
+      if (propName === "path") {
+        ctx.usesRuntime.add("os/path")
+        return "path"
+      }
+      ctx.usesRuntime.add(`os/${propName}`)
+      return propName
     }
 
     // string module (constants like ascii_lowercase, digits, etc.)
     if (objName === "string") {
-      ctx.usesRuntime.add("string")
-      return `string.${propName}`
+      ctx.usesRuntime.add(`string/${propName}`)
+      return propName
     }
 
     // re module flags
     if (objName === "re") {
-      ctx.usesRuntime.add("re")
-      return `re.${propName}`
+      ctx.usesRuntime.add(`re/${propName}`)
+      return propName
     }
 
     // datetime module
     if (objName === "datetime") {
-      ctx.usesRuntime.add("datetime")
-      return `datetime.${propName}`
+      ctx.usesRuntime.add(`datetime/${propName}`)
+      return propName
     }
 
     const objCode = transformNode(obj, ctx)

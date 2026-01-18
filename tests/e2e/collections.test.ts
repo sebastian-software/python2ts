@@ -18,7 +18,8 @@ from collections import Counter
 c = Counter("abracadabra")
 `
       const result = transpile(python)
-      expect(result).toContain("new collections.Counter")
+      expect(result).toContain('from "pythonlib/collections"')
+      expect(result).toContain("new Counter(")
     })
 
     it("should transform defaultdict call", () => {
@@ -27,7 +28,8 @@ from collections import defaultdict
 d = defaultdict(int)
 `
       const result = transpile(python)
-      expect(result).toContain("collections.defaultdict")
+      expect(result).toContain('from "pythonlib/collections"')
+      expect(result).toContain("defaultdict(")
     })
 
     it("should transform deque call", () => {
@@ -36,7 +38,8 @@ from collections import deque
 q = deque([1, 2, 3])
 `
       const result = transpile(python)
-      expect(result).toContain("new collections.deque")
+      expect(result).toContain('from "pythonlib/collections"')
+      expect(result).toContain("new deque(")
     })
   })
 

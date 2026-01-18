@@ -78,31 +78,44 @@ npm install pythonlib
 ```
 
 ```typescript
-import { py } from "pythonlib"
+// Builtins from main export
+import { range, enumerate, sorted, len } from "pythonlib"
+
+// Module functions from subpaths
+import { combinations } from "pythonlib/itertools"
+import { Counter } from "pythonlib/collections"
+import { lru_cache } from "pythonlib/functools"
 
 // Itertools
-for (const combo of py.itertools.combinations([1, 2, 3], 2)) {
+for (const combo of combinations([1, 2, 3], 2)) {
   console.log(combo) // [1,2], [1,3], [2,3]
 }
 
 // Collections
-const counter = new py.Counter("mississippi")
+const counter = new Counter("mississippi")
 console.log(counter.mostCommon(2)) // [["i", 4], ["s", 4]]
 
 // Functools
-const cached = py.functools.lru_cache((n: number) => {
+const cached = lru_cache((n: number) => {
   console.log(`Computing ${n}`)
   return n * 2
 })
 ```
 
-## Tree-Shakeable Imports
+## Import Structure
 
-Import only what you need:
+pythonlib uses subpath exports for tree-shakeable imports:
 
-```typescript
-// Import specific modules
-import { itertools } from "pythonlib/itertools"
-import { Counter } from "pythonlib/collections"
-import { lru_cache } from "pythonlib/functools"
-```
+| Import Path             | Contents                                  |
+| ----------------------- | ----------------------------------------- |
+| `pythonlib`             | Builtins: `len`, `range`, `sorted`, etc.  |
+| `pythonlib/itertools`   | `chain`, `combinations`, `permutations`   |
+| `pythonlib/functools`   | `partial`, `reduce`, `lru_cache`          |
+| `pythonlib/collections` | `Counter`, `defaultdict`, `deque`         |
+| `pythonlib/math`        | `sqrt`, `floor`, `ceil`, `pi`, `e`        |
+| `pythonlib/random`      | `randint`, `choice`, `shuffle`            |
+| `pythonlib/datetime`    | `datetime`, `date`, `time`, `timedelta`   |
+| `pythonlib/json`        | `loads`, `dumps`, `load`, `dump`          |
+| `pythonlib/re`          | `search`, `match`, `findall`, `sub`       |
+| `pythonlib/os`          | `path`, `getcwd`, `sep`                   |
+| `pythonlib/string`      | `Template`, `capwords`, `ascii_lowercase` |

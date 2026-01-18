@@ -18,23 +18,27 @@ describe("E2E: re module", () => {
 
   describe("Function Transformations", () => {
     it("should transform re.search", () => {
-      const result = transpile("m = re.search(r'\\d+', text)", { includeRuntime: false })
-      expect(result).toContain("re.search")
+      const result = transpile("m = re.search(r'\\d+', text)")
+      expect(result).toContain('from "pythonlib/re"')
+      expect(result).toContain("search(")
     })
 
     it("should transform re.match", () => {
-      const result = transpile("m = re.match(r'^hello', text)", { includeRuntime: false })
-      expect(result).toContain("re.match")
+      const result = transpile("m = re.match(r'^hello', text)")
+      expect(result).toContain('from "pythonlib/re"')
+      expect(result).toContain("match(")
     })
 
     it("should transform re.compile", () => {
-      const result = transpile("pattern = re.compile(r'\\d+')", { includeRuntime: false })
-      expect(result).toContain("re.compile")
+      const result = transpile("pattern = re.compile(r'\\d+')")
+      expect(result).toContain('from "pythonlib/re"')
+      expect(result).toContain("compile(")
     })
 
     it("should transform re.IGNORECASE", () => {
-      const result = transpile("flags = re.IGNORECASE", { includeRuntime: false })
-      expect(result).toContain("re.IGNORECASE")
+      const result = transpile("flags = re.IGNORECASE")
+      expect(result).toContain('from "pythonlib/re"')
+      expect(result).toContain("IGNORECASE")
     })
   })
 

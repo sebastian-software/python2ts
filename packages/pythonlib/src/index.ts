@@ -1,29 +1,24 @@
 /**
  * Python Runtime Library for TypeScript
  *
- * Provides Python-compatible functions and operations.
- *
  * Import styles:
  *
- * 1. Module namespaces (recommended for transpiled code):
- *    import { itertools, functools, collections } from "pythonlib"
- *    itertools.chain([1,2], [3,4])
- *    functools.reduce((a,b) => a+b, [1,2,3])
- *    new collections.Counter("abracadabra")
+ * 1. Builtins (global Python functions):
+ *    import { len, range, sorted, min, max } from "pythonlib"
  *
- * 2. Direct imports (convenient for manual TypeScript):
- *    import { chain, reduce, Counter } from "pythonlib"
- *    chain([1,2], [3,4])
- *    reduce((a,b) => a+b, [1,2,3])
- *    new Counter("abracadabra")
+ * 2. Module imports (like Python):
+ *    import { dump, loads } from "pythonlib/json"
+ *    import { match, search, sub } from "pythonlib/re"
+ *    import { chain, combinations } from "pythonlib/itertools"
+ *    import { Counter, defaultdict } from "pythonlib/collections"
  *
- * 3. Legacy py.* namespace (deprecated):
- *    import { py } from "pythonlib"
- *    py.itertools.chain(...)
+ * 3. Module namespaces (alternative):
+ *    import { json, re, itertools } from "pythonlib"
+ *    json.dump(...), re.match(...), itertools.chain(...)
  */
 
 // =============================================================================
-// Module imports
+// Module imports (for namespace exports)
 // =============================================================================
 
 import * as itertoolsModule from "./itertools.js"
@@ -55,10 +50,8 @@ export const json = jsonModule
 export const os = osModule
 export const datetime = datetimeModule
 export const re = reModule
-// Merge string methods (count, join, split, etc.) with module-level exports (ascii_lowercase, Template, capwords)
 export const string = {
   ...stringModule.string,
-  // Module-level constants
   ascii_lowercase: stringModule.ascii_lowercase,
   ascii_uppercase: stringModule.ascii_uppercase,
   ascii_letters: stringModule.ascii_letters,
@@ -68,126 +61,12 @@ export const string = {
   punctuation: stringModule.punctuation,
   whitespace: stringModule.whitespace,
   printable: stringModule.printable,
-  // Module-level functions/classes
   capwords: stringModule.capwords,
   Template: stringModule.Template
 }
 
 // =============================================================================
-// Direct function re-exports (for: import { chain, reduce } from "pythonlib")
-// =============================================================================
-
-// itertools
-export {
-  chain,
-  combinations,
-  combinations_with_replacement,
-  compress,
-  count,
-  cycle,
-  dropwhile,
-  filterfalse,
-  groupby,
-  islice,
-  pairwise,
-  permutations,
-  product,
-  productRepeat,
-  repeat,
-  takewhile,
-  tee,
-  zip_longest,
-  accumulate
-} from "./itertools.js"
-
-// functools
-export {
-  reduce,
-  partial,
-  partialmethod,
-  lru_cache,
-  cache,
-  wraps,
-  total_ordering,
-  cmp_to_key,
-  singledispatch,
-  identity,
-  itemgetter,
-  attrgetter,
-  methodcaller
-} from "./functools.js"
-
-// collections
-export { Counter, defaultdict, deque } from "./collections.js"
-
-// math (commonly used)
-export {
-  ceil,
-  floor,
-  sqrt,
-  pow as mathPow,
-  log,
-  log10,
-  log2,
-  exp,
-  sin,
-  cos,
-  tan,
-  factorial,
-  gcd,
-  lcm,
-  isclose,
-  isinf,
-  isnan,
-  isfinite,
-  fsum,
-  prod,
-  degrees,
-  radians
-} from "./math.js"
-
-// random (commonly used)
-export { choice, choices, shuffle, sample, randint, randrange, uniform, gauss } from "./random.js"
-
-// datetime
-export { datetime as datetimeClass, date, time, timedelta, strftime, strptime } from "./datetime.js"
-
-// re
-export {
-  compile as reCompile,
-  search,
-  match as reMatch,
-  fullmatch,
-  findall,
-  finditer,
-  sub,
-  subn,
-  split as reSplit,
-  escape as reEscape,
-  Pattern,
-  Match
-} from "./re.js"
-
-// json
-export { dumps, loads, dump, load } from "./json.js"
-
-// string
-export {
-  Template,
-  ascii_lowercase,
-  ascii_uppercase,
-  ascii_letters,
-  digits,
-  hexdigits,
-  octdigits,
-  punctuation,
-  whitespace,
-  printable,
-  capwords
-} from "./string.js"
-
-// =============================================================================
-// Core built-in types with methods (list, dict, set, string namespace)
+// Core built-in types with methods (list, dict, set)
 // =============================================================================
 
 type ListConstructor = {
@@ -230,15 +109,11 @@ export const slice = core.slice
 export const at = core.at
 export const contains = core.contains
 export const is = core.is
-// Note: core.repeat for string/array multiplication is exported as repeatValue
-// to avoid conflict with itertools.repeat
 export { repeat as repeatValue } from "./core.js"
-
-// Re-export pow from core (Python semantics, not math.pow)
 export { pow } from "./core.js"
 
 // =============================================================================
-// Built-in functions
+// Built-in functions (Python global scope)
 // =============================================================================
 
 // Iteration
@@ -286,7 +161,7 @@ export const input = builtins.input
 export const format = builtins.format
 
 // =============================================================================
-// Legacy py.* namespace (for backwards compatibility)
+// Legacy py.* namespace (deprecated, for backwards compatibility)
 // =============================================================================
 
 export const py = {

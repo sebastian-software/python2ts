@@ -19,18 +19,21 @@ describe("E2E: datetime module", () => {
 
   describe("Function Transformations", () => {
     it("should transform datetime.datetime.now", () => {
-      const result = transpile("x = datetime.datetime.now()", { includeRuntime: false })
-      expect(result).toContain("datetime.datetime.now()")
+      const result = transpile("x = datetime.datetime.now()")
+      expect(result).toContain('from "pythonlib/datetime"')
+      expect(result).toContain("datetime.now()")
     })
 
     it("should transform datetime.date.today", () => {
-      const result = transpile("x = datetime.date.today()", { includeRuntime: false })
-      expect(result).toContain("datetime.date.today()")
+      const result = transpile("x = datetime.date.today()")
+      expect(result).toContain('from "pythonlib/datetime"')
+      expect(result).toContain("date.today()")
     })
 
     it("should transform datetime constructor", () => {
-      const result = transpile("x = datetime(2024, 1, 1)", { includeRuntime: false })
-      expect(result).toContain("new datetime.datetime(2024, 1, 1)")
+      const result = transpile("x = datetime(2024, 1, 1)")
+      expect(result).toContain('from "pythonlib/datetime"')
+      expect(result).toContain("new datetime(2024, 1, 1)")
     })
   })
 

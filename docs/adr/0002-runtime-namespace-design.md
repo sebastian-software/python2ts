@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR-0009](./0009-subpath-exports-architecture.md)
 
 ## Context
 

@@ -19,23 +19,27 @@ describe("E2E: string module", () => {
 
   describe("Function Transformations", () => {
     it("should transform string.ascii_lowercase", () => {
-      const result = transpile("letters = string.ascii_lowercase", { includeRuntime: false })
-      expect(result).toContain("string.ascii_lowercase")
+      const result = transpile("letters = string.ascii_lowercase")
+      expect(result).toContain('from "pythonlib/string"')
+      expect(result).toContain("ascii_lowercase")
     })
 
     it("should transform string.digits", () => {
-      const result = transpile("nums = string.digits", { includeRuntime: false })
-      expect(result).toContain("string.digits")
+      const result = transpile("nums = string.digits")
+      expect(result).toContain('from "pythonlib/string"')
+      expect(result).toContain("digits")
     })
 
     it("should transform Template", () => {
-      const result = transpile("t = Template('Hello $name')", { includeRuntime: false })
-      expect(result).toContain("new string.Template")
+      const result = transpile("t = Template('Hello $name')")
+      expect(result).toContain('from "pythonlib/string"')
+      expect(result).toContain("new Template(")
     })
 
     it("should transform capwords", () => {
-      const result = transpile("s = capwords('hello world')", { includeRuntime: false })
-      expect(result).toContain("string.capwords")
+      const result = transpile("s = capwords('hello world')")
+      expect(result).toContain('from "pythonlib/string"')
+      expect(result).toContain("capwords(")
     })
   })
 

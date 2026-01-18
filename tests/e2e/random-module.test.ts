@@ -17,18 +17,21 @@ describe("E2E: random module", () => {
 
   describe("Function Transformations", () => {
     it("should transform random.randint", () => {
-      const result = transpile("x = random.randint(1, 10)", { includeRuntime: false })
-      expect(result).toContain("random.randint(1, 10)")
+      const result = transpile("x = random.randint(1, 10)")
+      expect(result).toContain('from "pythonlib/random"')
+      expect(result).toContain("randint(1, 10)")
     })
 
     it("should transform random.choice", () => {
-      const result = transpile("x = random.choice([1, 2, 3])", { includeRuntime: false })
-      expect(result).toContain("random.choice([1, 2, 3])")
+      const result = transpile("x = random.choice([1, 2, 3])")
+      expect(result).toContain('from "pythonlib/random"')
+      expect(result).toContain("choice([1, 2, 3])")
     })
 
     it("should transform random.shuffle", () => {
-      const result = transpile("random.shuffle(my_list)", { includeRuntime: false })
-      expect(result).toContain("random.shuffle(my_list)")
+      const result = transpile("random.shuffle(my_list)")
+      expect(result).toContain('from "pythonlib/random"')
+      expect(result).toContain("shuffle(my_list)")
     })
   })
 

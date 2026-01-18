@@ -20,9 +20,10 @@ describe("E2E: itertools module", () => {
       const python = `from itertools import chain
 result = list(chain([1, 2], [3, 4]))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { itertools, list } from "pythonlib"
+        "import { list } from "pythonlib"
+        import { chain } from "pythonlib/itertools"
 
-        let result = list(itertools.chain([1, 2], [3, 4]));"
+        let result = list(chain([1, 2], [3, 4]));"
       `)
     })
 
@@ -30,9 +31,10 @@ result = list(chain([1, 2], [3, 4]))`
       const python = `from itertools import zip_longest
 result = list(zip_longest([1, 2, 3], ['a', 'b']))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { itertools, list } from "pythonlib"
+        "import { list } from "pythonlib"
+        import { zip_longest } from "pythonlib/itertools"
 
-        let result = list(itertools.zip_longest([1, 2, 3], ['a', 'b']));"
+        let result = list(zip_longest([1, 2, 3], ['a', 'b']));"
       `)
     })
 
@@ -40,9 +42,10 @@ result = list(zip_longest([1, 2, 3], ['a', 'b']))`
       const python = `from itertools import combinations
 result = list(combinations([1, 2, 3], 2))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { itertools, list } from "pythonlib"
+        "import { list } from "pythonlib"
+        import { combinations } from "pythonlib/itertools"
 
-        let result = list(itertools.combinations([1, 2, 3], 2));"
+        let result = list(combinations([1, 2, 3], 2));"
       `)
     })
 
@@ -50,9 +53,10 @@ result = list(combinations([1, 2, 3], 2))`
       const python = `from itertools import permutations
 result = list(permutations([1, 2, 3], 2))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { itertools, list } from "pythonlib"
+        "import { list } from "pythonlib"
+        import { permutations } from "pythonlib/itertools"
 
-        let result = list(itertools.permutations([1, 2, 3], 2));"
+        let result = list(permutations([1, 2, 3], 2));"
       `)
     })
 
@@ -60,9 +64,10 @@ result = list(permutations([1, 2, 3], 2))`
       const python = `from itertools import groupby
 result = list(groupby([1, 1, 2, 2, 3]))`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "import { itertools, list } from "pythonlib"
+        "import { list } from "pythonlib"
+        import { groupby } from "pythonlib/itertools"
 
-        let result = list(itertools.groupby([1, 1, 2, 2, 3]));"
+        let result = list(groupby([1, 1, 2, 2, 3]));"
       `)
     })
   })

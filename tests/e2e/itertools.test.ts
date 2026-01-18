@@ -18,7 +18,8 @@ from itertools import chain
 result = list(chain([1, 2], [3, 4]))
 `
       const result = transpile(python)
-      expect(result).toContain("itertools.chain")
+      expect(result).toContain('from "pythonlib/itertools"')
+      expect(result).toContain("chain([1, 2], [3, 4])")
     })
 
     it("should transform combinations call", () => {
@@ -27,7 +28,8 @@ from itertools import combinations
 result = list(combinations([1, 2, 3], 2))
 `
       const result = transpile(python)
-      expect(result).toContain("itertools.combinations")
+      expect(result).toContain('from "pythonlib/itertools"')
+      expect(result).toContain("combinations([1, 2, 3], 2)")
     })
 
     it("should transform permutations call", () => {
@@ -36,7 +38,8 @@ from itertools import permutations
 result = list(permutations([1, 2, 3]))
 `
       const result = transpile(python)
-      expect(result).toContain("itertools.permutations")
+      expect(result).toContain('from "pythonlib/itertools"')
+      expect(result).toContain("permutations([1, 2, 3])")
     })
 
     it("should transform product call", () => {
@@ -45,7 +48,8 @@ from itertools import product
 result = list(product([1, 2], ['a', 'b']))
 `
       const result = transpile(python)
-      expect(result).toContain("itertools.product")
+      expect(result).toContain('from "pythonlib/itertools"')
+      expect(result).toContain("product([1, 2],")
     })
 
     it("should transform multiple itertools functions", () => {

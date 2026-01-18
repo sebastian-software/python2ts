@@ -31,6 +31,65 @@ const prettierOptions: prettier.Options = {
   endOfLine: "lf"
 }
 
+/** List of functions available in the main pythonlib export (builtins + core) */
+const BUILTINS = new Set([
+  // Core operations
+  "floordiv",
+  "pow",
+  "mod",
+  "sprintf",
+  "slice",
+  "at",
+  "contains",
+  "repeatValue",
+  "strFormat",
+  "divmod",
+  // Collection constructors
+  "list",
+  "dict",
+  "set",
+  "tuple",
+  // Iteration
+  "len",
+  "range",
+  "enumerate",
+  "zip",
+  "sorted",
+  "reversed",
+  "iter",
+  "map",
+  "filter",
+  // Aggregation
+  "abs",
+  "min",
+  "max",
+  "sum",
+  "all",
+  "any",
+  "round",
+  // Character/number conversion
+  "ord",
+  "chr",
+  "hex",
+  "oct",
+  "bin",
+  // Type conversion
+  "int",
+  "float",
+  "str",
+  "bool",
+  "repr",
+  "ascii",
+  // Type checking & misc
+  "isinstance",
+  "type",
+  "input",
+  "format"
+])
+
+/** Mapping of module namespaces that should still use namespace.method() style */
+const MODULE_NAMESPACES = new Set(["string", "list", "dict", "set"])
+
 /**
  * Generate TypeScript code from Python (sync, unformatted)
  * For formatted output, use generateAsync()
@@ -46,9 +105,8 @@ export function generate(
 
   let runtimeImport: string | null = null
   if (opts.includeRuntime && usedRuntimeFunctions.length > 0) {
-    const importPath = opts.runtimeImportPath ?? "pythonlib"
-    const imports = buildRuntimeImports(usedRuntimeFunctions)
-    runtimeImport = `import { ${imports.join(", ")} } from "${importPath}"`
+    const basePath = opts.runtimeImportPath ?? "pythonlib"
+    runtimeImport = buildRuntimeImports(usedRuntimeFunctions, basePath)
   }
 
   let code = result.code
@@ -66,116 +124,79 @@ export function generate(
 }
 
 /**
- * Build the list of imports needed from pythonlib based on what's used
+ * Build import statements from pythonlib based on what's used.
+ *
+ * Format of usedFunctions:
+ * - Builtins: "len", "range", "sorted"
+ * - Core ops: "floordiv", "mod", "pow", "slice"
+ * - Module functions: "itertools/chain", "json/dump", "re/match"
+ * - Namespace methods: "list.append", "dict.get", "string.join"
  */
-function buildRuntimeImports(usedFunctions: string[]): string[] {
-  const imports = new Set<string>()
+function buildRuntimeImports(usedFunctions: string[], basePath: string): string {
+  // Group imports by module
+  const mainImports = new Set<string>()
+  const moduleImports = new Map<string, Set<string>>()
 
   for (const func of usedFunctions) {
-    // Module namespaces - import the whole module
-    if (
-      [
-        "itertools",
-        "functools",
-        "math",
-        "random",
-        "json",
-        "os",
-        "datetime",
-        "re",
-        "string",
-        "collections"
-      ].includes(func)
-    ) {
-      imports.add(func)
+    // Module function: "itertools/chain" -> import { chain } from "pythonlib/itertools"
+    if (func.includes("/")) {
+      const [moduleName, funcName] = func.split("/")
+      if (moduleName && funcName) {
+        let funcs = moduleImports.get(moduleName)
+        if (!funcs) {
+          funcs = new Set()
+          moduleImports.set(moduleName, funcs)
+        }
+        funcs.add(funcName)
+      }
       continue
     }
 
-    // Helper namespaces with methods (list.remove, dict.get, set.add, etc.)
-    if (func.startsWith("list.") || func === "list") {
-      imports.add("list")
-      continue
-    }
-    if (func.startsWith("dict.") || func === "dict") {
-      imports.add("dict")
-      continue
-    }
-    if (func.startsWith("set.") || func === "set") {
-      imports.add("set")
+    // Namespace methods: "list.append" -> import { list } from "pythonlib"
+    if (func.includes(".")) {
+      const [namespace] = func.split(".")
+      if (namespace && MODULE_NAMESPACES.has(namespace)) {
+        mainImports.add(namespace)
+      }
       continue
     }
 
-    // Collections classes (Counter, defaultdict, deque)
-    if (["Counter", "defaultdict", "deque"].includes(func)) {
-      imports.add("collections")
+    // Module namespaces used directly (for namespace.method() style)
+    if (MODULE_NAMESPACES.has(func)) {
+      mainImports.add(func)
       continue
     }
 
-    // Core operations
-    if (
-      [
-        "floordiv",
-        "pow",
-        "mod",
-        "sprintf",
-        "slice",
-        "at",
-        "contains",
-        "repeatValue",
-        "strFormat",
-        "divmod"
-      ].includes(func)
-    ) {
-      imports.add(func)
+    // Builtins and core ops -> import from main "pythonlib"
+    if (BUILTINS.has(func)) {
+      mainImports.add(func)
       continue
     }
 
-    // Builtin functions - import directly
-    if (
-      [
-        "len",
-        "range",
-        "int",
-        "float",
-        "str",
-        "bool",
-        "abs",
-        "min",
-        "max",
-        "sum",
-        "tuple",
-        "enumerate",
-        "zip",
-        "sorted",
-        "reversed",
-        "isinstance",
-        "type",
-        "input",
-        "ord",
-        "chr",
-        "all",
-        "any",
-        "map",
-        "filter",
-        "repr",
-        "round",
-        "hex",
-        "oct",
-        "bin",
-        "iter",
-        "ascii",
-        "format"
-      ].includes(func)
-    ) {
-      imports.add(func)
-      continue
-    }
-
-    // Unknown - add as-is (for future compatibility)
-    imports.add(func)
+    // Unknown - add to main imports (for future compatibility)
+    mainImports.add(func)
   }
 
-  return Array.from(imports).sort()
+  // Build import statements
+  const importStatements: string[] = []
+
+  // Main pythonlib imports
+  if (mainImports.size > 0) {
+    const sorted = Array.from(mainImports).sort()
+    importStatements.push(`import { ${sorted.join(", ")} } from "${basePath}"`)
+  }
+
+  // Module-specific imports (sorted by module name)
+  const sortedModules = Array.from(moduleImports.keys()).sort()
+  for (const moduleName of sortedModules) {
+    const funcSet = moduleImports.get(moduleName)
+    if (funcSet) {
+      const funcs = Array.from(funcSet).sort()
+      importStatements.push(`import { ${funcs.join(", ")} } from "${basePath}/${moduleName}"`)
+    }
+  }
+
+  return importStatements.join("\n")
 }
 
 /**

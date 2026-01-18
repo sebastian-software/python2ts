@@ -83,7 +83,7 @@ print(fibonacci(10))
 **Output:**
 
 ```typescript
-import { py } from "python2ts/runtime"
+import { range } from "pythonlib"
 
 /**
  * Generate Fibonacci sequence.
@@ -91,7 +91,7 @@ import { py } from "python2ts/runtime"
 function fibonacci(n: number): number[] {
   let [a, b] = [0, 1]
   let result: number[] = []
-  for (const _ of py.range(n)) {
+  for (const _ of range(n)) {
     result.push(a)
     ;[a, b] = [b, a + b]
   }
@@ -174,41 +174,52 @@ function process<T>(
 
 ## Runtime Library
 
-The included runtime provides Python-compatible implementations:
+The included runtime provides Python-compatible implementations via subpath exports:
 
 ```typescript
-import { py } from "python2ts/runtime"
+// Builtins from main export
+import { range, enumerate, zip, len, sorted } from "pythonlib"
 
-// Iteration
-for (const i of py.range(10)) {
+for (const i of range(10)) {
 }
-for (const [i, v] of py.enumerate(items)) {
+for (const [i, v] of enumerate(items)) {
 }
-for (const [a, b] of py.zip(list1, list2)) {
+for (const [a, b] of zip(list1, list2)) {
 }
 
-// Collections
-const counter = new py.Counter("mississippi")
+// Collections from pythonlib/collections
+import { Counter, defaultdict } from "pythonlib/collections"
+
+const counter = new Counter("mississippi")
 counter.mostCommon(2) // [["i", 4], ["s", 4]]
 
-const dd = py.defaultdict(() => [])
+const dd = defaultdict(() => [])
 dd.get("key").push(value) // Auto-creates array
 
-// Functional
-const add5 = py.functools.partial((a, b) => a + b, 5)
-py.functools.reduce((a, b) => a + b, numbers)
+// Functional from pythonlib/functools
+import { partial, reduce } from "pythonlib/functools"
+
+const add5 = partial((a, b) => a + b, 5)
+reduce((a, b) => a + b, numbers)
 
 // Math & Random
-py.math.factorial(10)
-py.random.shuffle(array)
-py.random.choice(options)
+import { factorial } from "pythonlib/math"
+import { shuffle, choice } from "pythonlib/random"
+
+factorial(10)
+shuffle(array)
+choice(options)
 
 // Date/Time
-const now = py.datetime.datetime.now()
+import { datetime } from "pythonlib/datetime"
+
+const now = datetime.now()
 now.strftime("%Y-%m-%d %H:%M:%S")
 
 // Regex (Python syntax supported)
-const m = py.re.search("(?P<name>\\w+)", text)
+import { search } from "pythonlib/re"
+
+const m = search("(?P<name>\\w+)", text)
 m?.group("name")
 ```
 
@@ -293,11 +304,11 @@ const { code, usedRuntimeFunctions } = generate(ast, {
 | -------------------------------- | ----------------------------- | ------------------ |
 | **Literals & Operators**         |                               |                    |
 | `True` / `False` / `None`        | `true` / `false` / `null`     |                    |
-| `x // y`                         | `py.floordiv(x, y)`           | Python semantics   |
-| `x ** y`                         | `py.pow(x, y)`                |                    |
-| `x % y`                          | `py.mod(x, y)`                | Python semantics   |
-| `x in items`                     | `py.in(x, items)`             |                    |
-| `arr[1:3]` / `arr[::-1]`         | `py.slice(...)`               | Full slice support |
+| `x // y`                         | `floordiv(x, y)`              | Python semantics   |
+| `x ** y`                         | `pow(x, y)`                   |                    |
+| `x % y`                          | `mod(x, y)`                   | Python semantics   |
+| `x in items`                     | `contains(x, items)`          |                    |
+| `arr[1:3]` / `arr[::-1]`         | `slice(...)`                  | Full slice support |
 | **Control Flow**                 |                               |                    |
 | `if/elif/else`                   | `if/else if/else`             |                    |
 | `for x in items:`                | `for (const x of items)`      |                    |

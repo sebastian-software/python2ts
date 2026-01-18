@@ -17,31 +17,31 @@ describe("E2E: math module", () => {
 
   describe("Function Transformations", () => {
     it("should transform math.sqrt", () => {
-      const result = transpile("x = math.sqrt(16)", { includeRuntime: false })
-      expect(result).toContain("math.sqrt(16)")
+      const result = transpile("x = math.sqrt(16)")
+      expect(result).toContain('from "pythonlib/math"')
+      expect(result).toContain("sqrt(16)")
     })
 
     it("should transform math.floor and math.ceil", () => {
-      const result = transpile("a = math.floor(3.7)\nb = math.ceil(3.2)", {
-        includeRuntime: false
-      })
-      expect(result).toContain("math.floor(3.7)")
-      expect(result).toContain("math.ceil(3.2)")
+      const result = transpile("a = math.floor(3.7)\nb = math.ceil(3.2)")
+      expect(result).toContain('from "pythonlib/math"')
+      expect(result).toContain("floor(3.7)")
+      expect(result).toContain("ceil(3.2)")
     })
 
     it("should transform math constants", () => {
-      const result = transpile("x = math.pi\ny = math.e", { includeRuntime: false })
-      expect(result).toContain("math.pi")
-      expect(result).toContain("math.e")
+      const result = transpile("x = math.pi\ny = math.e")
+      expect(result).toContain('from "pythonlib/math"')
+      expect(result).toContain("pi")
+      expect(result).toContain("e")
     })
 
     it("should transform trigonometric functions", () => {
-      const result = transpile("a = math.sin(x)\nb = math.cos(x)\nc = math.tan(x)", {
-        includeRuntime: false
-      })
-      expect(result).toContain("math.sin(x)")
-      expect(result).toContain("math.cos(x)")
-      expect(result).toContain("math.tan(x)")
+      const result = transpile("a = math.sin(x)\nb = math.cos(x)\nc = math.tan(x)")
+      expect(result).toContain('from "pythonlib/math"')
+      expect(result).toContain("sin(x)")
+      expect(result).toContain("cos(x)")
+      expect(result).toContain("tan(x)")
     })
   })
 

@@ -99,7 +99,7 @@ describe("E2E: Walrus Operator (:=)", () => {
       const python = `if (m := re.match(pattern, string)):
     print(m.group())`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "if ((m = re.match(pattern, string))) {
+        "if ((m = match(pattern, string))) {
           console.log(m.group());
         }"
       `)
