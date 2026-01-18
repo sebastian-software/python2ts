@@ -6,5 +6,5 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
-  external: ["pythonlib"]
+  external: ["pythonlib", "prettier"]
 })
