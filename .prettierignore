@@ -5,3 +5,4 @@ node_modules/
 docs/.docusaurus/
 docs/build/
 pnpm-lock.yaml
+CHANGELOG.md

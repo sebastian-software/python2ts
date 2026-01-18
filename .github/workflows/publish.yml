@@ -50,7 +50,9 @@ jobs:
         run: npm publish --dry-run
 
       - name: Publish pythonlib
-        if: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.dry-run != true) }}
+        if:
+          ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' &&
+          inputs.dry-run != true) }}
         working-directory: packages/pythonlib
         run: npm publish --access public --provenance
 
@@ -83,6 +85,8 @@ jobs:
         run: npm publish --dry-run
 
       - name: Publish python2ts
-        if: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.dry-run != true) }}
+        if:
+          ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' &&
+          inputs.dry-run != true) }}
         working-directory: packages/python2ts
         run: npm publish --access public --provenance
