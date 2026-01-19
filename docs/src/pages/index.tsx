@@ -449,34 +449,39 @@ function RuntimeSection() {
    Runtime Support Section
    ========================================================================== */
 
-const runtimes = [
-  {
-    name: "Node.js",
-    versions: "v22, v24",
-    icon: "/img/nodejs.svg",
-    status: "Full test suite"
-  },
-  {
-    name: "Bun",
-    versions: "latest",
-    icon: "/img/bun.svg",
-    status: "Full test suite"
-  },
-  {
-    name: "Deno",
-    versions: "v2.x",
-    icon: "/img/deno.svg",
-    status: "Full test suite"
-  },
-  {
-    name: "Browser",
-    versions: "All modern",
-    icon: "/img/playwright.svg",
-    status: "Runtime tests"
-  }
-]
-
 function RuntimeSupportSection() {
+  const nodejsIcon = useBaseUrl("/img/nodejs.svg")
+  const bunIcon = useBaseUrl("/img/bun.svg")
+  const denoIcon = useBaseUrl("/img/deno.svg")
+  const playwrightIcon = useBaseUrl("/img/playwright.svg")
+
+  const runtimes = [
+    {
+      name: "Node.js",
+      versions: "v22, v24",
+      icon: nodejsIcon,
+      status: "Full test suite"
+    },
+    {
+      name: "Bun",
+      versions: "latest",
+      icon: bunIcon,
+      status: "Full test suite"
+    },
+    {
+      name: "Deno",
+      versions: "v2.x",
+      icon: denoIcon,
+      status: "Full test suite"
+    },
+    {
+      name: "Browser",
+      versions: "All modern",
+      icon: playwrightIcon,
+      status: "Runtime tests"
+    }
+  ]
+
   return (
     <section className={styles.runtimeSupportSection}>
       <div className="container">
