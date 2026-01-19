@@ -11,7 +11,8 @@ function runCLI(args: string, input?: string): { stdout: string; stderr: string;
     const stdout = execSync(`node ${CLI_PATH} ${args}`, {
       encoding: "utf-8",
       input,
-      timeout: 5000
+      timeout: 5000,
+      stdio: ["pipe", "pipe", "pipe"]
     })
     return { stdout, stderr: "", code: 0 }
   } catch (error) {
