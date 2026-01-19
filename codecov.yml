@@ -15,9 +15,9 @@ coverage:
 flags:
   python2ts:
     paths:
-      - packages/python2ts/src/
+      - "packages/python2ts/**"
     carryforward: true
   pythonlib:
     paths:
-      - packages/pythonlib/src/
+      - "packages/pythonlib/**"
     carryforward: true

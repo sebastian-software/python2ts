@@ -46,13 +46,12 @@ jobs:
       - name: Run tests
         run: pnpm test:coverage
 
-      - name: Upload coverage reports
+      - name: Upload coverage to Codecov
         if: matrix.node-version == '22'
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/lcov.info
-          flags: python2ts,pythonlib
           fail_ci_if_error: false
 
   test-bun:
