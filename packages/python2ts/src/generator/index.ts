@@ -173,7 +173,7 @@ function buildRuntimeImports(usedFunctions: string[], basePath: string): string 
       continue
     }
 
-    /* c8 ignore next 2 - fallback for future/unknown runtime functions */
+    /* v8 ignore next 2 -- fallback for future/unknown runtime functions @preserve */
     // Unknown - add to main imports (for future compatibility)
     mainImports.add(func)
   }
@@ -208,7 +208,7 @@ export function transpile(python: string, options: GeneratorOptions = {}): strin
   return generate(python, options).code
 }
 
-/* c8 ignore start - async wrappers tested via CLI */
+/* v8 ignore start -- async wrappers tested via CLI @preserve */
 /**
  * Format TypeScript code using Prettier
  */
@@ -247,4 +247,4 @@ export async function transpileAsync(
   const result = await generateAsync(python, options)
   return result.code
 }
-/* c8 ignore stop */
+/* v8 ignore stop */

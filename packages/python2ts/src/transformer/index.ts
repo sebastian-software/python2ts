@@ -110,7 +110,7 @@ function transformPythonType(node: SyntaxNode, ctx: TransformContext): string {
       // Extract type arguments between [ and ]
       const bracketStart = children.findIndex((c) => c.name === "[")
       const bracketEnd = children.findIndex((c) => c.name === "]")
-      /* c8 ignore next 3 - malformed type annotation fallback */
+      /* v8 ignore next 3 -- malformed type annotation fallback @preserve */
       if (bracketStart === -1 || bracketEnd === -1) {
         return PYTHON_TO_TS_TYPES[baseName] ?? baseName
       }
@@ -144,7 +144,7 @@ function transformPythonType(node: SyntaxNode, ctx: TransformContext): string {
           return typeArgs.length > 0 ? `Set<${first}>` : "Set<unknown>"
         case "frozenset":
         case "FrozenSet":
-          /* c8 ignore next - rare type annotation */
+          /* v8 ignore next -- rare type annotation @preserve */
           return typeArgs.length > 0 ? `ReadonlySet<${first}>` : "ReadonlySet<unknown>"
         case "tuple":
         case "Tuple":
@@ -160,7 +160,7 @@ function transformPythonType(node: SyntaxNode, ctx: TransformContext): string {
           // ClassVar[T] -> T (the 'static' is handled at declaration level)
           return typeArgs.length > 0 ? first : "unknown"
         // Callable is handled specially before the switch via transformCallableType
-        /* c8 ignore start - rare typing module types */
+        /* v8 ignore start -- rare typing module types @preserve */
         case "Iterable":
           return typeArgs.length > 0 ? `Iterable<${first}>` : "Iterable<unknown>"
         case "Iterator":
@@ -180,8 +180,8 @@ function transformPythonType(node: SyntaxNode, ctx: TransformContext): string {
           return typeArgs.length > 0
             ? `new (...args: unknown[]) => ${first}`
             : "new (...args: unknown[]) => unknown"
-        /* c8 ignore stop */
-        /* c8 ignore start - Literal type edge cases */
+        /* v8 ignore stop */
+        /* v8 ignore start -- Literal type edge cases @preserve */
         case "Literal": {
           // Literal["a", "b"] -> "a" | "b"
           // Literal[1, 2, 3] -> 1 | 2 | 3
@@ -199,15 +199,15 @@ function transformPythonType(node: SyntaxNode, ctx: TransformContext): string {
           })
           return literalValues.join(" | ")
         }
-        /* c8 ignore stop */
-        /* c8 ignore next 3 - generic fallback for custom types */
+        /* v8 ignore stop */
+        /* v8 ignore next 3 -- generic fallback for custom types @preserve */
         default:
           // Generic class type: MyClass[T] -> MyClass<T>
           return typeArgs.length > 0 ? `${baseName}<${typeArgs.join(", ")}>` : baseName
       }
     }
 
-    /* c8 ignore start - rare type annotation patterns */
+    /* v8 ignore start -- rare type annotation patterns @preserve */
     case "BinaryExpression": {
       // Union types: int | str | None
       const children = getChildren(node)
@@ -239,9 +239,9 @@ function transformPythonType(node: SyntaxNode, ctx: TransformContext): string {
       }
       return "unknown"
     }
-    /* c8 ignore stop */
+    /* v8 ignore stop */
 
-    /* c8 ignore next 2 - fallback for unhandled type nodes */
+    /* v8 ignore next 2 -- fallback for unhandled type nodes @preserve */
     default:
       return getNodeText(node, ctx.source)
   }
@@ -708,7 +708,7 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformAssertStatement(node, ctx)
     case "YieldStatement":
       return transformYieldStatement(node, ctx)
-    /* c8 ignore next 2 - fallback for unknown AST nodes */
+    /* v8 ignore next 2 -- fallback for unknown AST nodes @preserve */
     default:
       return getNodeText(node, ctx.source)
   }
@@ -768,7 +768,7 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
     .filter((c) => c.name !== "," && c.name !== "TypeDef")
   const values = children.slice(assignOpIndex + 1).filter((c) => c.name !== ",")
 
-  /* c8 ignore next 3 - defensive: empty targets/values can't occur with valid Python */
+  /* v8 ignore next 3 -- defensive: empty targets/values can't occur with valid Python @preserve */
   if (targets.length === 0 || values.length === 0) {
     return getNodeText(node, ctx.source)
   }
@@ -797,7 +797,7 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
   // Single target assignment
   if (targets.length === 1) {
     const target = targets[0]
-    /* c8 ignore next */
+    /* v8 ignore next -- @preserve */
     if (!target) return getNodeText(node, ctx.source)
 
     // Check for slice assignment: arr[1:3] = values
@@ -864,7 +864,7 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
   if (values.length === 1) {
     // Unpacking from single value: a, b = point
     const value = values[0]
-    /* c8 ignore next */
+    /* v8 ignore next -- @preserve */
     if (!value) return getNodeText(node, ctx.source)
     const valueCode = transformNode(value, ctx)
     return allDeclaredAtAccessibleScope
@@ -1062,7 +1062,7 @@ function transformBinaryExpression(node: SyntaxNode, ctx: TransformContext): str
         return `repeatValue(${rightCode}, ${leftCode})`
       }
       return `(${leftCode} * ${rightCode})`
-    /* c8 ignore next 2 - pass-through for standard operators */
+    /* v8 ignore next 2 -- pass-through for standard operators @preserve */
     default:
       return `(${leftCode} ${opText} ${rightCode})`
   }
@@ -1116,7 +1116,7 @@ function transformUnaryExpression(node: SyntaxNode, ctx: TransformContext): stri
   switch (opText) {
     case "not":
       return `(!${operandCode})`
-    /* c8 ignore next 2 - pass-through for unary operators like - and + */
+    /* v8 ignore next 2 -- pass-through for unary operators like - and + @preserve */
     default:
       return `(${opText}${operandCode})`
   }
@@ -1135,7 +1135,7 @@ function transformNamedExpression(node: SyntaxNode, ctx: TransformContext): stri
   const varName = children.find((c) => c.name === "VariableName")
   const value = children.find((c) => c.name !== "VariableName" && c.name !== "AssignOp")
 
-  /* c8 ignore next 3 - defensive: walrus operator always has name and value */
+  /* v8 ignore next 3 -- defensive: walrus operator always has name and value @preserve */
   if (!varName || !value) {
     return getNodeText(node, ctx.source)
   }
@@ -1157,7 +1157,7 @@ function transformConditionalExpression(node: SyntaxNode, ctx: TransformContext)
     const condition = exprs[1]
     const falseExpr = exprs[2]
 
-    /* c8 ignore next - defensive: checked exprs.length >= 3 above */
+    /* v8 ignore next -- defensive: checked exprs.length >= 3 above @preserve */
     if (trueExpr && condition && falseExpr) {
       const condCode = transformNode(condition, ctx)
       const trueCode = transformNode(trueExpr, ctx)
@@ -1167,7 +1167,7 @@ function transformConditionalExpression(node: SyntaxNode, ctx: TransformContext)
     }
   }
 
-  /* c8 ignore next */
+  /* v8 ignore next -- @preserve */
   return getNodeText(node, ctx.source)
 }
 
@@ -1554,7 +1554,7 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
       ctx.usesRuntime.add("string/capWords")
       return `capWords(${args})`
 
-    /* c8 ignore next 3 - pass-through for user-defined functions */
+    /* v8 ignore next 3 -- pass-through for user-defined functions @preserve */
     default:
       // Regular function call
       return `${transformNode(callee, ctx)}(${args})`
@@ -1879,7 +1879,7 @@ function transformMethodCall(
       ctx.usesRuntime.add("set")
       return `set.issuperset(${objCode}, ${args})`
 
-    /* c8 ignore next 2 - unknown method, let caller handle */
+    /* v8 ignore next 2 -- unknown method, let caller handle @preserve */
     default:
       return null
   }
@@ -1908,7 +1908,7 @@ function transformArgList(node: SyntaxNode, ctx: TransformContext): string {
 
   while (i < items.length) {
     const item = items[i]
-    /* c8 ignore next 4 - defensive: items from parser are never null */
+    /* v8 ignore next 4 -- defensive: items from parser are never null @preserve */
     if (!item) {
       i++
       continue
@@ -2075,7 +2075,7 @@ function transformSliceFromMember(
   const bracketStart = children.findIndex((c) => c.name === "[")
   const bracketEnd = children.findIndex((c) => c.name === "]")
 
-  /* c8 ignore next 3 - defensive: subscript always has brackets */
+  /* v8 ignore next 3 -- defensive: subscript always has brackets @preserve */
   if (bracketStart === -1 || bracketEnd === -1) {
     return `slice(${objCode})`
   }
@@ -2110,7 +2110,7 @@ function transformSliceFromMember(
   }
 
   // If no colons, it's not a slice
-  /* c8 ignore next 3 - defensive: slice detection already checked for colons */
+  /* v8 ignore next 3 -- defensive: slice detection already checked for colons @preserve */
   if (colonIndices.length === 0) {
     return `slice(${objCode})`
   }
@@ -2443,7 +2443,7 @@ function transformComplexPattern(
       }
       return { condition: "true", bindings: [`const ${varName} = ${subject};`] }
     }
-    /* c8 ignore next 3 - fallback for unknown match patterns */
+    /* v8 ignore next 3 -- fallback for unknown match patterns @preserve */
     default:
       // Fallback for unknown patterns
       return { condition: `${subject} === ${getNodeText(pattern, ctx.source)}`, bindings: [] }
@@ -2709,7 +2709,7 @@ function transformMatchPatternSimple(node: SyntaxNode, ctx: TransformContext): s
     case "CapturePattern":
       // Variable capture - in switch this would be default
       return getNodeText(node, ctx.source)
-    /* c8 ignore next 2 - fallback for unknown case patterns */
+    /* v8 ignore next 2 -- fallback for unknown case patterns @preserve */
     default:
       return getNodeText(node, ctx.source)
   }
@@ -5740,7 +5740,7 @@ function transformDeleteStatement(node: SyntaxNode, ctx: TransformContext): stri
         // For other cases, use delete
         return `delete ${objCode}[${indexCode}]`
       } else {
-        /* c8 ignore next 2 - del obj.attr edge case */
+        /* v8 ignore next 2 -- del obj.attr edge case @preserve */
         // del obj.attr
         return `delete ${transformNode(target, ctx)}`
       }
@@ -5750,7 +5750,7 @@ function transformDeleteStatement(node: SyntaxNode, ctx: TransformContext): stri
       const varName = getNodeText(target, ctx.source)
       return `${varName} = undefined`
     }
-    /* c8 ignore next - fallback for complex del targets */
+    /* v8 ignore next -- fallback for complex del targets @preserve */
     return `delete ${transformNode(target, ctx)}`
   })
 
@@ -5791,7 +5791,7 @@ function transformYieldStatement(node: SyntaxNode, ctx: TransformContext): strin
     // yield expr
     return `yield ${transformNode(valueNode, ctx)}`
   }
-  /* c8 ignore next - bare yield statement */
+  /* v8 ignore next -- bare yield statement @preserve */
   return "yield"
 }
 

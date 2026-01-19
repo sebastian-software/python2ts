@@ -708,7 +708,7 @@ export function format(value: unknown, spec: string): string {
     const num = typeof value === "number" ? value : float(value as string | number)
     result = num.toLocaleString()
   } else {
-    /* c8 ignore next - fallback for unrecognized format types */
+    /* v8 ignore next -- fallback for unrecognized format types @preserve */
     result = str(value)
   }
 

@@ -120,7 +120,7 @@ export function defaultdict<K, V>(factory: () => V): Map<K, V> & { get(key: K): 
       if (typeof val === "function") {
         return (val as (...args: unknown[]) => unknown).bind(target)
       }
-      /* c8 ignore next - getter properties on Map fail with proxy receiver */
+      /* v8 ignore next -- getter properties on Map fail with proxy receiver @preserve */
       return val
     }
   }) as Map<K, V> & { get(key: K): V }
