@@ -56,7 +56,7 @@ print(fibonacci(10))
 Becomes:
 
 ```typescript
-import { py } from "pythonlib"
+import { range } from "pythonlib"
 
 /**
  * Generate Fibonacci sequence.
@@ -64,7 +64,7 @@ import { py } from "pythonlib"
 function fibonacci(n: number): number[] {
   let [a, b] = [0, 1]
   let result: number[] = []
-  for (const _ of py.range(n)) {
+  for (const _ of range(n)) {
     result.push(a)
     ;[a, b] = [b, a + b]
   }
