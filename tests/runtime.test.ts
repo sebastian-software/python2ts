@@ -595,6 +595,14 @@ describe("Runtime Library", () => {
       expect(format(3.14, " .2f")).toBe(" 3.14")
     })
 
+    it("should handle space sign for octal", () => {
+      expect(format(8, " o")).toBe(" 10")
+    })
+
+    it("should handle space sign for binary", () => {
+      expect(format(5, " b")).toBe(" 101")
+    })
+
     it("should handle + sign for percentage", () => {
       expect(format(0.5, "+.0%")).toBe("+50%")
     })
@@ -766,6 +774,21 @@ describe("Runtime Library", () => {
 
     it("should handle empty template", () => {
       expect(strFormat("", "value")).toBe("")
+    })
+
+    it("should keep empty placeholder when no more args", () => {
+      expect(strFormat("{} {} {}", "a")).toBe("a {} {}")
+    })
+  })
+
+  describe("sprintf edge cases", () => {
+    it("should handle %f without precision", () => {
+      expect(sprintf("%f", 3.14159)).toBe("3.14159")
+    })
+
+    it("should leave unmatched format specifiers unchanged", () => {
+      // %z is not a valid format, so it's not matched by the regex
+      expect(sprintf("%z test", "unused")).toBe("%z test")
     })
   })
 

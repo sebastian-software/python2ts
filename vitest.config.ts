@@ -14,10 +14,10 @@ export default defineConfig({
         "packages/pythonlib/src/os.ts" // Trivial wrappers + browser stubs
       ],
       thresholds: {
-        lines: 84,
-        functions: 84,
-        branches: 79, // Lowered due to vitest 4.0 coverage changes
-        statements: 84
+        lines: 90,
+        functions: 95,
+        branches: 79,
+        statements: 88
       },
       reporter: ["text", "html", "lcov"]
     }

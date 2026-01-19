@@ -173,6 +173,7 @@ function buildRuntimeImports(usedFunctions: string[], basePath: string): string 
       continue
     }
 
+    /* c8 ignore next 2 - fallback for future/unknown runtime functions */
     // Unknown - add to main imports (for future compatibility)
     mainImports.add(func)
   }

@@ -98,6 +98,15 @@ q = deque([1, 2, 3])
       expect(counter.get("a")).toBe(2)
     })
 
+    it("should subtract counts from another Counter", () => {
+      const counter1 = new collections.Counter("aaabbc")
+      const counter2 = new collections.Counter("ab")
+      counter1.subtract(counter2)
+      expect(counter1.get("a")).toBe(2) // 3 - 1
+      expect(counter1.get("b")).toBe(1) // 2 - 1
+      expect(counter1.get("c")).toBe(1) // 1 - 0
+    })
+
     it("should update counts", () => {
       const counter = new collections.Counter("abc")
       counter.update("aaa")
