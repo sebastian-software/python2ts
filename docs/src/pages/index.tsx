@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import clsx from "clsx"
 import Link from "@docusaurus/Link"
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext"
+import useBaseUrl from "@docusaurus/useBaseUrl"
 import Layout from "@theme/Layout"
 import Heading from "@theme/Heading"
 import CodeBlock from "@theme/CodeBlock"
@@ -26,15 +27,18 @@ import styles from "./index.module.css"
    ========================================================================== */
 
 function HeroSection() {
+  const pythonLogo = useBaseUrl("/img/python.svg")
+  const tsLogo = useBaseUrl("/img/typescript.svg")
+
   return (
     <header className={styles.hero}>
       <div className={styles.heroBackground} />
       <div className={styles.heroContent}>
         <div className={styles.heroText}>
           <div className={styles.heroLogos}>
-            <img src="/img/python.svg" alt="Python" className={styles.heroLogo} />
+            <img src={pythonLogo} alt="Python" className={styles.heroLogo} />
             <span className={styles.heroLogoArrow}>→</span>
-            <img src="/img/typescript.svg" alt="TypeScript" className={styles.heroLogo} />
+            <img src={tsLogo} alt="TypeScript" className={styles.heroLogo} />
           </div>
           <Heading as="h1" className={styles.heroTitle}>
             Write <span className={styles.gradientText}>Python</span>
