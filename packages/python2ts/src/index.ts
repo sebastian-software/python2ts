@@ -20,6 +20,3 @@ export {
   type GeneratorOptions,
   type GeneratedCode
 } from "./generator/index.js"
-
-// Re-export pythonlib runtime for convenience
-export { py } from "pythonlib"

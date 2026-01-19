@@ -265,17 +265,3 @@ capwords("hello world") // "Hello World"
 const t = new Template("Hello, $name!")
 t.substitute({ name: "World" }) // "Hello, World!"
 ```
-
-## Legacy Namespace Import
-
-For backward compatibility, you can still use the `py` namespace:
-
-```typescript
-import { py } from "pythonlib"
-
-py.itertools.chain([1, 2], [3, 4])
-py.functools.reduce((a, b) => a + b, numbers)
-py.math.sqrt(16)
-```
-
-However, the subpath exports style is recommended for better tree-shaking and cleaner code.

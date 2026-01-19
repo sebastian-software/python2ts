@@ -3,15 +3,6 @@
  * len, range, enumerate, sorted, min, max, etc.
  */
 
-// Import for referencing py.bool and py.repr in str()
-import type { py as PyType } from "./index.js"
-let py: typeof PyType
-
-// This will be called from index.ts after py is constructed
-export function _setPyRef(pyRef: typeof PyType): void {
-  py = pyRef
-}
-
 // ============================================================
 // Iterables
 // ============================================================
@@ -431,11 +422,11 @@ export function str(x: unknown): string {
     return x ? "True" : "False"
   }
   if (Array.isArray(x)) {
-    return "[" + x.map((item) => py.repr(item)).join(", ") + "]"
+    return "[" + x.map((item) => repr(item)).join(", ") + "]"
   }
   if (x instanceof Map) {
     const entries = Array.from(x.entries())
-      .map(([k, v]) => `${py.repr(k)}: ${py.repr(v)}`)
+      .map(([k, v]) => `${repr(k)}: ${repr(v)}`)
       .join(", ")
     return "{" + entries + "}"
   }
@@ -446,7 +437,7 @@ export function str(x: unknown): string {
     return (
       "{" +
       Array.from(x)
-        .map((item) => py.repr(item))
+        .map((item) => repr(item))
         .join(", ") +
       "}"
     )

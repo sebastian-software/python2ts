@@ -4,11 +4,12 @@ import {
   transform,
   generate,
   transpile,
-  py,
   debugTree,
   getNodeText,
   getChildren
 } from "python2ts"
+import { floordiv, mod, slice, range, len, int, float, str, bool } from "pythonlib"
+import { pow } from "pythonlib"
 
 describe("Integration Tests", () => {
   describe("Main exports", () => {
@@ -26,10 +27,6 @@ describe("Integration Tests", () => {
 
     it("should export transpile function", () => {
       expect(typeof transpile).toBe("function")
-    })
-
-    it("should export py runtime", () => {
-      expect(typeof py).toBe("object")
     })
 
     it("should export debugTree function", () => {
@@ -125,36 +122,36 @@ for i in range(10):
   describe("Runtime verification", () => {
     it("should execute Python semantics correctly", () => {
       // Test floor division
-      expect(py.floordiv(7, 2)).toBe(3)
-      expect(py.floordiv(-7, 2)).toBe(-4) // Python rounds towards -infinity
+      expect(floordiv(7, 2)).toBe(3)
+      expect(floordiv(-7, 2)).toBe(-4) // Python rounds towards -infinity
 
       // Test modulo
-      expect(py.mod(-7, 3)).toBe(2) // Python semantics
+      expect(mod(-7, 3)).toBe(2) // Python semantics
 
       // Test power
-      expect(py.pow(2, 10)).toBe(1024)
+      expect(pow(2, 10)).toBe(1024)
 
       // Test slicing
       const arr = [0, 1, 2, 3, 4]
-      expect(py.slice(arr, 1, 4)).toEqual([1, 2, 3])
-      expect(py.slice(arr, -2)).toEqual([3, 4])
-      expect(py.slice(arr, undefined, undefined, -1)).toEqual([4, 3, 2, 1, 0])
+      expect(slice(arr, 1, 4)).toEqual([1, 2, 3])
+      expect(slice(arr, -2)).toEqual([3, 4])
+      expect(slice(arr, undefined, undefined, -1)).toEqual([4, 3, 2, 1, 0])
 
       // Test range
-      expect([...py.range(5)]).toEqual([0, 1, 2, 3, 4])
-      expect([...py.range(2, 5)]).toEqual([2, 3, 4])
-      expect([...py.range(0, 10, 2)]).toEqual([0, 2, 4, 6, 8])
+      expect([...range(5)]).toEqual([0, 1, 2, 3, 4])
+      expect([...range(2, 5)]).toEqual([2, 3, 4])
+      expect([...range(0, 10, 2)]).toEqual([0, 2, 4, 6, 8])
 
       // Test collections
-      expect(py.len([1, 2, 3])).toBe(3)
-      expect(py.len("hello")).toBe(5)
+      expect(len([1, 2, 3])).toBe(3)
+      expect(len("hello")).toBe(5)
 
       // Test conversions
-      expect(py.int("42")).toBe(42)
-      expect(py.float("3.14")).toBe(3.14)
-      expect(py.str(42)).toBe("42")
-      expect(py.bool(0)).toBe(false)
-      expect(py.bool(1)).toBe(true)
+      expect(int("42")).toBe(42)
+      expect(float("3.14")).toBe(3.14)
+      expect(str(42)).toBe("42")
+      expect(bool(0)).toBe(false)
+      expect(bool(1)).toBe(true)
     })
   })
 

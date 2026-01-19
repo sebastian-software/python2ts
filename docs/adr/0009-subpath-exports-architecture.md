@@ -51,10 +51,10 @@ We adopt a **subpath exports architecture** where:
    let result = chain([1, 2], [3, 4])
    ```
 
-4. **Namespace imports still available** for backward compatibility:
+4. **Module namespace imports** provide an alternative style:
    ```typescript
    import { itertools, json, re } from "pythonlib"
-   itertools.chain([1, 2], [3, 4]) // Still works
+   itertools.chain([1, 2], [3, 4])
    ```
 
 ### Import Categories
@@ -105,22 +105,7 @@ import { loads } from "pythonlib/json"
 ### Negative
 
 - **More import statements**: Generated code may have multiple imports
-- **Breaking change**: Existing code using `py.*` style needs updates
 - **Learning curve**: Users need to know which subpath contains which function
-
-### Migration Path
-
-The `py` namespace export remains available for backward compatibility:
-
-```typescript
-// Legacy style (still works)
-import { py } from "pythonlib"
-py.itertools.chain([1, 2], [3, 4])
-
-// New style (recommended)
-import { chain } from "pythonlib/itertools"
-chain([1, 2], [3, 4])
-```
 
 ### Example Transformation
 
