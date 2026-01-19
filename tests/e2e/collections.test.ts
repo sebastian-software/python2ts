@@ -103,6 +103,14 @@ q = deque([1, 2, 3])
       counter.update("aaa")
       expect(counter.get("a")).toBe(4)
     })
+
+    it("should update counts from another Counter", () => {
+      const counter1 = new collections.Counter("abc")
+      const counter2 = new collections.Counter("aab")
+      counter1.update(counter2)
+      expect(counter1.get("a")).toBe(3) // 1 + 2
+      expect(counter1.get("b")).toBe(2) // 1 + 1
+    })
   })
 
   describe("Runtime - defaultdict", () => {
@@ -126,6 +134,15 @@ q = deque([1, 2, 3])
       expect(d.get("a")).toBe(5)
       expect(d.has("a")).toBe(true)
       expect(d.has("b")).toBe(false)
+    })
+
+    it("should support iteration with forEach", () => {
+      const d = collections.defaultdict(() => 0)
+      d.get("a")
+      d.get("b")
+      const keys: string[] = []
+      d.forEach((_, key) => keys.push(key))
+      expect(keys.sort()).toEqual(["a", "b"])
     })
   })
 
@@ -158,6 +175,17 @@ q = deque([1, 2, 3])
       const d = new collections.deque([1, 2, 3], 3)
       d.append(4)
       expect(d.toArray()).toEqual([2, 3, 4])
+    })
+
+    it("should truncate initial items to maxlen", () => {
+      const d = new collections.deque([1, 2, 3, 4, 5], 3)
+      expect(d.toArray()).toEqual([3, 4, 5])
+    })
+
+    it("should respect maxlen on appendLeft", () => {
+      const d = new collections.deque([1, 2, 3], 3)
+      d.appendLeft(0)
+      expect(d.toArray()).toEqual([0, 1, 2])
     })
 
     it("should rotate right", () => {

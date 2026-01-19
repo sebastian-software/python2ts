@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { transform } from "python2ts"
+import { toJsName, toPythonName } from "../packages/python2ts/src/transformer/name-mappings"
 
 describe("Transformer", () => {
   describe("Literals", () => {
@@ -873,6 +874,28 @@ describe("Transformer", () => {
     it("should handle yield from", () => {
       const result = transform("def gen():\n    yield from other()")
       expect(result.code).toContain("yield")
+    })
+  })
+
+  describe("Name Mappings", () => {
+    it("should convert Python snake_case to JS camelCase", () => {
+      expect(toJsName("lru_cache")).toBe("lruCache")
+      expect(toJsName("zip_longest")).toBe("zipLongest")
+      expect(toJsName("total_seconds")).toBe("totalSeconds")
+    })
+
+    it("should return original name if no mapping exists", () => {
+      expect(toJsName("unknown_name")).toBe("unknown_name")
+    })
+
+    it("should convert JS camelCase back to Python snake_case", () => {
+      expect(toPythonName("lruCache")).toBe("lru_cache")
+      expect(toPythonName("zipLongest")).toBe("zip_longest")
+      expect(toPythonName("totalSeconds")).toBe("total_seconds")
+    })
+
+    it("should return original name if no reverse mapping exists", () => {
+      expect(toPythonName("unknownName")).toBe("unknownName")
     })
   })
 })
