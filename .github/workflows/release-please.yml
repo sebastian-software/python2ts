@@ -12,52 +12,9 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
-    outputs:
-      releases_created: ${{ steps.release.outputs.releases_created }}
-      pythonlib--release_created:
-        ${{ steps.release.outputs['packages/pythonlib--release_created'] }}
-      python2ts--release_created:
-        ${{ steps.release.outputs['packages/python2ts--release_created'] }}
     steps:
       - uses: googleapis/release-please-action@v4
-        id: release
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-
-  publish-pythonlib:
-    needs: release-please
-    if: ${{ needs.release-please.outputs['pythonlib--release_created'] == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "pnpm"
-          registry-url: "https://registry.npmjs.org"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm --filter pythonlib publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  publish-python2ts:
-    needs: release-please
-    if: ${{ needs.release-please.outputs['python2ts--release_created'] == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "pnpm"
-          registry-url: "https://registry.npmjs.org"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm --filter python2ts publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

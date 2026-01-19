@@ -12,7 +12,6 @@ on:
         options:
           - pythonlib
           - python2ts
-          - both
       dry-run:
         description: "Dry run (skip actual publish)"
         required: false
@@ -24,11 +23,8 @@ permissions:
   id-token: write # Required for OIDC
 
 jobs:
-  publish-pythonlib:
+  publish:
     runs-on: ubuntu-latest
-    if: |
-      (github.event_name == 'release' && contains(github.event.release.tag_name, 'pythonlib')) ||
-      (github.event_name == 'workflow_dispatch' && (inputs.package == 'pythonlib' || inputs.package == 'both'))
     steps:
       - uses: actions/checkout@v4
 
@@ -37,56 +33,42 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24" # npm v11+ required for OIDC
-          registry-url: "https://registry.npmjs.org"
           cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm test
 
-      - name: Publish pythonlib (dry run)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run == true }}
-        working-directory: packages/pythonlib
-        run: npm publish --dry-run
+      - name: Determine package from release tag
+        if: github.event_name == 'release'
+        id: package
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          if [[ "$TAG" == pythonlib-* ]]; then
+            echo "name=pythonlib" >> $GITHUB_OUTPUT
+          elif [[ "$TAG" == python2ts-* ]]; then
+            echo "name=python2ts" >> $GITHUB_OUTPUT
+          else
+            echo "Unknown tag format: $TAG"
+            exit 1
+          fi
 
       - name: Publish pythonlib
-        if:
-          ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' &&
-          inputs.dry-run != true) }}
-        working-directory: packages/pythonlib
-        run: npm publish --access public --provenance
-
-  publish-python2ts:
-    runs-on: ubuntu-latest
-    if: |
-      always() &&
-      ((github.event_name == 'release' && contains(github.event.release.tag_name, 'python2ts')) ||
-       (github.event_name == 'workflow_dispatch' && (inputs.package == 'python2ts' || inputs.package == 'both')))
-    needs: [publish-pythonlib]
-    # Run after pythonlib (if it ran), but don't fail if pythonlib was skipped
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "24" # npm v11+ required for OIDC
-          registry-url: "https://registry.npmjs.org"
-          cache: "pnpm"
-
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm test
-
-      - name: Publish python2ts (dry run)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run == true }}
-        working-directory: packages/python2ts
-        run: npm publish --dry-run
+        if: |
+          (github.event_name == 'release' && steps.package.outputs.name == 'pythonlib') ||
+          (github.event_name == 'workflow_dispatch' && inputs.package == 'pythonlib' && !inputs.dry-run)
+        run: pnpm --filter pythonlib publish --access public --no-git-checks --provenance
 
       - name: Publish python2ts
-        if:
-          ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' &&
-          inputs.dry-run != true) }}
-        working-directory: packages/python2ts
-        run: npm publish --access public --provenance
+        if: |
+          (github.event_name == 'release' && steps.package.outputs.name == 'python2ts') ||
+          (github.event_name == 'workflow_dispatch' && inputs.package == 'python2ts' && !inputs.dry-run)
+        run: pnpm --filter python2ts publish --access public --no-git-checks --provenance
+
+      - name: Dry run pythonlib
+        if: github.event_name == 'workflow_dispatch' && inputs.package == 'pythonlib' && inputs.dry-run
+        run: pnpm --filter pythonlib publish --dry-run
+
+      - name: Dry run python2ts
+        if: github.event_name == 'workflow_dispatch' && inputs.package == 'python2ts' && inputs.dry-run
+        run: pnpm --filter python2ts publish --dry-run
