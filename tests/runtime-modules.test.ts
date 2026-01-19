@@ -937,6 +937,21 @@ describe("functools module", () => {
       expect(arr).toEqual([1, 2, 3])
     })
   })
+
+  describe("pipe()", () => {
+    it("should pipe value through functions", () => {
+      const result = functools.pipe(
+        5,
+        (x: number) => x * 2,
+        (x: number) => x + 1
+      )
+      expect(result).toBe(11)
+    })
+
+    it("should return value unchanged with no functions", () => {
+      expect(functools.pipe(42)).toBe(42)
+    })
+  })
 })
 
 describe("os module", () => {

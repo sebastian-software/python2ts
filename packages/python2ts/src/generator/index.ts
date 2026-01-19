@@ -207,6 +207,7 @@ export function transpile(python: string, options: GeneratorOptions = {}): strin
   return generate(python, options).code
 }
 
+/* c8 ignore start - async wrappers tested via CLI */
 /**
  * Format TypeScript code using Prettier
  */
@@ -245,3 +246,4 @@ export async function transpileAsync(
   const result = await generateAsync(python, options)
   return result.code
 }
+/* c8 ignore stop */
