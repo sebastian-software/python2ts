@@ -44,29 +44,31 @@ const fib = lruCache((n: number): number => (n <= 1 ? n : fib(n - 1) + fib(n - 2
 
 ## Available Modules
 
-| Import Path             | Contents                                           |
-| ----------------------- | -------------------------------------------------- |
-| `pythonlib`             | Builtins: `len`, `range`, `sorted`, `enumerate`... |
-| `pythonlib/itertools`   | `chain`, `combinations`, `zipLongest`, `takeWhile` |
-| `pythonlib/functools`   | `partial`, `reduce`, `lruCache`, `pipe`            |
-| `pythonlib/collections` | `Counter`, `defaultdict`, `deque`                  |
-| `pythonlib/math`        | `sqrt`, `floor`, `ceil`, `factorial`, `pi`, `e`    |
-| `pythonlib/random`      | `randInt`, `choice`, `shuffle`, `sample`           |
-| `pythonlib/datetime`    | `datetime`, `date`, `time`, `timedelta`            |
-| `pythonlib/json`        | `loads`, `dumps`                                   |
-| `pythonlib/re`          | `search`, `match`, `findAll`, `sub`, `compile`     |
-| `pythonlib/string`      | `Template`, `capWords`, `asciiLowercase`           |
+| Import Path             | Contents                                           | API Docs                                                                 |
+| ----------------------- | -------------------------------------------------- | ------------------------------------------------------------------------ |
+| `pythonlib`             | Builtins: `len`, `range`, `sorted`, `enumerate`... | [→](https://sebastian-software.github.io/python2ts/docs/api/index)       |
+| `pythonlib/itertools`   | `chain`, `combinations`, `zipLongest`, `takeWhile` | [→](https://sebastian-software.github.io/python2ts/docs/api/itertools)   |
+| `pythonlib/functools`   | `partial`, `reduce`, `lruCache`, `pipe`            | [→](https://sebastian-software.github.io/python2ts/docs/api/functools)   |
+| `pythonlib/collections` | `Counter`, `defaultdict`, `deque`                  | [→](https://sebastian-software.github.io/python2ts/docs/api/collections) |
+| `pythonlib/math`        | `sqrt`, `floor`, `ceil`, `factorial`, `pi`, `e`    | [→](https://sebastian-software.github.io/python2ts/docs/api/math)        |
+| `pythonlib/random`      | `randInt`, `choice`, `shuffle`, `sample`           | [→](https://sebastian-software.github.io/python2ts/docs/api/random)      |
+| `pythonlib/datetime`    | `datetime`, `date`, `time`, `timedelta`            | [→](https://sebastian-software.github.io/python2ts/docs/api/datetime)    |
+| `pythonlib/json`        | `loads`, `dumps`                                   | [→](https://sebastian-software.github.io/python2ts/docs/api/json)        |
+| `pythonlib/re`          | `search`, `match`, `findAll`, `sub`, `compile`     | [→](https://sebastian-software.github.io/python2ts/docs/api/re)          |
+| `pythonlib/string`      | `Template`, `capWords`, `asciiLowercase`           | [→](https://sebastian-software.github.io/python2ts/docs/api/string)      |
 
 > All function names use **camelCase** to feel native in TypeScript.
 
 ## Documentation
 
-For comprehensive documentation and API reference:
-
 **[📚 View Full Documentation](https://sebastian-software.github.io/python2ts/)**
 
-- [Runtime Library Guide](https://sebastian-software.github.io/python2ts/docs/runtime)
-- [API Reference](https://sebastian-software.github.io/python2ts/docs/api)
+| Resource                                                                       | Description                                 |
+| ------------------------------------------------------------------------------ | ------------------------------------------- |
+| [Homepage](https://sebastian-software.github.io/python2ts/)                    | Project overview, features, and quick start |
+| [Runtime Guide](https://sebastian-software.github.io/python2ts/docs/runtime)   | How to use pythonlib in your projects       |
+| [API Reference](https://sebastian-software.github.io/python2ts/docs/api)       | Complete API documentation for all modules  |
+| [Syntax Reference](https://sebastian-software.github.io/python2ts/docs/syntax) | Python → TypeScript transformation rules    |
 
 ## Runtime Support
 
