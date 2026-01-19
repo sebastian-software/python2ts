@@ -78,7 +78,7 @@ export function sprintf(template: string, args: unknown): string {
           return Number(value).toExponential()
         case "c":
           return String.fromCharCode(Number(value))
-        /* c8 ignore next 2 - unreachable: regex only matches handled cases */
+        /* v8 ignore next 2 -- unreachable: regex only matches handled cases @preserve */
         default:
           return String(value)
       }

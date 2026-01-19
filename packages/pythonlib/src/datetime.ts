@@ -783,7 +783,7 @@ export function strptime(dateString: string, format: string): datetime {
           if (!found) throw new Error("Invalid month name")
           break
         }
-        /* c8 ignore start - rare edge cases */
+        /* v8 ignore start -- rare edge cases @preserve */
         case "%":
           if (dateString[pos] !== "%") throw new Error("Expected %")
           pos++
@@ -791,7 +791,7 @@ export function strptime(dateString: string, format: string): datetime {
         default:
           // Skip unknown codes
           break
-        /* c8 ignore stop */
+        /* v8 ignore stop */
       }
     } else {
       // Literal character

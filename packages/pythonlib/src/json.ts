@@ -82,12 +82,12 @@ export function dumps(obj: unknown, options?: DumpsOptions): string {
     } else {
       result = JSON.stringify(obj, replacer, indent)
     }
-    /* c8 ignore start - error handling for invalid JSON */
+    /* v8 ignore start -- error handling for invalid JSON @preserve */
   } catch (e) {
     const error = e as Error
     throw new Error(`Object of type ${typeof obj} is not JSON serializable: ${error.message}`)
   }
-  /* c8 ignore stop */
+  /* v8 ignore stop */
 
   // Handle separators if specified
   if (options?.separators) {
@@ -122,7 +122,7 @@ export function loads(s: string, options?: LoadsOptions): unknown {
 
   let reviver: JsonReviver | undefined
 
-  /* c8 ignore start - advanced custom parser hooks */
+  /* v8 ignore start -- advanced custom parser hooks @preserve */
   if (objectHook || parseFloat || parseInt) {
     reviver = (key, value) => {
       if (typeof value === "number") {
@@ -138,7 +138,7 @@ export function loads(s: string, options?: LoadsOptions): unknown {
       return value
     }
   }
-  /* c8 ignore stop */
+  /* v8 ignore stop */
 
   try {
     return JSON.parse(s, reviver)
