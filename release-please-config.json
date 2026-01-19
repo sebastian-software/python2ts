@@ -14,16 +14,12 @@
     "packages/pythonlib": {
       "release-type": "node",
       "package-name": "pythonlib",
-      "changelog-path": "CHANGELOG.md",
-      "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": true
+      "changelog-path": "CHANGELOG.md"
     },
     "packages/python2ts": {
       "release-type": "node",
       "package-name": "python2ts",
-      "changelog-path": "CHANGELOG.md",
-      "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": true
+      "changelog-path": "CHANGELOG.md"
     }
   },
   "separate-pull-requests": false,

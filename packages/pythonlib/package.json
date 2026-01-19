@@ -1,6 +1,6 @@
 {
   "name": "pythonlib",
-  "version": "0.2.1",
+  "version": "1.0.0",
   "description": "Python standard library for TypeScript - itertools, functools, collections, datetime, re, and more. Zero dependencies. Full TypeScript support.",
   "homepage": "https://sebastian-software.github.io/python2ts/",
   "repository": {
