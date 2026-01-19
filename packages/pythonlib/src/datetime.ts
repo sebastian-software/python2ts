@@ -2,6 +2,8 @@
  * Python datetime module for TypeScript
  *
  * Provides date and time handling matching Python's datetime module.
+ *
+ * @see {@link https://docs.python.org/3/library/datetime.html | Python datetime documentation}
  */
 
 // ============================================================================

@@ -1,6 +1,9 @@
 /**
- * Python string methods and constants for TypeScript
- * Usage: py.string.join(), py.string.split(), py.string.asciiLowercase, etc.
+ * Python string module for TypeScript
+ *
+ * Provides string constants and utility classes matching Python's string module.
+ *
+ * @see {@link https://docs.python.org/3/library/string.html | Python string documentation}
  */
 
 function escapeRegex(str: string): string {

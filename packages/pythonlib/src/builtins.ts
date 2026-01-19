@@ -1,6 +1,9 @@
 /**
  * Python built-in functions for TypeScript
- * len, range, enumerate, sorted, min, max, etc.
+ *
+ * Provides core Python built-in functions like len, range, enumerate, sorted, min, max, etc.
+ *
+ * @see {@link https://docs.python.org/3/library/functions.html | Python built-in functions documentation}
  */
 
 // ============================================================

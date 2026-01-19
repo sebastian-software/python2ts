@@ -2,6 +2,8 @@
  * Python functools module for TypeScript
  *
  * Provides higher-order functions and operations on callable objects.
+ *
+ * @see {@link https://docs.python.org/3/library/functools.html | Python functools documentation}
  */
 
 /**

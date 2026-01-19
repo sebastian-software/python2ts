@@ -6,6 +6,8 @@
  *
  * Note: This is NOT cryptographically secure. For security-sensitive
  * applications, use the Web Crypto API instead.
+ *
+ * @see {@link https://docs.python.org/3/library/random.html | Python random documentation}
  */
 
 // ============================================================================

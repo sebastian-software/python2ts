@@ -3,6 +3,9 @@
  *
  * Provides operating system interface functions matching Python's os module.
  * Note: This is a browser-compatible subset. Some functions are stubs.
+ *
+ * @see {@link https://docs.python.org/3/library/os.html | Python os documentation}
+ * @see {@link https://docs.python.org/3/library/os.path.html | Python os.path documentation}
  */
 
 // ============================================================================

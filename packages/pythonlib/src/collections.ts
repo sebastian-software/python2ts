@@ -2,6 +2,8 @@
  * Python collections module for TypeScript
  *
  * Provides specialized container datatypes.
+ *
+ * @see {@link https://docs.python.org/3/library/collections.html | Python collections documentation}
  */
 
 /**
