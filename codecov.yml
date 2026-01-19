@@ -14,6 +14,10 @@ coverage:
 
 flags:
   python2ts:
+    paths:
+      - packages/python2ts/src/
     carryforward: true
   pythonlib:
+    paths:
+      - packages/pythonlib/src/
     carryforward: true
