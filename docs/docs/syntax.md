@@ -11,11 +11,11 @@ python2ts supports comprehensive Python syntax conversion to TypeScript.
 | Python                    | TypeScript                | Notes                                   |
 | ------------------------- | ------------------------- | --------------------------------------- |
 | `True` / `False` / `None` | `true` / `false` / `null` |                                         |
-| `x // y`                  | `py.floordiv(x, y)`       | Python semantics (rounds toward -∞)     |
-| `x ** y`                  | `py.pow(x, y)`            |                                         |
-| `x % y`                   | `py.mod(x, y)`            | Python semantics (follows divisor sign) |
-| `x in items`              | `py.in(x, items)`         |                                         |
-| `arr[1:3]` / `arr[::-1]`  | `py.slice(...)`           | Full slice support                      |
+| `x // y`                  | `floorDiv(x, y)`          | Python semantics (rounds toward -∞)     |
+| `x ** y`                  | `pow(x, y)`               |                                         |
+| `x % y`                   | `mod(x, y)`               | Python semantics (follows divisor sign) |
+| `x in items`              | `contains(items, x)`      |                                         |
+| `arr[1:3]` / `arr[::-1]`  | `slice(...)`              | Full slice support                      |
 
 ## Control Flow
 

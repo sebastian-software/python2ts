@@ -53,19 +53,19 @@ Rationale:
 Implementation:
 
 ```typescript
-// py.floordiv - Python's //
-floordiv(a: number, b: number): number {
-  return Math.floor(a / b);
+// floorDiv - Python's //
+function floorDiv(a: number, b: number): number {
+  return Math.floor(a / b)
 }
 
-// py.mod - Python's %
-mod(a: number, b: number): number {
-  return ((a % b) + b) % b;
+// mod - Python's %
+function mod(a: number, b: number): number {
+  return ((a % b) + b) % b
 }
 
-// py.pow - Python's **
-pow(base: number, exp: number): number {
-  return Math.pow(base, exp);
+// pow - Python's **
+function pow(base: number, exp: number): number {
+  return Math.pow(base, exp)
 }
 ```
 
@@ -80,17 +80,17 @@ pow(base: number, exp: number): number {
 ### Negative
 
 - Runtime function call overhead (negligible)
-- Generated code is longer (`py.mod(a, b)` vs `a % b`)
-- Users familiar with JS might be confused by `py.mod` behavior
+- Generated code is longer (`mod(a, b)` vs `a % b`)
+- Users familiar with JS might be confused by `mod` behavior
 
 ### Operators Affected
 
 | Python | JavaScript                   | Our Solution             |
 | ------ | ---------------------------- | ------------------------ |
-| `//`   | `Math.floor(a/b)`            | `py.floordiv(a, b)`      |
-| `%`    | `a % b`                      | `py.mod(a, b)`           |
-| `**`   | `Math.pow(a, b)` or `a ** b` | `py.pow(a, b)`           |
-| `in`   | N/A                          | `py.in(item, container)` |
+| `//`   | `Math.floor(a/b)`            | `floorDiv(a, b)`         |
+| `%`    | `a % b`                      | `mod(a, b)`              |
+| `**`   | `Math.pow(a, b)` or `a ** b` | `pow(a, b)`              |
+| `in`   | N/A                          | `contains(container, x)` |
 
 ### Not Affected (Same Semantics)
 

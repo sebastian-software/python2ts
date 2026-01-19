@@ -84,7 +84,7 @@ import { range, enumerate, sorted, len } from "pythonlib"
 // Module functions from subpaths
 import { combinations } from "pythonlib/itertools"
 import { Counter } from "pythonlib/collections"
-import { lru_cache } from "pythonlib/functools"
+import { lruCache } from "pythonlib/functools"
 
 // Itertools
 for (const combo of combinations([1, 2, 3], 2)) {
@@ -96,7 +96,7 @@ const counter = new Counter("mississippi")
 console.log(counter.mostCommon(2)) // [["i", 4], ["s", 4]]
 
 // Functools
-const cached = lru_cache((n: number) => {
+const cached = lruCache((n: number) => {
   console.log(`Computing ${n}`)
   return n * 2
 })
@@ -106,16 +106,16 @@ const cached = lru_cache((n: number) => {
 
 pythonlib uses subpath exports for tree-shakeable imports:
 
-| Import Path             | Contents                                  |
-| ----------------------- | ----------------------------------------- |
-| `pythonlib`             | Builtins: `len`, `range`, `sorted`, etc.  |
-| `pythonlib/itertools`   | `chain`, `combinations`, `permutations`   |
-| `pythonlib/functools`   | `partial`, `reduce`, `lru_cache`          |
-| `pythonlib/collections` | `Counter`, `defaultdict`, `deque`         |
-| `pythonlib/math`        | `sqrt`, `floor`, `ceil`, `pi`, `e`        |
-| `pythonlib/random`      | `randint`, `choice`, `shuffle`            |
-| `pythonlib/datetime`    | `datetime`, `date`, `time`, `timedelta`   |
-| `pythonlib/json`        | `loads`, `dumps`, `load`, `dump`          |
-| `pythonlib/re`          | `search`, `match`, `findall`, `sub`       |
-| `pythonlib/os`          | `path`, `getcwd`, `sep`                   |
-| `pythonlib/string`      | `Template`, `capwords`, `ascii_lowercase` |
+| Import Path             | Contents                                 |
+| ----------------------- | ---------------------------------------- |
+| `pythonlib`             | Builtins: `len`, `range`, `sorted`, etc. |
+| `pythonlib/itertools`   | `chain`, `combinations`, `permutations`  |
+| `pythonlib/functools`   | `partial`, `reduce`, `lruCache`          |
+| `pythonlib/collections` | `Counter`, `defaultdict`, `deque`        |
+| `pythonlib/math`        | `sqrt`, `floor`, `ceil`, `pi`, `e`       |
+| `pythonlib/random`      | `randInt`, `choice`, `shuffle`           |
+| `pythonlib/datetime`    | `datetime`, `date`, `time`, `timedelta`  |
+| `pythonlib/json`        | `loads`, `dumps`, `load`, `dump`         |
+| `pythonlib/re`          | `search`, `match`, `findAll`, `sub`      |
+| `pythonlib/os`          | `path`, `getCwd`, `sep`                  |
+| `pythonlib/string`      | `Template`, `capWords`, `asciiLowercase` |
