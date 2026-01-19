@@ -11,8 +11,8 @@
 **Write Python. Ship TypeScript. Run Everywhere.**
 
 [![CI](https://github.com/sebastian-software/python2ts/actions/workflows/ci.yml/badge.svg)](https://github.com/sebastian-software/python2ts/actions/workflows/ci.yml)
-[![python2ts coverage](https://codecov.io/gh/sebastian-software/python2ts/graph/badge.svg?flag=python2ts)](https://codecov.io/gh/sebastian-software/python2ts/flags)
-[![pythonlib coverage](https://codecov.io/gh/sebastian-software/python2ts/graph/badge.svg?flag=pythonlib)](https://codecov.io/gh/sebastian-software/python2ts/flags)
+[![python2ts coverage](https://img.shields.io/codecov/c/github/sebastian-software/python2ts?flag=python2ts&label=python2ts)](https://codecov.io/gh/sebastian-software/python2ts/flags)
+[![pythonlib coverage](https://img.shields.io/codecov/c/github/sebastian-software/python2ts?flag=pythonlib&label=pythonlib)](https://codecov.io/gh/sebastian-software/python2ts/flags)
 [![License](https://img.shields.io/npm/l/python2ts.svg)](https://github.com/sebastian-software/python2ts/blob/main/LICENSE)
 
 [Homepage](https://sebastian-software.github.io/python2ts/) ·
