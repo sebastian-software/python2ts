@@ -241,9 +241,40 @@ import { chain, combinations } from "pythonlib/itertools"
 import { Counter } from "pythonlib/collections"
 ```
 
-## Requirements
+## Runtime Support
 
-- **Node.js** >= 22.0.0
+python2ts and its generated code are tested on every commit across multiple JavaScript runtimes:
+
+<table>
+  <tr>
+    <td align="center" width="150">
+      <img src="https://raw.githubusercontent.com/sebastian-software/python2ts/main/.github/assets/nodejs.svg" width="60" height="60" alt="Node.js"><br>
+      <b>Node.js</b><br>
+      <sub>v22, v24</sub>
+    </td>
+    <td align="center" width="150">
+      <img src="https://raw.githubusercontent.com/sebastian-software/python2ts/main/.github/assets/bun.svg" width="60" height="60" alt="Bun"><br>
+      <b>Bun</b><br>
+      <sub>latest</sub>
+    </td>
+    <td align="center" width="150">
+      <img src="https://raw.githubusercontent.com/sebastian-software/python2ts/main/.github/assets/deno.svg" width="60" height="60" alt="Deno"><br>
+      <b>Deno</b><br>
+      <sub>v2.x</sub>
+    </td>
+    <td align="center" width="150">
+      <img src="https://raw.githubusercontent.com/sebastian-software/python2ts/main/.github/assets/playwright.svg" width="60" height="60" alt="Playwright"><br>
+      <b>Browser</b><br>
+      <sub>Playwright</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">✅ Full test suite</td>
+    <td align="center">✅ Full test suite</td>
+    <td align="center">✅ Full test suite</td>
+    <td align="center">✅ Runtime tests</td>
+  </tr>
+</table>
 
 ## Related Projects
 

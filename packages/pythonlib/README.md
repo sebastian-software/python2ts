@@ -211,16 +211,42 @@ shuffle([1, 2, 3]) // shuffles in place
 sample([1, 2, 3, 4, 5], 3) // 3 unique random elements
 ```
 
-## Browser & Runtime Support
+## Runtime Support
 
-pythonlib works in all modern JavaScript environments:
+pythonlib is tested on every commit across multiple JavaScript runtimes:
 
-- **Node.js** 22+
-- **Deno**
-- **Bun**
-- **Modern browsers** (Chrome, Firefox, Safari, Edge)
-- **Cloudflare Workers**
-- **AWS Lambda**
+<table>
+  <tr>
+    <td align="center" width="150">
+      <img src="https://raw.githubusercontent.com/sebastian-software/python2ts/main/.github/assets/nodejs.svg" width="60" height="60" alt="Node.js"><br>
+      <b>Node.js</b><br>
+      <sub>v22, v24</sub>
+    </td>
+    <td align="center" width="150">
+      <img src="https://raw.githubusercontent.com/sebastian-software/python2ts/main/.github/assets/bun.svg" width="60" height="60" alt="Bun"><br>
+      <b>Bun</b><br>
+      <sub>latest</sub>
+    </td>
+    <td align="center" width="150">
+      <img src="https://raw.githubusercontent.com/sebastian-software/python2ts/main/.github/assets/deno.svg" width="60" height="60" alt="Deno"><br>
+      <b>Deno</b><br>
+      <sub>v2.x</sub>
+    </td>
+    <td align="center" width="150">
+      <img src="https://raw.githubusercontent.com/sebastian-software/python2ts/main/.github/assets/playwright.svg" width="60" height="60" alt="Playwright"><br>
+      <b>Browser</b><br>
+      <sub>Playwright</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">✅ Full test suite</td>
+    <td align="center">✅ Full test suite</td>
+    <td align="center">✅ Full test suite</td>
+    <td align="center">✅ Runtime tests</td>
+  </tr>
+</table>
+
+Also works in **Cloudflare Workers**, **AWS Lambda**, and other JS environments.
 
 ## Related Projects
 
