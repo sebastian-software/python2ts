@@ -52,6 +52,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/lcov.info
+          flags: python2ts,pythonlib
           fail_ci_if_error: false
 
   test-bun:

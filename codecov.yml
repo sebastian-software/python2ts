@@ -1,0 +1,23 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 84%
+      python2ts:
+        target: 84%
+        flags:
+          - python2ts
+      pythonlib:
+        target: 95%
+        flags:
+          - pythonlib
+
+flags:
+  python2ts:
+    paths:
+      - packages/python2ts/src/
+    carryforward: true
+  pythonlib:
+    paths:
+      - packages/pythonlib/src/
+    carryforward: true
