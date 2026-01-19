@@ -46,12 +46,32 @@ jobs:
       - name: Run tests
         run: pnpm test:coverage
 
-      - name: Upload coverage to Codecov
+      - name: Generate python2ts coverage
+        if: matrix.node-version == '22'
+        run: pnpm test:coverage:python2ts
+
+      - name: Generate pythonlib coverage
+        if: matrix.node-version == '22'
+        run: pnpm test:coverage:pythonlib
+
+      - name: Upload python2ts coverage
         if: matrix.node-version == '22'
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage/lcov.info
+          files: ./coverage/python2ts/lcov.info
+          flags: python2ts
+          name: python2ts
+          fail_ci_if_error: false
+
+      - name: Upload pythonlib coverage
+        if: matrix.node-version == '22'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/pythonlib/lcov.info
+          flags: pythonlib
+          name: pythonlib
           fail_ci_if_error: false
 
   test-bun:

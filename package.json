@@ -14,6 +14,8 @@
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:coverage": "vitest --run --coverage",
+    "test:coverage:python2ts": "vitest --run --coverage --config vitest.coverage-python2ts.config.ts",
+    "test:coverage:pythonlib": "vitest --run --coverage --config vitest.coverage-pythonlib.config.ts",
     "test:browser": "vitest --run --config vitest.browser.config.ts",
     "lint": "eslint packages/*/src tests",
     "format": "prettier --write .",

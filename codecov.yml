@@ -3,3 +3,17 @@ coverage:
     project:
       default:
         target: 84%
+      python2ts:
+        target: 84%
+        flags:
+          - python2ts
+      pythonlib:
+        target: 95%
+        flags:
+          - pythonlib
+
+flags:
+  python2ts:
+    carryforward: true
+  pythonlib:
+    carryforward: true
