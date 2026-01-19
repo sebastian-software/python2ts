@@ -88,6 +88,8 @@
     "combinations",
     "permutations",
     "counter",
+    "deque",
+    "defaultdict",
     "lru-cache"
   ],
   "author": "Sebastian Software GmbH",
