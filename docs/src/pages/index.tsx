@@ -151,7 +151,14 @@ function fibonacci(n: number): number[] {
 
 function ArrowIcon() {
   return (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      width="32"
+      height="32"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <path d="M5 12h14M12 5l7 7-7 7" />
     </svg>
   )
@@ -211,7 +218,8 @@ const whyFeatures = [
   {
     icon: Rocket,
     title: "Zero Config",
-    description: "Works out of the box. npx python2ts input.py and you're done. No complex setup required."
+    description:
+      "Works out of the box. npx python2ts input.py and you're done. No complex setup required."
   }
 ]
 
@@ -221,7 +229,10 @@ function WhySection() {
       <div className="container">
         <div className={styles.sectionHeader}>
           <Heading as="h2">Why python2ts?</Heading>
-          <p>The missing link between Python's powerful ecosystem and the JavaScript runtime universe.</p>
+          <p>
+            The missing link between Python's powerful ecosystem and the JavaScript runtime
+            universe.
+          </p>
         </div>
         <div className={styles.featureGrid}>
           {whyFeatures.map((feature, idx) => {
@@ -396,8 +407,8 @@ function RuntimeSection() {
         <div className={styles.sectionHeader}>
           <Heading as="h2">Python Standard Library for TypeScript</Heading>
           <p>
-            <code>pythonlib</code> brings Python's powerful APIs to TypeScript—with camelCase naming that feels
-            native.
+            <code>pythonlib</code> brings Python's powerful APIs to TypeScript—with camelCase naming
+            that feels native.
           </p>
         </div>
         <div className={styles.moduleGrid}>
@@ -422,8 +433,8 @@ function RuntimeSection() {
         </div>
         <div className={styles.moreModules}>
           <p>
-            Plus: <code>pythonlib/math</code>, <code>pythonlib/json</code>, <code>pythonlib/string</code>,{" "}
-            <code>pythonlib/os</code>, and more.
+            Plus: <code>pythonlib/math</code>, <code>pythonlib/json</code>,{" "}
+            <code>pythonlib/string</code>, <code>pythonlib/os</code>, and more.
           </p>
           <Link to="/docs/runtime" className={styles.moreLink}>
             View all modules →
@@ -637,7 +648,13 @@ function AcknowledgmentsSection() {
         </div>
         <div className={styles.acknowledgementsGrid}>
           {acknowledgments.map((ack, idx) => (
-            <a key={idx} href={ack.url} target="_blank" rel="noopener noreferrer" className={styles.ackCard}>
+            <a
+              key={idx}
+              href={ack.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.ackCard}
+            >
               <Heading as="h4">{ack.name}</Heading>
               <p>{ack.description}</p>
             </a>
