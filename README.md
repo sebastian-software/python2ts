@@ -11,8 +11,7 @@
 **Write Python. Ship TypeScript. Run Everywhere.**
 
 [![CI](https://github.com/sebastian-software/python2ts/actions/workflows/ci.yml/badge.svg)](https://github.com/sebastian-software/python2ts/actions/workflows/ci.yml)
-[![Transpiler Coverage](https://codecov.io/gh/sebastian-software/python2ts/graph/badge.svg?flag=python2ts)](https://codecov.io/gh/sebastian-software/python2ts?flags[0]=python2ts)
-[![Library Coverage](https://codecov.io/gh/sebastian-software/python2ts/graph/badge.svg?flag=pythonlib)](https://codecov.io/gh/sebastian-software/python2ts?flags[0]=pythonlib)
+[![codecov](https://codecov.io/gh/sebastian-software/python2ts/graph/badge.svg)](https://codecov.io/gh/sebastian-software/python2ts)
 [![License](https://img.shields.io/npm/l/python2ts.svg)](https://github.com/sebastian-software/python2ts/blob/main/LICENSE)
 
 [Homepage](https://sebastian-software.github.io/python2ts/) ·
@@ -28,10 +27,10 @@ brings them together — transpile Python to production-ready TypeScript with fu
 
 ## Packages
 
-| Package                               | Description                               | Version                                                                                       |
-| ------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------- |
-| [**python2ts**](./packages/python2ts) | AST-based Python to TypeScript transpiler | [![npm](https://img.shields.io/npm/v/python2ts.svg)](https://www.npmjs.com/package/python2ts) |
-| [**pythonlib**](./packages/pythonlib) | Python standard library for TypeScript    | [![npm](https://img.shields.io/npm/v/pythonlib.svg)](https://www.npmjs.com/package/pythonlib) |
+| Package                               | Description                               | Version                                                                                       | Coverage |
+| ------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------- | -------- |
+| [**python2ts**](./packages/python2ts) | AST-based Python to TypeScript transpiler | [![npm](https://img.shields.io/npm/v/python2ts.svg)](https://www.npmjs.com/package/python2ts) | 86%      |
+| [**pythonlib**](./packages/pythonlib) | Python standard library for TypeScript    | [![npm](https://img.shields.io/npm/v/pythonlib.svg)](https://www.npmjs.com/package/pythonlib) | 98%      |
 
 ## Quick Example
 
