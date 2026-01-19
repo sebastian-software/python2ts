@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest"
 import {
-  py,
   type,
   len,
   all,
@@ -231,8 +230,8 @@ describe("E2E: Built-in Functions Execution", () => {
     })
 
     it("should throw for no arguments", () => {
-      expect(() => (py.min as () => number)()).toThrow()
-      expect(() => (py.max as () => number)()).toThrow()
+      expect(() => (min as unknown as () => number)()).toThrow()
+      expect(() => (max as unknown as () => number)()).toThrow()
     })
   })
 
