@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/sebastian-software/python2ts/compare/python2ts-v0.2.0...python2ts-v0.2.1) (2026-01-19)
+
+
+### Tests
+
+* improve coverage to 90% lines, add c8 ignores for unreachable code ([2737bf4](https://github.com/sebastian-software/python2ts/commit/2737bf4a8b0ac9c0be3878fbbfc9d88e6cc55a46))
+* raise branch coverage threshold to 80% ([a6711fe](https://github.com/sebastian-software/python2ts/commit/a6711fe4b34ce6ebcb4244266ffbdfbe9eba03b0))
+
 ## [0.2.0](https://github.com/sebastian-software/python2ts/compare/python2ts-v0.1.0...python2ts-v0.2.0) (2026-01-19)
 
 

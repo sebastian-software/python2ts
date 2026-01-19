@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.1](https://github.com/sebastian-software/python2ts/compare/pythonlib-v0.2.0...pythonlib-v0.2.1) (2026-01-19)
+
+
+### Documentation
+
+* **pythonlib:** add deque and defaultdict keywords ([4bbe027](https://github.com/sebastian-software/python2ts/commit/4bbe02720d72c41848a2051e4f9ee4fbd2257813))
+
+
+### Tests
+
+* improve coverage to 90% lines, add c8 ignores for unreachable code ([2737bf4](https://github.com/sebastian-software/python2ts/commit/2737bf4a8b0ac9c0be3878fbbfc9d88e6cc55a46))
+
 ## [0.2.0](https://github.com/sebastian-software/python2ts/compare/pythonlib-v0.1.0...pythonlib-v0.2.0) (2026-01-19)
 
 
