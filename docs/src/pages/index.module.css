@@ -44,6 +44,24 @@
   color: #fff;
 }
 
+.heroLogos {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.heroLogo {
+  width: 56px;
+  height: 56px;
+}
+
+.heroLogoArrow {
+  font-size: 2rem;
+  color: #4ecdc4;
+  font-weight: 300;
+}
+
 .badge {
   display: inline-block;
   padding: 0.35rem 1rem;
@@ -661,6 +679,61 @@
     max-width: 500px;
     margin-left: auto;
     margin-right: auto;
+  }
+}
+
+/* ==========================================================================
+   Acknowledgments Section
+   ========================================================================== */
+
+.acknowledgementsSection {
+  padding: 5rem 2rem;
+  background: var(--ifm-background-color);
+}
+
+.acknowledgementsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.ackCard {
+  background: var(--ifm-background-surface-color);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+.ackCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--ifm-color-primary);
+  text-decoration: none;
+  color: inherit;
+}
+
+.ackCard h4 {
+  margin: 0 0 0.5rem;
+  color: var(--ifm-color-primary);
+}
+
+.ackCard p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+@media (max-width: 900px) {
+  .acknowledgementsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .acknowledgementsGrid {
+    grid-template-columns: 1fr;
   }
 }
 

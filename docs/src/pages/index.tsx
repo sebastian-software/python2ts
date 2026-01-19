@@ -15,7 +15,8 @@ import {
   Bot,
   RefreshCw,
   GraduationCap,
-  Zap
+  Zap,
+  Heart
 } from "lucide-react"
 
 import styles from "./index.module.css"
@@ -30,7 +31,11 @@ function HeroSection() {
       <div className={styles.heroBackground} />
       <div className={styles.heroContent}>
         <div className={styles.heroText}>
-          <div className={styles.badge}>Open Source</div>
+          <div className={styles.heroLogos}>
+            <img src="/img/python.svg" alt="Python" className={styles.heroLogo} />
+            <span className={styles.heroLogoArrow}>→</span>
+            <img src="/img/typescript.svg" alt="TypeScript" className={styles.heroLogo} />
+          </div>
           <Heading as="h1" className={styles.heroTitle}>
             Write <span className={styles.gradientText}>Python</span>
             <br />
@@ -589,6 +594,57 @@ import { Counter } from "pythonlib/collections"
 }
 
 /* ==========================================================================
+   Acknowledgments Section
+   ========================================================================== */
+
+const acknowledgments = [
+  {
+    name: "Lezer",
+    url: "https://lezer.codemirror.net/",
+    description: "The incremental parser system that powers our Python parsing"
+  },
+  {
+    name: "Prettier",
+    url: "https://prettier.io/",
+    description: "Code formatter for beautiful TypeScript output"
+  },
+  {
+    name: "Docusaurus",
+    url: "https://docusaurus.io/",
+    description: "Documentation framework for this website"
+  },
+  {
+    name: "Vitest",
+    url: "https://vitest.dev/",
+    description: "Testing framework for our test suite"
+  }
+]
+
+function AcknowledgmentsSection() {
+  return (
+    <section className={styles.acknowledgementsSection}>
+      <div className="container">
+        <div className={styles.sectionHeader}>
+          <Heading as="h2">
+            <Heart size={28} style={{ marginRight: 12, verticalAlign: "middle" }} />
+            Built With
+          </Heading>
+          <p>python2ts stands on the shoulders of these amazing open source projects.</p>
+        </div>
+        <div className={styles.acknowledgementsGrid}>
+          {acknowledgments.map((ack, idx) => (
+            <a key={idx} href={ack.url} target="_blank" rel="noopener noreferrer" className={styles.ackCard}>
+              <Heading as="h4">{ack.name}</Heading>
+              <p>{ack.description}</p>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ==========================================================================
    CTA Section
    ========================================================================== */
 
@@ -630,6 +686,7 @@ export default function Home(): ReactNode {
         <RuntimeSupportSection />
         <UseCasesSection />
         <QuickStartSection />
+        <AcknowledgmentsSection />
         <CTASection />
       </main>
     </Layout>

@@ -10,27 +10,11 @@
 
 > Convert Python code to clean, idiomatic TypeScript with full type preservation.
 
-## Why python2ts?
-
-Python dominates AI, ML, and data science. TypeScript powers modern web applications. **python2ts**
-bridges these worlds:
-
-- **Prototype in Python, deploy in TypeScript** — Keep your AI/ML workflows, ship to any JS runtime
-- **Run anywhere JavaScript runs** — Browsers, Node.js, Deno, Bun, Cloudflare Workers
-- **Type safety included** — Python type hints become TypeScript types automatically
-- **Clean output** — Generates idiomatic TypeScript, not a mess of runtime hacks
-
-## Installation
+## Quick Start
 
 ```bash
 npm install python2ts
-# or
-pnpm add python2ts
-# or
-yarn add python2ts
 ```
-
-## CLI Usage
 
 ```bash
 # Transpile a file
@@ -38,20 +22,11 @@ npx python2ts input.py -o output.ts
 
 # Pipe from stdin
 cat script.py | npx python2ts > script.ts
-
-# Preview without runtime import
-npx python2ts input.py --no-runtime
-
-# Use custom runtime path
-npx python2ts input.py --runtime-path ./my-runtime
 ```
 
-## API Usage
+## Example
 
-```typescript
-import { transpile } from "python2ts"
-
-const typescript = transpile(`
+```python
 def fibonacci(n: int) -> list[int]:
     a, b = 0, 1
     result = []
@@ -59,10 +34,9 @@ def fibonacci(n: int) -> list[int]:
         result.append(a)
         a, b = b, a + b
     return result
-`)
 ```
 
-**Output:**
+Becomes:
 
 ```typescript
 import { range } from "pythonlib"
@@ -78,231 +52,25 @@ function fibonacci(n: number): number[] {
 }
 ```
 
-## What Gets Transpiled?
+## Documentation
 
-| Python                       | TypeScript                            |
-| ---------------------------- | ------------------------------------- |
-| `int`, `str`, `bool`, `None` | `number`, `string`, `boolean`, `null` |
-| `list[T]`, `dict[K,V]`       | `T[]`, `Record<K,V>`                  |
-| `Optional[T]`                | `T \| null`                           |
-| `Union[A, B]`                | `A \| B`                              |
-| `Callable[[A, B], R]`        | `(arg0: A, arg1: B) => R`             |
-| `def fn():`                  | `function fn()`                       |
-| `lambda x: x + 1`            | `(x) => x + 1`                        |
-| `class Child(Parent):`       | `class Child extends Parent`          |
-| `@dataclass`                 | Auto-generated constructor            |
-| `for x in items:`            | `for (const x of items)`              |
-| `if/elif/else`               | `if/else if/else`                     |
-| `match/case`                 | `switch/case`                         |
-| `async def` / `await`        | `async function` / `await`            |
-| `with open() as f:`          | `using` declaration                   |
-| `//` (floor div)             | `floorDiv()` (Python semantics)       |
-| `%` (modulo)                 | `mod()` (Python semantics)            |
-| `**` (power)                 | `pow()`                               |
-| `arr[1:-1]` (slicing)        | `slice()` (full support)              |
-| `f"Hello {name}"`            | `` `Hello ${name}` ``                 |
-| `"""docstring"""`            | `/** JSDoc */`                        |
+For comprehensive documentation, syntax reference, and API details:
 
-## Type Hints Preserved
+**[📚 View Full Documentation](https://sebastian-software.github.io/python2ts/)**
 
-```python
-from typing import Optional, Callable, TypeVar, Generic
-
-T = TypeVar('T')
-
-class Container(Generic[T]):
-    def __init__(self, value: T) -> None:
-        self.value = value
-
-def process(
-    items: list[T],
-    callback: Callable[[T, int], bool],
-    default: Optional[str] = None
-) -> dict[str, T]:
-    ...
-```
-
-Becomes:
-
-```typescript
-class Container<T> {
-  value: T
-
-  constructor(value: T) {
-    this.value = value
-  }
-}
-
-function process<T>(
-  items: T[],
-  callback: (arg0: T, arg1: number) => boolean,
-  default_: string | null = null
-): Record<string, T> {
-  // ...
-}
-```
-
-## Advanced Features
-
-### Dataclasses
-
-```python
-from dataclasses import dataclass
-
-@dataclass
-class Point:
-    x: float
-    y: float
-    label: str = "origin"
-```
-
-```typescript
-class Point {
-  constructor(
-    public x: number,
-    public y: number,
-    public label: string = "origin"
-  ) {}
-}
-```
-
-### NamedTuple
-
-```python
-from typing import NamedTuple
-
-class Coordinate(NamedTuple):
-    x: float
-    y: float
-```
-
-```typescript
-interface Coordinate {
-  readonly x: number
-  readonly y: number
-}
-
-function Coordinate(x: number, y: number): Coordinate {
-  return { x, y }
-}
-```
-
-### Pattern Matching
-
-```python
-match command:
-    case "quit":
-        exit()
-    case "help":
-        show_help()
-    case _:
-        unknown_command()
-```
-
-```typescript
-switch (command) {
-  case "quit":
-    exit()
-    break
-  case "help":
-    show_help()
-    break
-  default:
-    unknown_command()
-}
-```
-
-## Advanced API
-
-```typescript
-import { parse, transform, generate, generateAsync } from "python2ts"
-
-// Step-by-step transformation
-const parseResult = parse(pythonCode)
-const transformed = transform(parseResult)
-const { code, usedRuntimeFunctions } = generate(transformed, {
-  includeRuntime: true,
-  runtimeImportPath: "pythonlib"
-})
-
-// Async version with Prettier formatting
-const formatted = await generateAsync(pythonCode)
-```
-
-## Runtime Library
-
-python2ts uses [pythonlib](https://www.npmjs.com/package/pythonlib) for Python standard library
-functions. It's automatically included as a dependency.
-
-```typescript
-// Generated imports (grouped by module)
-import { range, enumerate, len } from "pythonlib"
-import { chain, zipLongest } from "pythonlib/itertools"
-import { Counter } from "pythonlib/collections"
-```
-
-### TypeScript-Native Naming
-
-Python functions are automatically converted to **camelCase** in the generated TypeScript:
-
-| Python            | TypeScript       |
-| ----------------- | ---------------- |
-| `lru_cache`       | `lruCache`       |
-| `zip_longest`     | `zipLongest`     |
-| `ascii_lowercase` | `asciiLowercase` |
-| `total_seconds`   | `totalSeconds`   |
-
-This gives you Python's powerful APIs with TypeScript's familiar naming conventions.
+- [Getting Started Guide](https://sebastian-software.github.io/python2ts/docs/)
+- [Syntax Transformation Reference](https://sebastian-software.github.io/python2ts/docs/syntax)
+- [Runtime Library (pythonlib)](https://sebastian-software.github.io/python2ts/docs/runtime)
+- [API Reference](https://sebastian-software.github.io/python2ts/docs/api)
 
 ## Runtime Support
 
-python2ts and its generated code are tested on every commit across multiple JavaScript runtimes:
+Tested on every commit: **Node.js** (v22, v24) · **Bun** · **Deno** · **Browsers**
 
-<table>
-  <tr>
-    <td align="center" width="150">
-      <img src="https://raw.githubusercontent.com/sebastian-software/python2ts/main/.github/assets/nodejs.svg" width="60" height="60" alt="Node.js"><br>
-      <b>Node.js</b><br>
-      <sub>v22, v24</sub>
-    </td>
-    <td align="center" width="150">
-      <img src="https://raw.githubusercontent.com/sebastian-software/python2ts/main/.github/assets/bun.svg" width="60" height="60" alt="Bun"><br>
-      <b>Bun</b><br>
-      <sub>latest</sub>
-    </td>
-    <td align="center" width="150">
-      <img src="https://raw.githubusercontent.com/sebastian-software/python2ts/main/.github/assets/deno.svg" width="60" height="60" alt="Deno"><br>
-      <b>Deno</b><br>
-      <sub>v2.x</sub>
-    </td>
-    <td align="center" width="150">
-      <img src="https://raw.githubusercontent.com/sebastian-software/python2ts/main/.github/assets/playwright.svg" width="60" height="60" alt="Playwright"><br>
-      <b>Browser</b><br>
-      <sub>Playwright</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">✅ Full test suite</td>
-    <td align="center">✅ Full test suite</td>
-    <td align="center">✅ Full test suite</td>
-    <td align="center">✅ Runtime tests</td>
-  </tr>
-</table>
-
-## Related Projects
+## Related
 
 - [**pythonlib**](https://www.npmjs.com/package/pythonlib) — Python standard library for TypeScript
-  (standalone runtime)
-- [**Documentation**](https://sebastian-software.github.io/python2ts/) — Full API reference and
-  guides
-
-## Contributing
-
-We welcome contributions! Please see our
-[GitHub repository](https://github.com/sebastian-software/python2ts) for:
-
-- [Issue tracker](https://github.com/sebastian-software/python2ts/issues)
-- [Architecture Decision Records](https://github.com/sebastian-software/python2ts/tree/main/docs/adr)
+- [**GitHub**](https://github.com/sebastian-software/python2ts) — Source code and issue tracker
 
 ## License
 
