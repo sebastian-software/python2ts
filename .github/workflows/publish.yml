@@ -66,9 +66,13 @@ jobs:
         run: pnpm --filter python2ts publish --access public --no-git-checks --provenance
 
       - name: Dry run pythonlib
-        if: github.event_name == 'workflow_dispatch' && inputs.package == 'pythonlib' && inputs.dry-run
+        if:
+          github.event_name == 'workflow_dispatch' && inputs.package == 'pythonlib' &&
+          inputs.dry-run
         run: pnpm --filter pythonlib publish --dry-run
 
       - name: Dry run python2ts
-        if: github.event_name == 'workflow_dispatch' && inputs.package == 'python2ts' && inputs.dry-run
+        if:
+          github.event_name == 'workflow_dispatch' && inputs.package == 'python2ts' &&
+          inputs.dry-run
         run: pnpm --filter python2ts publish --dry-run

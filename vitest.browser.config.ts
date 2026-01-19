@@ -1,13 +1,14 @@
 import { defineConfig } from "vitest/config"
 import { resolve } from "path"
+import { playwright } from "@vitest/browser-playwright"
 
 export default defineConfig({
   test: {
     globals: true,
     browser: {
       enabled: true,
-      provider: "playwright",
-      name: "chromium",
+      provider: playwright(),
+      instances: [{ browser: "chromium" }],
       headless: true
     },
     // Only test pythonlib runtime in browser - transpiler tests need Node.js
