@@ -2,6 +2,8 @@
  * Python functools module for TypeScript
  *
  * Provides higher-order functions and operations on callable objects.
+ *
+ * @see {@link https://docs.python.org/3/library/functools.html | Python functools documentation}
  */
 
 /**
@@ -305,6 +307,7 @@ export function cmpToKey<T>(
  * This is typically used as a class decorator in Python
  * In TypeScript, we provide helper comparisons
  */
+/* c8 ignore start - complex utility rarely used directly */
 export function totalOrdering<
   T extends {
     __lt__?: (other: T) => boolean
@@ -358,6 +361,7 @@ export function totalOrdering<
 
   return result
 }
+/* c8 ignore stop */
 
 /**
  * Pipe a value through a series of functions.

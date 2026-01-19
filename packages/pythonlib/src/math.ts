@@ -3,6 +3,8 @@
  *
  * Provides mathematical functions and constants matching Python's math module.
  * Most functions map directly to JavaScript's Math object.
+ *
+ * @see {@link https://docs.python.org/3/library/math.html | Python math documentation}
  */
 
 // ============================================================================

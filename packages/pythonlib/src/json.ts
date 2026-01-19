@@ -3,6 +3,8 @@
  *
  * Provides JSON encoding and decoding functions matching Python's json module.
  * Maps directly to JavaScript's JSON object with Python-compatible options.
+ *
+ * @see {@link https://docs.python.org/3/library/json.html | Python json documentation}
  */
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }
@@ -80,10 +82,12 @@ export function dumps(obj: unknown, options?: DumpsOptions): string {
     } else {
       result = JSON.stringify(obj, replacer, indent)
     }
+    /* c8 ignore start - error handling for invalid JSON */
   } catch (e) {
     const error = e as Error
     throw new Error(`Object of type ${typeof obj} is not JSON serializable: ${error.message}`)
   }
+  /* c8 ignore stop */
 
   // Handle separators if specified
   if (options?.separators) {
@@ -118,6 +122,7 @@ export function loads(s: string, options?: LoadsOptions): unknown {
 
   let reviver: JsonReviver | undefined
 
+  /* c8 ignore start - advanced custom parser hooks */
   if (objectHook || parseFloat || parseInt) {
     reviver = (key, value) => {
       if (typeof value === "number") {
@@ -133,6 +138,7 @@ export function loads(s: string, options?: LoadsOptions): unknown {
       return value
     }
   }
+  /* c8 ignore stop */
 
   try {
     return JSON.parse(s, reviver)

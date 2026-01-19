@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import clsx from "clsx"
 import Link from "@docusaurus/Link"
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext"
+import useBaseUrl from "@docusaurus/useBaseUrl"
 import Layout from "@theme/Layout"
 import Heading from "@theme/Heading"
 import CodeBlock from "@theme/CodeBlock"
@@ -26,15 +27,18 @@ import styles from "./index.module.css"
    ========================================================================== */
 
 function HeroSection() {
+  const pythonLogo = useBaseUrl("/img/python.svg")
+  const tsLogo = useBaseUrl("/img/typescript.svg")
+
   return (
     <header className={styles.hero}>
       <div className={styles.heroBackground} />
       <div className={styles.heroContent}>
         <div className={styles.heroText}>
           <div className={styles.heroLogos}>
-            <img src="/img/python.svg" alt="Python" className={styles.heroLogo} />
+            <img src={pythonLogo} alt="Python" className={styles.heroLogo} />
             <span className={styles.heroLogoArrow}>→</span>
-            <img src="/img/typescript.svg" alt="TypeScript" className={styles.heroLogo} />
+            <img src={tsLogo} alt="TypeScript" className={styles.heroLogo} />
           </div>
           <Heading as="h1" className={styles.heroTitle}>
             Write <span className={styles.gradientText}>Python</span>
@@ -147,7 +151,14 @@ function fibonacci(n: number): number[] {
 
 function ArrowIcon() {
   return (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      width="32"
+      height="32"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <path d="M5 12h14M12 5l7 7-7 7" />
     </svg>
   )
@@ -207,7 +218,8 @@ const whyFeatures = [
   {
     icon: Rocket,
     title: "Zero Config",
-    description: "Works out of the box. npx python2ts input.py and you're done. No complex setup required."
+    description:
+      "Works out of the box. npx python2ts input.py and you're done. No complex setup required."
   }
 ]
 
@@ -217,7 +229,10 @@ function WhySection() {
       <div className="container">
         <div className={styles.sectionHeader}>
           <Heading as="h2">Why python2ts?</Heading>
-          <p>The missing link between Python's powerful ecosystem and the JavaScript runtime universe.</p>
+          <p>
+            The missing link between Python's powerful ecosystem and the JavaScript runtime
+            universe.
+          </p>
         </div>
         <div className={styles.featureGrid}>
           {whyFeatures.map((feature, idx) => {
@@ -392,8 +407,8 @@ function RuntimeSection() {
         <div className={styles.sectionHeader}>
           <Heading as="h2">Python Standard Library for TypeScript</Heading>
           <p>
-            <code>pythonlib</code> brings Python's powerful APIs to TypeScript—with camelCase naming that feels
-            native.
+            <code>pythonlib</code> brings Python's powerful APIs to TypeScript—with camelCase naming
+            that feels native.
           </p>
         </div>
         <div className={styles.moduleGrid}>
@@ -418,8 +433,8 @@ function RuntimeSection() {
         </div>
         <div className={styles.moreModules}>
           <p>
-            Plus: <code>pythonlib/math</code>, <code>pythonlib/json</code>, <code>pythonlib/string</code>,{" "}
-            <code>pythonlib/os</code>, and more.
+            Plus: <code>pythonlib/math</code>, <code>pythonlib/json</code>,{" "}
+            <code>pythonlib/string</code>, <code>pythonlib/os</code>, and more.
           </p>
           <Link to="/docs/runtime" className={styles.moreLink}>
             View all modules →
@@ -434,34 +449,39 @@ function RuntimeSection() {
    Runtime Support Section
    ========================================================================== */
 
-const runtimes = [
-  {
-    name: "Node.js",
-    versions: "v22, v24",
-    icon: "/img/nodejs.svg",
-    status: "Full test suite"
-  },
-  {
-    name: "Bun",
-    versions: "latest",
-    icon: "/img/bun.svg",
-    status: "Full test suite"
-  },
-  {
-    name: "Deno",
-    versions: "v2.x",
-    icon: "/img/deno.svg",
-    status: "Full test suite"
-  },
-  {
-    name: "Browser",
-    versions: "All modern",
-    icon: "/img/playwright.svg",
-    status: "Runtime tests"
-  }
-]
-
 function RuntimeSupportSection() {
+  const nodejsIcon = useBaseUrl("/img/nodejs.svg")
+  const bunIcon = useBaseUrl("/img/bun.svg")
+  const denoIcon = useBaseUrl("/img/deno.svg")
+  const playwrightIcon = useBaseUrl("/img/playwright.svg")
+
+  const runtimes = [
+    {
+      name: "Node.js",
+      versions: "v22, v24",
+      icon: nodejsIcon,
+      status: "Full test suite"
+    },
+    {
+      name: "Bun",
+      versions: "latest",
+      icon: bunIcon,
+      status: "Full test suite"
+    },
+    {
+      name: "Deno",
+      versions: "v2.x",
+      icon: denoIcon,
+      status: "Full test suite"
+    },
+    {
+      name: "Browser",
+      versions: "All modern",
+      icon: playwrightIcon,
+      status: "Runtime tests"
+    }
+  ]
+
   return (
     <section className={styles.runtimeSupportSection}>
       <div className="container">
@@ -633,7 +653,13 @@ function AcknowledgmentsSection() {
         </div>
         <div className={styles.acknowledgementsGrid}>
           {acknowledgments.map((ack, idx) => (
-            <a key={idx} href={ack.url} target="_blank" rel="noopener noreferrer" className={styles.ackCard}>
+            <a
+              key={idx}
+              href={ack.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.ackCard}
+            >
               <Heading as="h4">{ack.name}</Heading>
               <p>{ack.description}</p>
             </a>

@@ -3,6 +3,9 @@
  *
  * Provides operating system interface functions matching Python's os module.
  * Note: This is a browser-compatible subset. Some functions are stubs.
+ *
+ * @see {@link https://docs.python.org/3/library/os.html | Python os documentation}
+ * @see {@link https://docs.python.org/3/library/os.path.html | Python os.path documentation}
  */
 
 // ============================================================================
@@ -248,6 +251,7 @@ export const path = {
     })
   },
 
+  /* c8 ignore start - browser stubs */
   /* eslint-disable @typescript-eslint/no-unused-vars */
   /** Test if path exists (stub - always returns false in browser) */
   exists(_p: string): boolean {
@@ -289,6 +293,7 @@ export const path = {
     return 0
   }
   /* eslint-enable @typescript-eslint/no-unused-vars */
+  /* c8 ignore stop */
 }
 
 // ============================================================================
@@ -315,6 +320,7 @@ export function chdir(p: string): void {
   }
 }
 
+/* c8 ignore start - browser stubs for filesystem operations */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /** List directory contents (stub - returns empty array in browser) */
 export function listDir(_p: string = "."): string[] {
@@ -383,6 +389,7 @@ export function stat(_p: string): {
   return { st_mode: 0, st_size: 0, st_mtime: 0, st_atime: 0, st_ctime: 0 }
 }
 /* eslint-enable @typescript-eslint/no-unused-vars */
+/* c8 ignore stop */
 
 // ============================================================================
 // Name and platform info

@@ -54,14 +54,15 @@ function fibonacci(n: number): number[] {
 
 ## Documentation
 
-For comprehensive documentation, syntax reference, and API details:
-
 **[📚 View Full Documentation](https://sebastian-software.github.io/python2ts/)**
 
-- [Getting Started Guide](https://sebastian-software.github.io/python2ts/docs/)
-- [Syntax Transformation Reference](https://sebastian-software.github.io/python2ts/docs/syntax)
-- [Runtime Library (pythonlib)](https://sebastian-software.github.io/python2ts/docs/runtime)
-- [API Reference](https://sebastian-software.github.io/python2ts/docs/api)
+| Resource                                                                       | Description                                 |
+| ------------------------------------------------------------------------------ | ------------------------------------------- |
+| [Homepage](https://sebastian-software.github.io/python2ts/)                    | Project overview, features, and quick start |
+| [Getting Started](https://sebastian-software.github.io/python2ts/docs/)        | Installation and first steps                |
+| [Syntax Reference](https://sebastian-software.github.io/python2ts/docs/syntax) | Python → TypeScript transformation rules    |
+| [Runtime Library](https://sebastian-software.github.io/python2ts/docs/runtime) | Using pythonlib for Python standard library |
+| [API Reference](https://sebastian-software.github.io/python2ts/docs/api)       | Complete API documentation                  |
 
 ## Runtime Support
 

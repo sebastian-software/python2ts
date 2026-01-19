@@ -1,25 +1,17 @@
 import { defineConfig } from "vitest/config"
 import { resolve } from "node:path"
+import baseConfig from "./vitest.config"
 
 export default defineConfig({
+  ...baseConfig,
   test: {
-    globals: true,
-    include: ["tests/**/*.test.ts"],
+    ...baseConfig.test,
     coverage: {
       provider: "v8",
-      include: ["packages/*/src/**/*.ts"],
-      exclude: [
-        "packages/*/src/**/*.d.ts",
-        "packages/python2ts/src/cli/**", // Integration-tested via execSync
-        "packages/pythonlib/src/os.ts" // Trivial wrappers + browser stubs
-      ],
-      thresholds: {
-        lines: 84,
-        functions: 84,
-        branches: 83,
-        statements: 84
-      },
-      reporter: ["text", "html", "lcov"]
+      include: ["packages/pythonlib/src/**/*.ts"],
+      exclude: ["packages/*/src/**/*.d.ts", "packages/pythonlib/src/os.ts"],
+      reporter: ["lcov"],
+      reportsDirectory: "./coverage/pythonlib"
     }
   },
   resolve: {

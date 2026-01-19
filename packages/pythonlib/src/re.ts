@@ -8,6 +8,8 @@
  * - Lookbehind assertions (limited support in modern JS)
  * - Named groups use different syntax (?P<name>...) vs (?<name>...)
  * - Verbose mode (x flag) is not supported
+ *
+ * @see {@link https://docs.python.org/3/library/re.html | Python re documentation}
  */
 
 // ============================================================================

@@ -1,35 +1,43 @@
 # python2ts
 
+<div align="center">
+
+<img src=".github/assets/python.svg" alt="Python" width="80" height="80" />
+&nbsp;&nbsp;&nbsp;
+<strong style="font-size: 2em">→</strong>
+&nbsp;&nbsp;&nbsp;
+<img src=".github/assets/typescript.svg" alt="TypeScript" width="80" height="80" />
+
+**Write Python. Ship TypeScript. Run Everywhere.**
+
 [![CI](https://github.com/sebastian-software/python2ts/actions/workflows/ci.yml/badge.svg)](https://github.com/sebastian-software/python2ts/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/sebastian-software/python2ts/graph/badge.svg)](https://codecov.io/gh/sebastian-software/python2ts)
+[![python2ts coverage](https://img.shields.io/codecov/c/github/sebastian-software/python2ts?flag=python2ts&label=python2ts)](https://codecov.io/gh/sebastian-software/python2ts/flags)
+[![pythonlib coverage](https://img.shields.io/codecov/c/github/sebastian-software/python2ts?flag=pythonlib&label=pythonlib)](https://codecov.io/gh/sebastian-software/python2ts/flags)
 [![License](https://img.shields.io/npm/l/python2ts.svg)](https://github.com/sebastian-software/python2ts/blob/main/LICENSE)
 
-**Bridge the gap between AI's favorite language and the world's largest ecosystem.**
+[Homepage](https://sebastian-software.github.io/python2ts/) ·
+[Documentation](https://sebastian-software.github.io/python2ts/docs/) ·
+[API Reference](https://sebastian-software.github.io/python2ts/docs/api)
+
+</div>
+
+---
 
 Python dominates AI, ML, and data science. TypeScript powers modern web applications. **python2ts**
 brings them together — transpile Python to production-ready TypeScript with full type safety.
 
 ## Packages
 
-This monorepo contains two npm packages:
+| Package                               | Description                               | Version                                                                                       |
+| ------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------- |
+| [**python2ts**](./packages/python2ts) | AST-based Python to TypeScript transpiler | [![npm](https://img.shields.io/npm/v/python2ts.svg)](https://www.npmjs.com/package/python2ts) |
+| [**pythonlib**](./packages/pythonlib) | Python standard library for TypeScript    | [![npm](https://img.shields.io/npm/v/pythonlib.svg)](https://www.npmjs.com/package/pythonlib) |
 
-| Package                               | Description                                                | npm                                                                                           |
-| ------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| [**python2ts**](./packages/python2ts) | AST-based Python to TypeScript transpiler                  | [![npm](https://img.shields.io/npm/v/python2ts.svg)](https://www.npmjs.com/package/python2ts) |
-| [**pythonlib**](./packages/pythonlib) | Python standard library for TypeScript (zero dependencies) | [![npm](https://img.shields.io/npm/v/pythonlib.svg)](https://www.npmjs.com/package/pythonlib) |
+## Quick Example
 
-### python2ts
+**Python input:**
 
-The transpiler converts Python code to clean, idiomatic TypeScript:
-
-```bash
-npm install python2ts
-```
-
-```typescript
-import { transpile } from "python2ts"
-
-const typescript = transpile(`
+```python
 def fibonacci(n: int) -> list[int]:
     a, b = 0, 1
     result = []
@@ -37,34 +45,23 @@ def fibonacci(n: int) -> list[int]:
         result.append(a)
         a, b = b, a + b
     return result
-`)
 ```
 
-See [packages/python2ts/README.md](./packages/python2ts/README.md) for full documentation.
-
-### pythonlib
-
-The runtime library provides Python standard library functions — usable standalone or as the runtime
-for transpiled code:
-
-```bash
-npm install pythonlib
-```
+**TypeScript output:**
 
 ```typescript
-import { range, enumerate, sorted } from "pythonlib"
-import { combinations } from "pythonlib/itertools"
-import { Counter } from "pythonlib/collections"
+import { range } from "pythonlib"
 
-for (const combo of combinations([1, 2, 3], 2)) {
-  console.log(combo) // [1,2], [1,3], [2,3]
+function fibonacci(n: number): number[] {
+  let [a, b] = [0, 1]
+  let result: number[] = []
+  for (const _ of range(n)) {
+    result.push(a)
+    ;[a, b] = [b, a + b]
+  }
+  return result
 }
-
-const counter = new Counter("mississippi")
-counter.mostCommon(2) // [["i", 4], ["s", 4]]
 ```
-
-See [packages/pythonlib/README.md](./packages/pythonlib/README.md) for full documentation.
 
 ## Why python2ts?
 
@@ -73,73 +70,54 @@ See [packages/pythonlib/README.md](./packages/pythonlib/README.md) for full docu
 - **Type safety included** — Python type hints become TypeScript types automatically
 - **Full standard library** — itertools, functools, collections, datetime, re, and more
 
-## Project Structure
+## Runtime Support
 
-```
-python2ts/
-├── packages/
-│   ├── python2ts/       # Transpiler package
-│   │   ├── src/
-│   │   │   ├── parser/      # Lezer-based Python parser
-│   │   │   ├── transformer/ # AST transformation
-│   │   │   ├── generator/   # TypeScript code generation
-│   │   │   └── cli/         # Command-line interface
-│   │   └── README.md
-│   │
-│   └── pythonlib/       # Runtime library package
-│       ├── src/
-│       │   ├── index.ts     # Builtins (len, range, sorted, etc.)
-│       │   ├── itertools.ts # pythonlib/itertools
-│       │   ├── functools.ts # pythonlib/functools
-│       │   ├── collections.ts
-│       │   └── ...
-│       └── README.md
-│
-├── tests/               # Shared test suite (1400+ tests)
-├── docs/                # Documentation & ADRs
-└── package.json         # Workspace root
-```
+Tested on every commit:
+
+<p>
+  <img src=".github/assets/nodejs.svg" alt="Node.js" height="28" />
+  &nbsp;&nbsp;
+  <img src=".github/assets/bun.svg" alt="Bun" height="28" />
+  &nbsp;&nbsp;
+  <img src=".github/assets/deno.svg" alt="Deno" height="28" />
+  &nbsp;&nbsp;
+  <img src=".github/assets/playwright.svg" alt="Browsers" height="28" />
+</p>
+
+**Node.js** (v22, v24) · **Bun** · **Deno** · **Browsers** (via Playwright)
+
+## Documentation
+
+| Resource                                                                       | Description                              |
+| ------------------------------------------------------------------------------ | ---------------------------------------- |
+| [Homepage](https://sebastian-software.github.io/python2ts/)                    | Project overview and features            |
+| [Getting Started](https://sebastian-software.github.io/python2ts/docs/)        | Installation and first steps             |
+| [Syntax Reference](https://sebastian-software.github.io/python2ts/docs/syntax) | Python → TypeScript transformation rules |
+| [Runtime Library](https://sebastian-software.github.io/python2ts/docs/runtime) | Using pythonlib modules                  |
+| [API Reference](https://sebastian-software.github.io/python2ts/docs/api)       | Complete API documentation               |
 
 ## Development
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Build all packages
-pnpm build
-
-# Run tests
-pnpm test
-
-# Lint & format
-pnpm lint
-pnpm format
+pnpm install    # Install dependencies
+pnpm build      # Build all packages
+pnpm test       # Run tests (1400+ tests)
+pnpm lint       # Lint code
 ```
 
-## Architecture Decision Records
+## Architecture
 
 Key design decisions are documented in [docs/adr/](./docs/adr/):
 
-| ADR                                                         | Title                        |
-| ----------------------------------------------------------- | ---------------------------- |
-| [ADR-0001](./docs/adr/0001-use-lezer-python-parser.md)      | Use @lezer/python as Parser  |
-| [ADR-0009](./docs/adr/0009-subpath-exports-architecture.md) | Subpath Exports Architecture |
-| [ADR-0010](./docs/adr/0010-monorepo-package-structure.md)   | Monorepo Package Structure   |
+- [ADR-0001](./docs/adr/0001-use-lezer-python-parser.md) — Lezer Python Parser
+- [ADR-0009](./docs/adr/0009-subpath-exports-architecture.md) — Subpath Exports
+- [ADR-0010](./docs/adr/0010-monorepo-package-structure.md) — Monorepo Structure
 
 ## Requirements
 
 - Node.js >= 22.0.0
 - pnpm >= 9.0.0
 
-## Contributing
-
-Contributions welcome! See the [ADRs](./docs/adr/) for design context.
-
 ## License
 
-MIT
-
----
-
-**python2ts** — Write Python. Ship TypeScript. Run Everywhere.
+MIT © [Sebastian Software GmbH](https://sebastian-software.de)
