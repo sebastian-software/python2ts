@@ -27,7 +27,7 @@
     }
   },
   "separate-pull-requests": false,
-  "group-pull-request-title-pattern": "chore: release ${component}",
-  "pull-request-title-pattern": "chore: release${component} ${version}",
+  "group-pull-request-title-pattern": "chore: release",
+  "pull-request-title-pattern": "chore: release",
   "include-component-in-tag": true
 }
