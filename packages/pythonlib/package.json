@@ -93,8 +93,8 @@
   "author": "Sebastian Software GmbH",
   "license": "MIT",
   "devDependencies": {
-    "tsup": "^8.3.0",
-    "typescript": "^5.6.0"
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=22.0.0"
