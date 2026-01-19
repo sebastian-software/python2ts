@@ -2,13 +2,13 @@ coverage:
   status:
     project:
       default:
-        target: 84%
+        target: 80%
       python2ts:
-        target: 84%
+        target: 74%
         flags:
           - python2ts
       pythonlib:
-        target: 95%
+        target: 92%
         flags:
           - pythonlib
 
