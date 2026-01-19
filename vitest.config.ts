@@ -10,7 +10,8 @@ export default defineConfig({
       include: ["packages/*/src/**/*.ts"],
       exclude: [
         "packages/*/src/**/*.d.ts",
-        "packages/python2ts/src/cli/**" // Integration-tested via execSync
+        "packages/python2ts/src/cli/**", // Integration-tested via execSync
+        "packages/pythonlib/src/os.ts" // Trivial wrappers + browser stubs
       ],
       thresholds: {
         lines: 84,
