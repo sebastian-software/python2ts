@@ -54,11 +54,11 @@ describe("E2E: datetime module", () => {
 
     it("should format date as isoformat", () => {
       const d = new datetime.date(2024, 6, 15)
-      expect(d.isoformat()).toBe("2024-06-15")
+      expect(d.isoFormat()).toBe("2024-06-15")
     })
 
     it("should parse isoformat", () => {
-      const d = datetime.date.fromisoformat("2024-06-15")
+      const d = datetime.date.fromIsoFormat("2024-06-15")
       expect(d.year).toBe(2024)
       expect(d.month).toBe(6)
       expect(d.day).toBe(15)
@@ -67,7 +67,7 @@ describe("E2E: datetime module", () => {
     it("should get weekday", () => {
       const d = new datetime.date(2024, 6, 15) // Saturday
       expect(d.weekday()).toBe(5) // Monday=0, Saturday=5
-      expect(d.isoweekday()).toBe(6) // Monday=1, Saturday=6
+      expect(d.isoWeekday()).toBe(6) // Monday=1, Saturday=6
     })
 
     it("should replace date parts", () => {
@@ -89,17 +89,17 @@ describe("E2E: datetime module", () => {
 
     it("should format time as isoformat", () => {
       const t = new datetime.time(14, 30, 45)
-      expect(t.isoformat()).toBe("14:30:45")
+      expect(t.isoFormat()).toBe("14:30:45")
     })
 
     it("should handle microseconds", () => {
       const t = new datetime.time(14, 30, 45, 123456)
       expect(t.microsecond).toBe(123456)
-      expect(t.isoformat()).toBe("14:30:45.123456")
+      expect(t.isoFormat()).toBe("14:30:45.123456")
     })
 
     it("should parse isoformat", () => {
-      const t = datetime.time.fromisoformat("14:30:45")
+      const t = datetime.time.fromIsoFormat("14:30:45")
       expect(t.hour).toBe(14)
       expect(t.minute).toBe(30)
       expect(t.second).toBe(45)
@@ -124,17 +124,17 @@ describe("E2E: datetime module", () => {
 
     it("should format datetime as isoformat", () => {
       const dt = new datetime.datetime(2024, 6, 15, 14, 30, 45)
-      expect(dt.isoformat()).toBe("2024-06-15T14:30:45")
+      expect(dt.isoFormat()).toBe("2024-06-15T14:30:45")
     })
 
     it("should parse isoformat", () => {
-      const dt = datetime.datetime.fromisoformat("2024-06-15T14:30:45")
+      const dt = datetime.datetime.fromIsoFormat("2024-06-15T14:30:45")
       expect(dt.year).toBe(2024)
       expect(dt.hour).toBe(14)
     })
 
     it("should parse isoformat with space", () => {
-      const dt = datetime.datetime.fromisoformat("2024-06-15 14:30:45")
+      const dt = datetime.datetime.fromIsoFormat("2024-06-15 14:30:45")
       expect(dt.year).toBe(2024)
       expect(dt.hour).toBe(14)
     })
@@ -163,7 +163,7 @@ describe("E2E: datetime module", () => {
 
     it("should fromtimestamp", () => {
       const ts = Date.now() / 1000
-      const dt = datetime.datetime.fromtimestamp(ts)
+      const dt = datetime.datetime.fromTimestamp(ts)
       expect(dt.year).toBeGreaterThanOrEqual(2024)
     })
   })
@@ -182,7 +182,7 @@ describe("E2E: datetime module", () => {
 
     it("should calculate total_seconds", () => {
       const td = new datetime.timedelta({ days: 1, hours: 2 })
-      expect(td.total_seconds()).toBe(24 * 3600 + 2 * 3600)
+      expect(td.totalSeconds()).toBe(24 * 3600 + 2 * 3600)
     })
 
     it("should add timedeltas", () => {

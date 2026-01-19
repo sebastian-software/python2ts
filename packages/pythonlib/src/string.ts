@@ -1,6 +1,6 @@
 /**
  * Python string methods and constants for TypeScript
- * Usage: py.string.join(), py.string.split(), py.string.ascii_lowercase, etc.
+ * Usage: py.string.join(), py.string.split(), py.string.asciiLowercase, etc.
  */
 
 function escapeRegex(str: string): string {
@@ -12,22 +12,22 @@ function escapeRegex(str: string): string {
 // ============================================================================
 
 /** The lowercase letters 'abcdefghijklmnopqrstuvwxyz' */
-export const ascii_lowercase = "abcdefghijklmnopqrstuvwxyz"
+export const asciiLowercase = "abcdefghijklmnopqrstuvwxyz"
 
 /** The uppercase letters 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' */
-export const ascii_uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+export const asciiUppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-/** The concatenation of ascii_lowercase and ascii_uppercase */
-export const ascii_letters = ascii_lowercase + ascii_uppercase
+/** The concatenation of asciiLowercase and asciiUppercase */
+export const asciiLetters = asciiLowercase + asciiUppercase
 
 /** The string '0123456789' */
 export const digits = "0123456789"
 
 /** The string '0123456789abcdefABCDEF' */
-export const hexdigits = "0123456789abcdefABCDEF"
+export const hexDigits = "0123456789abcdefABCDEF"
 
 /** The string '01234567' */
-export const octdigits = "01234567"
+export const octDigits = "01234567"
 
 /** String of ASCII characters which are considered punctuation */
 export const punctuation = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
@@ -36,7 +36,7 @@ export const punctuation = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 export const whitespace = " \t\n\r\x0b\x0c"
 
 /** String of ASCII characters which are considered printable */
-export const printable = digits + ascii_letters + punctuation + whitespace
+export const printable = digits + asciiLetters + punctuation + whitespace
 
 // ============================================================================
 // Template class
@@ -66,7 +66,7 @@ export class Template {
   }
 
   /** Perform substitution, returning original placeholder for missing keys */
-  safe_substitute(mapping?: Record<string, unknown>): string {
+  safeSubstitute(mapping?: Record<string, unknown>): string {
     const combined = { ...mapping }
     return this.template.replace(
       /\$\$|\$(\w+)|\$\{(\w+)\}/g,
@@ -82,7 +82,7 @@ export class Template {
   }
 
   /** Get identifiers in template */
-  get_identifiers(): string[] {
+  getIdentifiers(): string[] {
     const identifiers: string[] = []
     const regex = /\$(\w+)|\$\{(\w+)\}/g
     let match: RegExpExecArray | null
@@ -97,7 +97,7 @@ export class Template {
 }
 
 /** Capitalize words in string */
-export function capwords(s: string, sep?: string): string {
+export function capWords(s: string, sep?: string): string {
   const separator = sep ?? " "
   return s
     .split(separator)
@@ -148,9 +148,9 @@ export const string = {
   },
 
   /**
-   * Python str.rsplit()
+   * Python str.rSplit()
    */
-  rsplit(s: string, sep?: string, maxsplit?: number): string[] {
+  rSplit(s: string, sep?: string, maxsplit?: number): string[] {
     if (sep === undefined) {
       const parts = s.trim().split(/\s+/)
       if (maxsplit === undefined) return parts
@@ -180,9 +180,9 @@ export const string = {
   },
 
   /**
-   * Python str.lstrip()
+   * Python str.lStrip()
    */
-  lstrip(s: string, chars?: string): string {
+  lStrip(s: string, chars?: string): string {
     if (chars === undefined) {
       return s.trimStart()
     }
@@ -191,9 +191,9 @@ export const string = {
   },
 
   /**
-   * Python str.rstrip()
+   * Python str.rStrip()
    */
-  rstrip(s: string, chars?: string): string {
+  rStrip(s: string, chars?: string): string {
     if (chars === undefined) {
       return s.trimEnd()
     }
@@ -231,9 +231,9 @@ export const string = {
   },
 
   /**
-   * Python str.swapcase()
+   * Python str.swapCase()
    */
-  swapcase(s: string): string {
+  swapCase(s: string): string {
     return s
       .split("")
       .map((c) => (c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()))
@@ -241,17 +241,17 @@ export const string = {
   },
 
   /**
-   * Python str.startswith()
+   * Python str.startsWith()
    */
-  startswith(s: string, prefix: string, start?: number, end?: number): boolean {
+  startsWith(s: string, prefix: string, start?: number, end?: number): boolean {
     const substr = s.slice(start, end)
     return substr.startsWith(prefix)
   },
 
   /**
-   * Python str.endswith()
+   * Python str.endsWith()
    */
-  endswith(s: string, suffix: string, start?: number, end?: number): boolean {
+  endsWith(s: string, suffix: string, start?: number, end?: number): boolean {
     const substr = s.slice(start, end)
     return substr.endsWith(suffix)
   },
@@ -267,9 +267,9 @@ export const string = {
   },
 
   /**
-   * Python str.rfind()
+   * Python str.rFind()
    */
-  rfind(s: string, sub: string, start?: number, end?: number): number {
+  rFind(s: string, sub: string, start?: number, end?: number): number {
     const substr = s.slice(start, end)
     const index = substr.lastIndexOf(sub)
     if (index === -1) return -1
@@ -288,10 +288,10 @@ export const string = {
   },
 
   /**
-   * Python str.rindex() - raises error if not found
+   * Python str.rIndex() - raises error if not found
    */
-  rindex(s: string, sub: string, start?: number, end?: number): number {
-    const result = string.rfind(s, sub, start, end)
+  rIndex(s: string, sub: string, start?: number, end?: number): number {
+    const result = string.rFind(s, sub, start, end)
     if (result === -1) {
       throw new Error("substring not found")
     }
@@ -331,9 +331,9 @@ export const string = {
   },
 
   /**
-   * Python str.zfill()
+   * Python str.zFill()
    */
-  zfill(s: string, width: number): string {
+  zFill(s: string, width: number): string {
     if (s.length >= width) return s
     const sign = s[0] === "-" || s[0] === "+" ? s[0] : ""
     const digits = sign ? s.slice(1) : s
@@ -352,17 +352,17 @@ export const string = {
   },
 
   /**
-   * Python str.ljust()
+   * Python str.lJust()
    */
-  ljust(s: string, width: number, fillchar = " "): string {
+  lJust(s: string, width: number, fillchar = " "): string {
     if (s.length >= width) return s
     return s + fillchar.repeat(width - s.length)
   },
 
   /**
-   * Python str.rjust()
+   * Python str.rJust()
    */
-  rjust(s: string, width: number, fillchar = " "): string {
+  rJust(s: string, width: number, fillchar = " "): string {
     if (s.length >= width) return s
     return fillchar.repeat(width - s.length) + s
   },
@@ -377,53 +377,53 @@ export const string = {
   },
 
   /**
-   * Python str.rpartition()
+   * Python str.rPartition()
    */
-  rpartition(s: string, sep: string): [string, string, string] {
+  rPartition(s: string, sep: string): [string, string, string] {
     const index = s.lastIndexOf(sep)
     if (index === -1) return ["", "", s]
     return [s.slice(0, index), sep, s.slice(index + sep.length)]
   },
 
   /**
-   * Python str.isalpha()
+   * Python str.isAlpha()
    */
-  isalpha(s: string): boolean {
+  isAlpha(s: string): boolean {
     return s.length > 0 && /^[a-zA-Z]+$/.test(s)
   },
 
   /**
-   * Python str.isdigit()
+   * Python str.isDigit()
    */
-  isdigit(s: string): boolean {
+  isDigit(s: string): boolean {
     return s.length > 0 && /^[0-9]+$/.test(s)
   },
 
   /**
-   * Python str.isalnum()
+   * Python str.isAlnum()
    */
-  isalnum(s: string): boolean {
+  isAlnum(s: string): boolean {
     return s.length > 0 && /^[a-zA-Z0-9]+$/.test(s)
   },
 
   /**
-   * Python str.isspace()
+   * Python str.isSpace()
    */
-  isspace(s: string): boolean {
+  isSpace(s: string): boolean {
     return s.length > 0 && /^\s+$/.test(s)
   },
 
   /**
-   * Python str.isupper()
+   * Python str.isUpper()
    */
-  isupper(s: string): boolean {
+  isUpper(s: string): boolean {
     return s.length > 0 && s === s.toUpperCase() && s !== s.toLowerCase()
   },
 
   /**
-   * Python str.islower()
+   * Python str.isLower()
    */
-  islower(s: string): boolean {
+  isLower(s: string): boolean {
     return s.length > 0 && s === s.toLowerCase() && s !== s.toUpperCase()
   },
 

@@ -25,7 +25,7 @@ describe("E2E: os module", () => {
     it("should transform os.getcwd", () => {
       const result = transpile("x = os.getcwd()")
       expect(result).toContain('from "pythonlib/os"')
-      expect(result).toContain("getcwd()")
+      expect(result).toContain("getCwd()")
     })
 
     it("should transform os.sep", () => {
@@ -90,48 +90,48 @@ describe("E2E: os module", () => {
 
     describe("splitext", () => {
       it("should split extension", () => {
-        expect(os.path.splitext("/foo/bar.txt")).toEqual(["/foo/bar", ".txt"])
+        expect(os.path.splitExt("/foo/bar.txt")).toEqual(["/foo/bar", ".txt"])
       })
 
       it("should handle no extension", () => {
-        expect(os.path.splitext("/foo/bar")).toEqual(["/foo/bar", ""])
+        expect(os.path.splitExt("/foo/bar")).toEqual(["/foo/bar", ""])
       })
 
       it("should handle hidden files", () => {
-        expect(os.path.splitext("/foo/.hidden")).toEqual(["/foo/.hidden", ""])
+        expect(os.path.splitExt("/foo/.hidden")).toEqual(["/foo/.hidden", ""])
       })
     })
 
     describe("isabs", () => {
       it("should detect absolute paths", () => {
-        expect(os.path.isabs("/foo/bar")).toBe(true)
-        expect(os.path.isabs("foo/bar")).toBe(false)
+        expect(os.path.isAbs("/foo/bar")).toBe(true)
+        expect(os.path.isAbs("foo/bar")).toBe(false)
       })
     })
 
     describe("normpath", () => {
       it("should normalize path", () => {
-        expect(os.path.normpath("/foo/./bar/../baz")).toBe("/foo/baz")
+        expect(os.path.normPath("/foo/./bar/../baz")).toBe("/foo/baz")
       })
 
       it("should handle empty path", () => {
-        expect(os.path.normpath("")).toBe(".")
+        expect(os.path.normPath("")).toBe(".")
       })
     })
 
     describe("relpath", () => {
       it("should compute relative path", () => {
-        expect(os.path.relpath("/foo/bar/baz", "/foo")).toBe("bar/baz")
+        expect(os.path.relPath("/foo/bar/baz", "/foo")).toBe("bar/baz")
       })
     })
 
     describe("commonpath", () => {
       it("should find common path prefix", () => {
-        expect(os.path.commonpath(["/foo/bar/a", "/foo/bar/b"])).toBe("/foo/bar")
+        expect(os.path.commonPath(["/foo/bar/a", "/foo/bar/b"])).toBe("/foo/bar")
       })
 
       it("should throw on empty sequence", () => {
-        expect(() => os.path.commonpath([])).toThrow()
+        expect(() => os.path.commonPath([])).toThrow()
       })
     })
   })
@@ -142,21 +142,21 @@ describe("E2E: os module", () => {
     })
 
     it("should have curdir", () => {
-      expect(os.curdir).toBe(".")
+      expect(os.curDir).toBe(".")
     })
 
     it("should have pardir", () => {
-      expect(os.pardir).toBe("..")
+      expect(os.parDir).toBe("..")
     })
 
     it("should have extsep", () => {
-      expect(os.extsep).toBe(".")
+      expect(os.extSep).toBe(".")
     })
   })
 
   describe("Runtime: os functions", () => {
     it("getcwd should return a path", () => {
-      const cwd = os.getcwd()
+      const cwd = os.getCwd()
       expect(typeof cwd).toBe("string")
     })
   })

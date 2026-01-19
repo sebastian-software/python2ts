@@ -15,20 +15,20 @@ interface DumpsOptions {
   /** Separators for items and key-value pairs [item_sep, key_sep] */
   separators?: [string, string]
   /** Sort dictionary keys */
-  sort_keys?: boolean
+  sortKeys?: boolean
   /** If false, non-ASCII characters are escaped. Default true */
-  ensure_ascii?: boolean
+  ensureAscii?: boolean
   /** Custom serialization function */
   default?: (obj: unknown) => JsonValue
 }
 
 interface LoadsOptions {
   /** Custom deserialization function */
-  object_hook?: (obj: Record<string, unknown>) => unknown
+  objectHook?: (obj: Record<string, unknown>) => unknown
   /** Parse floats with this function */
-  parse_float?: (s: string) => number
+  parseFloatFn?: (s: string) => number
   /** Parse integers with this function */
-  parse_int?: (s: string) => number
+  parseIntFn?: (s: string) => number
 }
 
 /**
@@ -40,9 +40,9 @@ interface LoadsOptions {
  */
 export function dumps(obj: unknown, options?: DumpsOptions): string {
   const indent = options?.indent
-  const sortKeys = options?.sort_keys ?? false
+  const sortKeys = options?.sortKeys ?? false
   const defaultFn = options?.default
-  const ensureAscii = options?.ensure_ascii ?? true
+  const ensureAscii = options?.ensureAscii ?? true
 
   const replacer: JsonReplacer | undefined = sortKeys
     ? (_key, value) => {
@@ -94,7 +94,7 @@ export function dumps(obj: unknown, options?: DumpsOptions): string {
     }
   }
 
-  // Handle ensure_ascii
+  // Handle ensureAscii
   if (ensureAscii) {
     result = result.replace(/[\u007f-\uffff]/g, (char) => {
       return "\\u" + ("0000" + char.charCodeAt(0).toString(16)).slice(-4)
@@ -112,9 +112,9 @@ export function dumps(obj: unknown, options?: DumpsOptions): string {
  * @returns Parsed object
  */
 export function loads(s: string, options?: LoadsOptions): unknown {
-  const objectHook = options?.object_hook
-  const parseFloat = options?.parse_float
-  const parseInt = options?.parse_int
+  const objectHook = options?.objectHook
+  const parseFloat = options?.parseFloatFn
+  const parseInt = options?.parseIntFn
 
   let reviver: JsonReviver | undefined
 

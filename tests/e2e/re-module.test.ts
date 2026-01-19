@@ -88,29 +88,29 @@ describe("E2E: re module", () => {
 
   describe("Runtime: fullmatch", () => {
     it("should match entire string", () => {
-      const m = re.fullmatch("\\d+", "123")
+      const m = re.fullMatch("\\d+", "123")
       expect(m).not.toBeNull()
     })
 
     it("should not match partial string", () => {
-      const m = re.fullmatch("\\d+", "123abc")
+      const m = re.fullMatch("\\d+", "123abc")
       expect(m).toBeNull()
     })
   })
 
   describe("Runtime: findall", () => {
     it("should find all matches", () => {
-      const result = re.findall("\\d+", "abc123def456ghi789")
+      const result = re.findAll("\\d+", "abc123def456ghi789")
       expect(result).toEqual(["123", "456", "789"])
     })
 
     it("should return empty array if no matches", () => {
-      const result = re.findall("\\d+", "abcdef")
+      const result = re.findAll("\\d+", "abcdef")
       expect(result).toEqual([])
     })
 
     it("should return groups if pattern has groups", () => {
-      const result = re.findall("(\\d)(\\d)", "12 34 56")
+      const result = re.findAll("(\\d)(\\d)", "12 34 56")
       expect(result).toEqual([
         ["1", "2"],
         ["3", "4"],
@@ -158,7 +158,7 @@ describe("E2E: re module", () => {
       expect(m).not.toBeNull()
       expect(m!.group("first")).toBe("123")
       expect(m!.group("second")).toBe("456")
-      expect(m!.groupdict()).toEqual({ first: "123", second: "456" })
+      expect(m!.groupDict()).toEqual({ first: "123", second: "456" })
     })
 
     it("should return span", () => {

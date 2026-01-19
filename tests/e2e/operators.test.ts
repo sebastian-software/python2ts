@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { transpile } from "python2ts"
-import { floordiv, mod, pow, contains } from "pythonlib"
+import { floorDiv, mod, pow, contains } from "pythonlib"
 
 describe("E2E: Operators", () => {
   describe("Arithmetic Operators", () => {
@@ -26,7 +26,7 @@ describe("E2E: Operators", () => {
 
     it("should convert floor division with py.floordiv", () => {
       const ts = transpile("x = 10 // 3")
-      expect(ts).toContain("floordiv(10, 3)")
+      expect(ts).toContain("floorDiv(10, 3)")
     })
 
     it("should convert power with py.pow", () => {
@@ -128,21 +128,21 @@ describe("E2E: Operators", () => {
   describe("Runtime Verification", () => {
     describe("Floor Division (Python semantics)", () => {
       it("positive // positive", () => {
-        expect(floordiv(10, 3)).toBe(3)
-        expect(floordiv(9, 3)).toBe(3)
+        expect(floorDiv(10, 3)).toBe(3)
+        expect(floorDiv(9, 3)).toBe(3)
       })
 
       it("negative // positive", () => {
-        expect(floordiv(-10, 3)).toBe(-4)
-        expect(floordiv(-9, 3)).toBe(-3)
+        expect(floorDiv(-10, 3)).toBe(-4)
+        expect(floorDiv(-9, 3)).toBe(-3)
       })
 
       it("positive // negative", () => {
-        expect(floordiv(10, -3)).toBe(-4)
+        expect(floorDiv(10, -3)).toBe(-4)
       })
 
       it("negative // negative", () => {
-        expect(floordiv(-10, -3)).toBe(3)
+        expect(floorDiv(-10, -3)).toBe(3)
       })
     })
 

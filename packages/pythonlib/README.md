@@ -6,19 +6,22 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue.svg)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/npm/l/pythonlib.svg)](https://github.com/sebastian-software/python2ts/blob/main/LICENSE)
 
-**Python standard library for TypeScript** — itertools, functools, collections, and more.
+**Python's powerful standard library, TypeScript's familiar style** — itertools, functools,
+collections, and more.
 
-> Zero dependencies · Full TypeScript support · Tree-shakeable · Works everywhere JS runs
+> Zero dependencies · Full TypeScript support · Tree-shakeable · camelCase API · Works everywhere JS
+> runs
 
 ## Why pythonlib?
 
 Python has an incredibly powerful standard library. Now you can use familiar Python patterns in
-TypeScript:
+TypeScript — with **idiomatic camelCase naming** that feels native:
 
 - **Intuitive iteration** — `range()`, `enumerate()`, `zip()` instead of manual loops
 - **Powerful combinatorics** — `combinations()`, `permutations()`, `product()`
-- **Functional tools** — `reduce()`, `partial()`, `lru_cache()`
+- **Functional tools** — `reduce()`, `partial()`, `lruCache()`
 - **Smart collections** — `Counter`, `defaultdict`, `deque`
+- **TypeScript-native API** — `zipLongest()`, `randInt()`, `fromIsoFormat()` (not snake_case!)
 - **And much more** — datetime, regex, math, random
 
 ## Installation
@@ -60,16 +63,18 @@ pythonlib uses **subpath exports** for optimal tree-shaking. Import only what yo
 | Import Path             | Contents                                           |
 | ----------------------- | -------------------------------------------------- |
 | `pythonlib`             | Builtins: `len`, `range`, `sorted`, `enumerate`... |
-| `pythonlib/itertools`   | `chain`, `combinations`, `permutations`, `product` |
-| `pythonlib/functools`   | `partial`, `reduce`, `lru_cache`, `cache`          |
+| `pythonlib/itertools`   | `chain`, `combinations`, `zipLongest`, `takeWhile` |
+| `pythonlib/functools`   | `partial`, `reduce`, `lruCache`, `pipe`            |
 | `pythonlib/collections` | `Counter`, `defaultdict`, `deque`                  |
 | `pythonlib/math`        | `sqrt`, `floor`, `ceil`, `factorial`, `pi`, `e`    |
-| `pythonlib/random`      | `randint`, `choice`, `shuffle`, `sample`           |
+| `pythonlib/random`      | `randInt`, `choice`, `shuffle`, `sample`           |
 | `pythonlib/datetime`    | `datetime`, `date`, `time`, `timedelta`            |
 | `pythonlib/json`        | `loads`, `dumps`, `load`, `dump`                   |
-| `pythonlib/re`          | `search`, `match`, `findall`, `sub`, `compile`     |
-| `pythonlib/os`          | `path`, `getcwd`, `sep`                            |
-| `pythonlib/string`      | `Template`, `capwords`, `ascii_lowercase`          |
+| `pythonlib/re`          | `search`, `match`, `findAll`, `sub`, `compile`     |
+| `pythonlib/os`          | `path`, `getCwd`, `sep`                            |
+| `pythonlib/string`      | `Template`, `capWords`, `asciiLowercase`           |
+
+> All function names use **camelCase** to feel native in TypeScript.
 
 ## Module Examples
 
@@ -124,7 +129,7 @@ product([1, 2], ["a", "b"]) // [[1,"a"], [1,"b"], [2,"a"], [2,"b"]]
 ### functools
 
 ```typescript
-import { partial, reduce, lru_cache } from "pythonlib/functools"
+import { partial, reduce, lruCache, pipe } from "pythonlib/functools"
 
 // Partial application
 const add5 = partial((a, b) => a + b, 5)
@@ -134,10 +139,17 @@ add5(3) // 8
 reduce((a, b) => a + b, [1, 2, 3, 4, 5]) // 15
 
 // LRU Cache with automatic memoization
-const cached = lru_cache((n: number) => expensiveComputation(n))
+const cached = lruCache((n: number) => expensiveComputation(n))
 cached(5) // computes
 cached(5) // returns cached result instantly
-cached.cache_info() // { hits: 1, misses: 1, maxsize: 128, currsize: 1 }
+cached.cacheInfo() // { hits: 1, misses: 1, maxsize: 128, currsize: 1 }
+
+// Pipe value through functions (inspired by Remeda/Ramda)
+pipe(
+  5,
+  (x) => x * 2,
+  (x) => x + 1
+) // 11
 ```
 
 ### collections
@@ -156,7 +168,7 @@ dd.get("key").push(1) // auto-creates array if missing
 
 // Double-ended queue
 const d = new deque([1, 2, 3])
-d.appendleft(0) // [0, 1, 2, 3]
+d.appendLeft(0) // [0, 1, 2, 3]
 d.pop() // 3
 ```
 
@@ -169,23 +181,23 @@ const now = datetime.now()
 now.strftime("%Y-%m-%d %H:%M:%S") // "2024-06-15 14:30:00"
 
 const d = new date(2024, 6, 15)
-d.isoformat() // "2024-06-15"
+d.isoFormat() // "2024-06-15"
 
 const delta = new timedelta({ days: 7 })
-delta.total_seconds() // 604800
+delta.totalSeconds() // 604800
 ```
 
 ### re (Regular Expressions)
 
 ```typescript
-import { search, findall, sub, compile } from "pythonlib/re"
+import { search, findAll, sub, compile } from "pythonlib/re"
 
 // Named groups support
 const m = search("(?P<name>\\w+)@(?P<domain>\\w+)", "user@example")
 m?.group("name") // "user"
-m?.groupdict() // { name: "user", domain: "example" }
+m?.groupDict() // { name: "user", domain: "example" }
 
-findall("\\d+", "a1b2c3") // ["1", "2", "3"]
+findAll("\\d+", "a1b2c3") // ["1", "2", "3"]
 sub("\\d", "X", "a1b2") // "aXbX"
 ```
 
@@ -203,9 +215,9 @@ lcm(4, 6) // 12
 ### random
 
 ```typescript
-import { randint, choice, shuffle, sample } from "pythonlib/random"
+import { randInt, choice, shuffle, sample } from "pythonlib/random"
 
-randint(1, 10) // random integer 1-10
+randInt(1, 10) // random integer 1-10
 choice(["a", "b", "c"]) // random element
 shuffle([1, 2, 3]) // shuffles in place
 sample([1, 2, 3, 4, 5], 3) // 3 unique random elements

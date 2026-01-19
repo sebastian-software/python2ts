@@ -26,23 +26,23 @@ export function getenv(key: string, defaultValue?: string): string | undefined {
 export const sep = typeof process !== "undefined" && process.platform === "win32" ? "\\" : "/"
 
 /** Alternative path separator (Windows has both / and \) */
-export const altsep = typeof process !== "undefined" && process.platform === "win32" ? "/" : null
+export const altSep = typeof process !== "undefined" && process.platform === "win32" ? "/" : null
 
 /** Path list separator (: on Unix, ; on Windows) */
-export const pathsep = typeof process !== "undefined" && process.platform === "win32" ? ";" : ":"
+export const pathSep = typeof process !== "undefined" && process.platform === "win32" ? ";" : ":"
 
 /** Line separator */
-export const linesep =
+export const lineSep =
   typeof process !== "undefined" && process.platform === "win32" ? "\r\n" : "\n"
 
 /** Current directory string */
-export const curdir = "."
+export const curDir = "."
 
 /** Parent directory string */
-export const pardir = ".."
+export const parDir = ".."
 
 /** Extension separator */
-export const extsep = "."
+export const extSep = "."
 
 // ============================================================================
 // os.path module
@@ -99,7 +99,7 @@ export const path = {
   },
 
   /** Split pathname into root and extension */
-  splitext(p: string): [string, string] {
+  splitExt(p: string): [string, string] {
     const base = path.basename(p)
     const dotIdx = base.lastIndexOf(".")
     if (dotIdx <= 0) {
@@ -112,12 +112,12 @@ export const path = {
   },
 
   /** Return the extension of pathname */
-  extname(p: string): string {
-    return path.splitext(p)[1]
+  extName(p: string): string {
+    return path.splitExt(p)[1]
   },
 
   /** Test whether a path is absolute */
-  isabs(p: string): boolean {
+  isAbs(p: string): boolean {
     if (p.startsWith("/")) return true
     // Windows: C:\ or C:/
     if (p.length >= 3 && p[1] === ":" && (p[2] === "/" || p[2] === "\\")) return true
@@ -127,7 +127,7 @@ export const path = {
   },
 
   /** Normalize a pathname */
-  normpath(p: string): string {
+  normPath(p: string): string {
     if (!p) return "."
 
     // Handle Windows drive letter
@@ -168,23 +168,23 @@ export const path = {
   },
 
   /** Return normalized absolutized version of pathname */
-  abspath(p: string): string {
-    if (path.isabs(p)) {
-      return path.normpath(p)
+  absPath(p: string): string {
+    if (path.isAbs(p)) {
+      return path.normPath(p)
     }
     // In browser, we can't get cwd, so just normalize
-    return path.normpath(p)
+    return path.normPath(p)
   },
 
   /** Return canonical path, eliminating symlinks (stub - just normalizes) */
-  realpath(p: string): string {
-    return path.abspath(p)
+  realPath(p: string): string {
+    return path.absPath(p)
   },
 
   /** Return relative path from start to path */
-  relpath(p: string, start: string = "."): string {
-    const pParts = path.normpath(p).split(/[/\\]/).filter(Boolean)
-    const startParts = path.normpath(start).split(/[/\\]/).filter(Boolean)
+  relPath(p: string, start: string = "."): string {
+    const pParts = path.normPath(p).split(/[/\\]/).filter(Boolean)
+    const startParts = path.normPath(start).split(/[/\\]/).filter(Boolean)
 
     // Find common prefix length
     let commonLen = 0
@@ -204,12 +204,12 @@ export const path = {
   },
 
   /** Return common path prefix */
-  commonpath(paths: string[]): string {
+  commonPath(paths: string[]): string {
     if (paths.length === 0) {
-      throw new Error("commonpath() arg is an empty sequence")
+      throw new Error("commonPath() arg is an empty sequence")
     }
 
-    const splitPaths = paths.map((p) => path.normpath(p).split(/[/\\]/))
+    const splitPaths = paths.map((p) => path.normPath(p).split(/[/\\]/))
     const first = splitPaths[0] as string[]
     let commonLen = first.length
 
@@ -228,7 +228,7 @@ export const path = {
   },
 
   /** Expand ~ and ~user (stub - returns unchanged in browser) */
-  expanduser(p: string): string {
+  expandUser(p: string): string {
     if (!p.startsWith("~")) return p
     const home =
       typeof process !== "undefined" ? (process.env.HOME ?? process.env.USERPROFILE) : undefined
@@ -240,7 +240,7 @@ export const path = {
   },
 
   /** Expand shell variables (stub - returns unchanged) */
-  expandvars(p: string): string {
+  expandVars(p: string): string {
     // Simple $VAR and ${VAR} expansion
     return p.replace(/\$(\w+)|\$\{(\w+)\}/g, (_, v1: string, v2: string) => {
       const key = v1 || v2
@@ -255,37 +255,37 @@ export const path = {
   },
 
   /** Test if path is a file (stub - always returns false in browser) */
-  isfile(_p: string): boolean {
+  isFile(_p: string): boolean {
     return false
   },
 
   /** Test if path is a directory (stub - always returns false in browser) */
-  isdir(_p: string): boolean {
+  isDir(_p: string): boolean {
     return false
   },
 
   /** Test if path is a symbolic link (stub - always returns false in browser) */
-  islink(_p: string): boolean {
+  isLink(_p: string): boolean {
     return false
   },
 
   /** Return size of file (stub - returns 0 in browser) */
-  getsize(_p: string): number {
+  getSize(_p: string): number {
     return 0
   },
 
   /** Return modification time (stub - returns 0 in browser) */
-  getmtime(_p: string): number {
+  getMtime(_p: string): number {
     return 0
   },
 
   /** Return access time (stub - returns 0 in browser) */
-  getatime(_p: string): number {
+  getAtime(_p: string): number {
     return 0
   },
 
   /** Return creation time (stub - returns 0 in browser) */
-  getctime(_p: string): number {
+  getCtime(_p: string): number {
     return 0
   }
   /* eslint-enable @typescript-eslint/no-unused-vars */
@@ -296,16 +296,16 @@ export const path = {
 // ============================================================================
 
 /** Get current working directory */
-export function getcwd(): string {
+export function getCwd(): string {
   if (typeof process !== "undefined") {
     return process.cwd()
   }
   return "/"
 }
 
-/** Get current working directory as bytes (same as getcwd in TS) */
-export function getcwdb(): string {
-  return getcwd()
+/** Get current working directory as bytes (same as getCwd in TS) */
+export function getCwdb(): string {
+  return getCwd()
 }
 
 /** Change current working directory (stub in browser) */
@@ -317,7 +317,7 @@ export function chdir(p: string): void {
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /** List directory contents (stub - returns empty array in browser) */
-export function listdir(_p: string = "."): string[] {
+export function listDir(_p: string = "."): string[] {
   return []
 }
 
@@ -327,7 +327,7 @@ export function mkdir(_p: string, _mode: number = 0o777): void {
 }
 
 /** Create a directory and parents (stub in browser) */
-export function makedirs(_p: string, _mode: number = 0o777, _existOk: boolean = false): void {
+export function makeDirs(_p: string, _mode: number = 0o777, _existOk: boolean = false): void {
   // No-op in browser
 }
 
@@ -345,7 +345,7 @@ export function rmdir(_p: string): void {
 }
 
 /** Remove directory tree (stub in browser) */
-export function removedirs(_p: string): void {
+export function removeDirs(_p: string): void {
   // No-op in browser
 }
 

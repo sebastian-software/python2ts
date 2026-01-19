@@ -78,7 +78,7 @@ export class Match {
   }
 
   /** Return a dictionary of named groups */
-  groupdict(defaultValue?: string): Record<string, string | undefined> {
+  groupDict(defaultValue?: string): Record<string, string | undefined> {
     const groups = this._match.groups ?? {}
     const result: Record<string, string | undefined> = {}
     for (const [key, value] of Object.entries(groups)) {
@@ -125,7 +125,7 @@ export class Match {
   }
 
   /** Return the last matched group index */
-  get lastindex(): number | undefined {
+  get lastIndex(): number | undefined {
     for (let i = this._match.length - 1; i > 0; i--) {
       if (this._match[i] !== undefined) return i
     }
@@ -133,9 +133,9 @@ export class Match {
   }
 
   /** Return the name of the last matched group */
-  get lastgroup(): string | undefined {
+  get lastGroup(): string | undefined {
     if (!this._match.groups) return undefined
-    const lastIdx = this.lastindex
+    const lastIdx = this.lastIndex
     if (lastIdx === undefined) return undefined
     // Find the name for this index
     let idx = 1
@@ -242,7 +242,7 @@ export class Pattern {
   }
 
   /** Match pattern against entire string */
-  fullmatch(string: string, pos: number = 0, endpos?: number): Match | null {
+  fullMatch(string: string, pos: number = 0, endpos?: number): Match | null {
     const searchStr = endpos !== undefined ? string.slice(0, endpos) : string
     const searchFrom = searchStr.slice(pos)
 
@@ -286,7 +286,7 @@ export class Pattern {
   }
 
   /** Find all matches */
-  findall(string: string, pos: number = 0, endpos?: number): (string | string[])[] {
+  findAll(string: string, pos: number = 0, endpos?: number): (string | string[])[] {
     const searchStr = endpos !== undefined ? string.slice(0, endpos) : string
     const searchFrom = searchStr.slice(pos)
 
@@ -307,7 +307,7 @@ export class Pattern {
   }
 
   /** Find all matches as iterator */
-  *finditer(string: string, pos: number = 0, endpos?: number): Generator<Match> {
+  *findIter(string: string, pos: number = 0, endpos?: number): Generator<Match> {
     const searchStr = endpos !== undefined ? string.slice(0, endpos) : string
     const searchFrom = searchStr.slice(pos)
 
@@ -416,7 +416,7 @@ export class Pattern {
   }
 
   /** Return named groups mapping */
-  get groupindex(): Record<string, number> {
+  get groupIndex(): Record<string, number> {
     const result: Record<string, number> = {}
     let groupNum = 0
     const regex = /\(\?P?<(\w+)>/g
@@ -458,13 +458,13 @@ export function match(pattern: string | Pattern, string: string, flags: number =
 }
 
 /** Match pattern against entire string */
-export function fullmatch(
+export function fullMatch(
   pattern: string | Pattern,
   string: string,
   flags: number = 0
 ): Match | null {
   const p = pattern instanceof Pattern ? pattern : compile(pattern, flags)
-  return p.fullmatch(string)
+  return p.fullMatch(string)
 }
 
 /** Split string by pattern */
@@ -479,23 +479,23 @@ export function split(
 }
 
 /** Find all matches */
-export function findall(
+export function findAll(
   pattern: string | Pattern,
   string: string,
   flags: number = 0
 ): (string | string[])[] {
   const p = pattern instanceof Pattern ? pattern : compile(pattern, flags)
-  return p.findall(string)
+  return p.findAll(string)
 }
 
 /** Find all matches as iterator */
-export function finditer(
+export function findIter(
   pattern: string | Pattern,
   string: string,
   flags: number = 0
 ): Generator<Match> {
   const p = pattern instanceof Pattern ? pattern : compile(pattern, flags)
-  return p.finditer(string)
+  return p.findIter(string)
 }
 
 /** Replace pattern in string */

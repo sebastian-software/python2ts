@@ -11,7 +11,7 @@
  * Floor division (Python //)
  * Always rounds towards negative infinity, unlike Math.floor for negatives
  */
-export function floordiv(a: number, b: number): number {
+export function floorDiv(a: number, b: number): number {
   return Math.floor(a / b)
 }
 
@@ -31,10 +31,10 @@ export function mod(a: number, b: number): number {
 }
 
 /**
- * Python divmod()
+ * Python divMod()
  */
-export function divmod(a: number, b: number): [number, number] {
-  return [floordiv(a, b), mod(a, b)]
+export function divMod(a: number, b: number): [number, number] {
+  return [floorDiv(a, b), mod(a, b)]
 }
 
 // ============================================================

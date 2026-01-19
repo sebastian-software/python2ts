@@ -10,7 +10,7 @@ describe("E2E: string module", () => {
     })
 
     it("should strip from string import", () => {
-      const result = transpile("from string import ascii_lowercase, Template", {
+      const result = transpile("from string import asciiLowercase, Template", {
         includeRuntime: false
       })
       expect(result.trim()).toBe("")
@@ -18,10 +18,10 @@ describe("E2E: string module", () => {
   })
 
   describe("Function Transformations", () => {
-    it("should transform string.ascii_lowercase", () => {
-      const result = transpile("letters = string.ascii_lowercase")
+    it("should transform string.asciiLowercase", () => {
+      const result = transpile("letters = string.asciiLowercase")
       expect(result).toContain('from "pythonlib/string"')
-      expect(result).toContain("ascii_lowercase")
+      expect(result).toContain("asciiLowercase")
     })
 
     it("should transform string.digits", () => {
@@ -39,33 +39,33 @@ describe("E2E: string module", () => {
     it("should transform capwords", () => {
       const result = transpile("s = capwords('hello world')")
       expect(result).toContain('from "pythonlib/string"')
-      expect(result).toContain("capwords(")
+      expect(result).toContain("capWords(")
     })
   })
 
   describe("Runtime: String Constants", () => {
-    it("ascii_lowercase should be all lowercase letters", () => {
-      expect(string.ascii_lowercase).toBe("abcdefghijklmnopqrstuvwxyz")
+    it("asciiLowercase should be all lowercase letters", () => {
+      expect(string.asciiLowercase).toBe("abcdefghijklmnopqrstuvwxyz")
     })
 
-    it("ascii_uppercase should be all uppercase letters", () => {
-      expect(string.ascii_uppercase).toBe("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    it("asciiUppercase should be all uppercase letters", () => {
+      expect(string.asciiUppercase).toBe("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
     })
 
-    it("ascii_letters should be all letters", () => {
-      expect(string.ascii_letters).toBe("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    it("asciiLetters should be all letters", () => {
+      expect(string.asciiLetters).toBe("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
     })
 
     it("digits should be all digits", () => {
       expect(string.digits).toBe("0123456789")
     })
 
-    it("hexdigits should be hex digits", () => {
-      expect(string.hexdigits).toBe("0123456789abcdefABCDEF")
+    it("hexDigits should be hex digits", () => {
+      expect(string.hexDigits).toBe("0123456789abcdefABCDEF")
     })
 
-    it("octdigits should be octal digits", () => {
-      expect(string.octdigits).toBe("01234567")
+    it("octDigits should be octal digits", () => {
+      expect(string.octDigits).toBe("01234567")
     })
 
     it("punctuation should contain punctuation marks", () => {
@@ -118,15 +118,15 @@ describe("E2E: string module", () => {
       expect(() => t.substitute({})).toThrow("KeyError")
     })
 
-    it("safe_substitute should not throw on missing key", () => {
+    it("safeSubstitute should not throw on missing key", () => {
       const t = new string.Template("Hello $name!")
-      const result = t.safe_substitute({})
+      const result = t.safeSubstitute({})
       expect(result).toBe("Hello $name!")
     })
 
     it("should get identifiers", () => {
       const t = new string.Template("Hello $name, you have $count messages")
-      const ids = t.get_identifiers()
+      const ids = t.getIdentifiers()
       expect(ids).toContain("name")
       expect(ids).toContain("count")
     })
@@ -134,19 +134,19 @@ describe("E2E: string module", () => {
 
   describe("Runtime: capwords", () => {
     it("should capitalize words", () => {
-      expect(string.capwords("hello world")).toBe("Hello World")
+      expect(string.capWords("hello world")).toBe("Hello World")
     })
 
     it("should handle multiple spaces", () => {
-      expect(string.capwords("hello   world")).toBe("Hello   World")
+      expect(string.capWords("hello   world")).toBe("Hello   World")
     })
 
     it("should handle custom separator", () => {
-      expect(string.capwords("hello-world", "-")).toBe("Hello-World")
+      expect(string.capWords("hello-world", "-")).toBe("Hello-World")
     })
 
     it("should lowercase other letters", () => {
-      expect(string.capwords("hELLO wORLD")).toBe("Hello World")
+      expect(string.capWords("hELLO wORLD")).toBe("Hello World")
     })
   })
 })

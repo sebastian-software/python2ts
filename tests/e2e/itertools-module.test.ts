@@ -32,9 +32,9 @@ result = list(chain([1, 2], [3, 4]))`
 result = list(zip_longest([1, 2, 3], ['a', 'b']))`
       expect(transpile(python)).toMatchInlineSnapshot(`
         "import { list } from "pythonlib"
-        import { zip_longest } from "pythonlib/itertools"
+        import { zipLongest } from "pythonlib/itertools"
 
-        let result = list(zip_longest([1, 2, 3], ['a', 'b']));"
+        let result = list(zipLongest([1, 2, 3], ['a', 'b']));"
       `)
     })
 
@@ -126,9 +126,9 @@ result = list(groupby([1, 1, 2, 2, 3]))`
     })
   })
 
-  describe("Runtime: zip_longest", () => {
+  describe("Runtime: zipLongest", () => {
     it("should zip with fill value", () => {
-      const result = itertools.zip_longest([1, 2, 3], ["a", "b"], { fillvalue: "-" })
+      const result = itertools.zipLongest([1, 2, 3], ["a", "b"], { fillvalue: "-" })
       expect(result).toEqual([
         [1, "a"],
         [2, "b"],
@@ -137,7 +137,7 @@ result = list(groupby([1, 1, 2, 2, 3]))`
     })
 
     it("should zip without fill value", () => {
-      const result = itertools.zip_longest([1, 2, 3], ["a", "b"])
+      const result = itertools.zipLongest([1, 2, 3], ["a", "b"])
       expect(result).toEqual([
         [1, "a"],
         [2, "b"],
@@ -158,16 +158,16 @@ result = list(groupby([1, 1, 2, 2, 3]))`
     })
   })
 
-  describe("Runtime: takewhile", () => {
+  describe("Runtime: takeWhile", () => {
     it("should take while predicate is true", () => {
-      const result = itertools.takewhile((x: number) => x < 5, [1, 4, 6, 4, 1])
+      const result = itertools.takeWhile((x: number) => x < 5, [1, 4, 6, 4, 1])
       expect(result).toEqual([1, 4])
     })
   })
 
-  describe("Runtime: dropwhile", () => {
+  describe("Runtime: dropWhile", () => {
     it("should drop while predicate is true", () => {
-      const result = itertools.dropwhile((x: number) => x < 5, [1, 4, 6, 4, 1])
+      const result = itertools.dropWhile((x: number) => x < 5, [1, 4, 6, 4, 1])
       expect(result).toEqual([6, 4, 1])
     })
   })
@@ -179,9 +179,9 @@ result = list(groupby([1, 1, 2, 2, 3]))`
     })
   })
 
-  describe("Runtime: filterfalse", () => {
+  describe("Runtime: filterFalse", () => {
     it("should filter where predicate is false", () => {
-      const result = itertools.filterfalse((x: number) => x % 2, [1, 2, 3, 4, 5])
+      const result = itertools.filterFalse((x: number) => x % 2, [1, 2, 3, 4, 5])
       expect(result).toEqual([2, 4])
     })
   })
@@ -240,9 +240,9 @@ result = list(groupby([1, 1, 2, 2, 3]))`
     })
   })
 
-  describe("Runtime: combinations_with_replacement", () => {
+  describe("Runtime: combinationsWithReplacement", () => {
     it("should return combinations with replacement", () => {
-      const result = itertools.combinations_with_replacement([1, 2, 3], 2)
+      const result = itertools.combinationsWithReplacement([1, 2, 3], 2)
       expect(result).toEqual([
         [1, 1],
         [1, 2],

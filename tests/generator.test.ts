@@ -12,8 +12,8 @@ describe("Generator", () => {
 
     it("should include runtime import when runtime functions are used", () => {
       const result = generate("x = 10 // 3")
-      expect(result.runtimeImport).toContain("import { floordiv }")
-      expect(result.code).toContain("import { floordiv }")
+      expect(result.runtimeImport).toContain("import { floorDiv }")
+      expect(result.code).toContain("import { floorDiv }")
     })
 
     it("should not include runtime import when no runtime functions are used", () => {
@@ -23,7 +23,7 @@ describe("Generator", () => {
 
     it("should track used runtime functions", () => {
       const result = generate("x = 10 // 3\ny = len([1, 2])")
-      expect(result.usedRuntimeFunctions).toContain("floordiv")
+      expect(result.usedRuntimeFunctions).toContain("floorDiv")
       expect(result.usedRuntimeFunctions).toContain("len")
     })
 

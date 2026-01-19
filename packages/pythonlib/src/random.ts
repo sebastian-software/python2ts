@@ -23,14 +23,14 @@ export function uniform(a: number, b: number): number {
 }
 
 /** Return a random integer N such that a <= N <= b (inclusive) */
-export function randint(a: number, b: number): number {
+export function randInt(a: number, b: number): number {
   a = Math.floor(a)
   b = Math.floor(b)
   return Math.floor(Math.random() * (b - a + 1)) + a
 }
 
 /** Return a randomly selected element from range(start, stop, step) */
-export function randrange(start: number, stop?: number, step: number = 1): number {
+export function randRange(start: number, stop?: number, step: number = 1): number {
   if (stop === undefined) {
     stop = start
     start = 0
@@ -41,7 +41,7 @@ export function randrange(start: number, stop?: number, step: number = 1): numbe
 
   const numSteps = Math.ceil((stop - start) / step)
   if (numSteps <= 0) {
-    throw new Error("empty range for randrange()")
+    throw new Error("empty range for randRange()")
   }
 
   const randomStep = Math.floor(Math.random() * numSteps)
@@ -159,7 +159,7 @@ export function gauss(mu: number = 0, sigma: number = 1): number {
 }
 
 /** Normal distribution (alias for gauss) */
-export const normalvariate = gauss
+export const normalVariate = gauss
 
 /** Triangular distribution with low, high, and mode */
 export function triangular(low: number = 0, high: number = 1, mode?: number): number {
@@ -177,24 +177,24 @@ export function triangular(low: number = 0, high: number = 1, mode?: number): nu
 }
 
 /** Beta distribution with alpha and beta parameters */
-export function betavariate(alpha: number, beta: number): number {
+export function betaVariate(alpha: number, beta: number): number {
   // Use the gamma method
-  const y = gammavariate(alpha, 1)
+  const y = gammaVariate(alpha, 1)
   if (y === 0) return 0
-  return y / (y + gammavariate(beta, 1))
+  return y / (y + gammaVariate(beta, 1))
 }
 
 /** Exponential distribution with mean 1/lambd */
-export function expovariate(lambd: number): number {
+export function expoVariate(lambd: number): number {
   // lambd is 1.0 divided by the desired mean
   return -Math.log(1 - Math.random()) / lambd
 }
 
 /** Gamma distribution with shape alpha and scale beta */
-export function gammavariate(alpha: number, beta: number): number {
+export function gammaVariate(alpha: number, beta: number): number {
   // Marsaglia and Tsang's method
   if (alpha <= 0 || beta <= 0) {
-    throw new Error("gammavariate: alpha and beta must be > 0")
+    throw new Error("gammaVariate: alpha and beta must be > 0")
   }
 
   if (alpha > 1) {
@@ -219,17 +219,17 @@ export function gammavariate(alpha: number, beta: number): number {
   } else {
     // alpha <= 1
     const u = Math.random()
-    return gammavariate(1 + alpha, beta) * Math.pow(u, 1 / alpha)
+    return gammaVariate(1 + alpha, beta) * Math.pow(u, 1 / alpha)
   }
 }
 
 /** Log normal distribution */
-export function lognormvariate(mu: number, sigma: number): number {
+export function logNormVariate(mu: number, sigma: number): number {
   return Math.exp(gauss(mu, sigma))
 }
 
 /** Von Mises distribution (circular data) */
-export function vonmisesvariate(mu: number, kappa: number): number {
+export function vonMisesVariate(mu: number, kappa: number): number {
   if (kappa <= 1e-6) {
     return 2 * Math.PI * Math.random()
   }
@@ -255,13 +255,13 @@ export function vonmisesvariate(mu: number, kappa: number): number {
 }
 
 /** Pareto distribution */
-export function paretovariate(alpha: number): number {
+export function paretoVariate(alpha: number): number {
   const u = 1 - Math.random()
   return 1 / Math.pow(u, 1 / alpha)
 }
 
 /** Weibull distribution */
-export function weibullvariate(alpha: number, beta: number): number {
+export function weibullVariate(alpha: number, beta: number): number {
   const u = 1 - Math.random()
   return alpha * Math.pow(-Math.log(u), 1 / beta)
 }

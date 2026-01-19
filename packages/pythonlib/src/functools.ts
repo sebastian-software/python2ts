@@ -64,14 +64,14 @@ export function reduce<T, U = T>(
  * Note: This is a simplified implementation that caches based on JSON-stringified arguments
  *
  * Example:
- *   const fib = lru_cache((n: number): number => n <= 1 ? n : fib(n - 1) + fib(n - 2))
+ *   const fib = lruCache((n: number): number => n <= 1 ? n : fib(n - 1) + fib(n - 2))
  */
-export function lru_cache<T extends (...args: unknown[]) => unknown>(
+export function lruCache<T extends (...args: unknown[]) => unknown>(
   func: T,
   maxsize: number = 128
 ): T & {
-  cache_info: () => { hits: number; misses: number; maxsize: number; currsize: number }
-  cache_clear: () => void
+  cacheInfo: () => { hits: number; misses: number; maxsize: number; currsize: number }
+  cacheClear: () => void
 } {
   const cache = new Map<string, ReturnType<T>>()
   const order: string[] = []
@@ -108,18 +108,18 @@ export function lru_cache<T extends (...args: unknown[]) => unknown>(
 
     return result
   }) as T & {
-    cache_info: () => { hits: number; misses: number; maxsize: number; currsize: number }
-    cache_clear: () => void
+    cacheInfo: () => { hits: number; misses: number; maxsize: number; currsize: number }
+    cacheClear: () => void
   }
 
-  cached.cache_info = () => ({
+  cached.cacheInfo = () => ({
     hits,
     misses,
     maxsize,
     currsize: cache.size
   })
 
-  cached.cache_clear = () => {
+  cached.cacheClear = () => {
     cache.clear()
     order.length = 0
     hits = 0
@@ -151,7 +151,7 @@ export function cache<T extends (...args: unknown[]) => unknown>(func: T): T {
  * Return a new partial object which behaves like func called with keyword arguments
  * In TypeScript, we simulate this with an options object as the last argument
  */
-export function partialmethod<T extends (...args: unknown[]) => unknown>(
+export function partialMethod<T extends (...args: unknown[]) => unknown>(
   func: T,
   ...partialArgs: unknown[]
 ): (...args: unknown[]) => ReturnType<T> {
@@ -160,9 +160,9 @@ export function partialmethod<T extends (...args: unknown[]) => unknown>(
 
 /**
  * Transform a function into a single-dispatch generic function
- * This is a simplified version - full singledispatch would require runtime type checking
+ * This is a simplified version - full singleDispatch would require runtime type checking
  */
-export function singledispatch<T extends (...args: unknown[]) => unknown>(
+export function singleDispatch<T extends (...args: unknown[]) => unknown>(
   func: T
 ): T & { register: (type: string, impl: T) => void } {
   const registry = new Map<string, T>()
@@ -211,9 +211,9 @@ export function wraps<T extends (...args: unknown[]) => unknown>(
 
 /**
  * Return a callable object that fetches attr from its operand
- * attrgetter('name') returns a function that gets the 'name' attribute
+ * attrGetter('name') returns a function that gets the 'name' attribute
  */
-export function attrgetter<T>(...attrs: string[]): (obj: unknown) => T | T[] {
+export function attrGetter<T>(...attrs: string[]): (obj: unknown) => T | T[] {
   if (attrs.length === 1) {
     const attr = attrs[0] as string
     const parts = attr.split(".")
@@ -240,10 +240,10 @@ export function attrgetter<T>(...attrs: string[]): (obj: unknown) => T | T[] {
 
 /**
  * Return a callable object that fetches item from its operand
- * itemgetter(1) returns a function that gets index 1
- * itemgetter('key') returns a function that gets the 'key' property
+ * itemGetter(1) returns a function that gets index 1
+ * itemGetter('key') returns a function that gets the 'key' property
  */
-export function itemgetter<T>(...items: (string | number)[]): (obj: unknown) => T | T[] {
+export function itemGetter<T>(...items: (string | number)[]): (obj: unknown) => T | T[] {
   if (items.length === 1) {
     const item = items[0] as string | number
     return (obj: unknown): T => {
@@ -266,9 +266,9 @@ export function itemgetter<T>(...items: (string | number)[]): (obj: unknown) => 
 
 /**
  * Return a callable object that calls the method name on its operand
- * methodcaller('split', ' ') returns a function that calls .split(' ')
+ * methodCaller('split', ' ') returns a function that calls .split(' ')
  */
-export function methodcaller(name: string, ...args: unknown[]): (obj: unknown) => unknown {
+export function methodCaller(name: string, ...args: unknown[]): (obj: unknown) => unknown {
   return (obj: unknown): unknown => {
     const method = (obj as Record<string, (...a: unknown[]) => unknown>)[name]
     if (typeof method !== "function") {
@@ -289,7 +289,7 @@ export function identity<T>(x: T): T {
  * Compare two objects for ordering (returns -1, 0, or 1)
  * Used for sorting with a key function
  */
-export function cmp_to_key<T>(
+export function cmpToKey<T>(
   mycmp: (a: T, b: T) => number
 ): (x: T) => { value: T; __lt__: (other: { value: T }) => boolean } {
   return (x: T) => ({
@@ -305,7 +305,7 @@ export function cmp_to_key<T>(
  * This is typically used as a class decorator in Python
  * In TypeScript, we provide helper comparisons
  */
-export function total_ordering<
+export function totalOrdering<
   T extends {
     __lt__?: (other: T) => boolean
     __le__?: (other: T) => boolean
@@ -357,4 +357,34 @@ export function total_ordering<
   }
 
   return result
+}
+
+/**
+ * Pipe a value through a series of functions.
+ * @inspired Remeda, Ramda
+ *
+ * Example:
+ *   pipe(5, x => x * 2, x => x + 1) // returns 11
+ */
+export function pipe<T>(value: T): T
+export function pipe<T, A>(value: T, fn1: (x: T) => A): A
+export function pipe<T, A, B>(value: T, fn1: (x: T) => A, fn2: (x: A) => B): B
+export function pipe<T, A, B, C>(value: T, fn1: (x: T) => A, fn2: (x: A) => B, fn3: (x: B) => C): C
+export function pipe<T, A, B, C, D>(
+  value: T,
+  fn1: (x: T) => A,
+  fn2: (x: A) => B,
+  fn3: (x: B) => C,
+  fn4: (x: C) => D
+): D
+export function pipe<T, A, B, C, D, E>(
+  value: T,
+  fn1: (x: T) => A,
+  fn2: (x: A) => B,
+  fn3: (x: B) => C,
+  fn4: (x: C) => D,
+  fn5: (x: D) => E
+): E
+export function pipe(value: unknown, ...fns: ((x: unknown) => unknown)[]): unknown {
+  return fns.reduce((acc, fn) => fn(acc), value)
 }

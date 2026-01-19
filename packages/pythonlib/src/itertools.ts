@@ -198,9 +198,9 @@ export function islice<T>(
 
 /**
  * Take elements while predicate is true
- * takewhile(x => x < 5, [1, 4, 6, 4, 1]) -> [1, 4]
+ * takeWhile(x => x < 5, [1, 4, 6, 4, 1]) -> [1, 4]
  */
-export function takewhile<T>(predicate: (x: T) => boolean, iterable: Iterable<T>): T[] {
+export function takeWhile<T>(predicate: (x: T) => boolean, iterable: Iterable<T>): T[] {
   const result: T[] = []
   for (const element of iterable) {
     if (predicate(element)) {
@@ -214,9 +214,9 @@ export function takewhile<T>(predicate: (x: T) => boolean, iterable: Iterable<T>
 
 /**
  * Skip elements while predicate is true, then return the rest
- * dropwhile(x => x < 5, [1, 4, 6, 4, 1]) -> [6, 4, 1]
+ * dropWhile(x => x < 5, [1, 4, 6, 4, 1]) -> [6, 4, 1]
  */
-export function dropwhile<T>(predicate: (x: T) => boolean, iterable: Iterable<T>): T[] {
+export function dropWhile<T>(predicate: (x: T) => boolean, iterable: Iterable<T>): T[] {
   const result: T[] = []
   let dropping = true
   for (const element of iterable) {
@@ -231,9 +231,9 @@ export function dropwhile<T>(predicate: (x: T) => boolean, iterable: Iterable<T>
 
 /**
  * Zip iterables together, filling missing values with fillvalue
- * zip_longest([1, 2, 3], ['a', 'b'], { fillvalue: '-' }) -> [[1, 'a'], [2, 'b'], [3, '-']]
+ * zipLongest([1, 2, 3], ['a', 'b'], { fillvalue: '-' }) -> [[1, 'a'], [2, 'b'], [3, '-']]
  */
-export function zip_longest<T>(
+export function zipLongest<T>(
   ...args: [...Iterable<T>[], { fillvalue?: T }] | Iterable<T>[]
 ): T[][] {
   let fillvalue: T | undefined
@@ -290,9 +290,9 @@ export function compress<T>(data: Iterable<T>, selectors: Iterable<unknown>): T[
 
 /**
  * Return elements for which predicate is false
- * filterfalse(x => x % 2, [1, 2, 3, 4, 5]) -> [2, 4]
+ * filterFalse(x => x % 2, [1, 2, 3, 4, 5]) -> [2, 4]
  */
-export function filterfalse<T>(predicate: (x: T) => unknown, iterable: Iterable<T>): T[] {
+export function filterFalse<T>(predicate: (x: T) => unknown, iterable: Iterable<T>): T[] {
   const result: T[] = []
   for (const element of iterable) {
     if (!predicate(element)) {
@@ -427,9 +427,9 @@ export function productRepeat<T>(iterable: Iterable<T>, repeat: number = 1): T[]
 
 /**
  * Return r-length combinations with replacement
- * combinations_with_replacement([1, 2, 3], 2) -> [[1, 1], [1, 2], [1, 3], [2, 2], [2, 3], [3, 3]]
+ * combinationsWithReplacement([1, 2, 3], 2) -> [[1, 1], [1, 2], [1, 3], [2, 2], [2, 3], [3, 3]]
  */
-export function combinations_with_replacement<T>(iterable: Iterable<T>, r: number): T[][] {
+export function combinationsWithReplacement<T>(iterable: Iterable<T>, r: number): T[][] {
   const pool = [...iterable]
   const n = pool.length
   if (r < 0 || n === 0) return r === 0 ? [[]] : []
@@ -450,4 +450,41 @@ export function combinations_with_replacement<T>(iterable: Iterable<T>, r: numbe
   }
 
   return result
+}
+
+/**
+ * Split an iterable into chunks of specified size.
+ * @inspired Remeda, Lodash
+ *
+ * chunk([1, 2, 3, 4, 5], 2) -> [[1, 2], [3, 4], [5]]
+ */
+export function chunk<T>(iterable: Iterable<T>, size: number): T[][] {
+  if (size < 1) {
+    throw new Error("chunk size must be at least 1")
+  }
+  const arr = [...iterable]
+  const result: T[][] = []
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size))
+  }
+  return result
+}
+
+/**
+ * Partition an iterable into two arrays based on a predicate.
+ * @inspired Remeda, Lodash
+ *
+ * partition([1, 2, 3, 4], x => x % 2 === 0) -> [[2, 4], [1, 3]]
+ */
+export function partition<T>(iterable: Iterable<T>, predicate: (x: T) => boolean): [T[], T[]] {
+  const truthy: T[] = []
+  const falsy: T[] = []
+  for (const item of iterable) {
+    if (predicate(item)) {
+      truthy.push(item)
+    } else {
+      falsy.push(item)
+    }
+  }
+  return [truthy, falsy]
 }

@@ -55,7 +55,7 @@ export class timedelta {
     }
   }
 
-  total_seconds(): number {
+  totalSeconds(): number {
     return this.days * 24 * 60 * 60 + this.seconds + this.microseconds / 1000000
   }
 
@@ -94,7 +94,7 @@ export class timedelta {
 
   multiply(n: number): timedelta {
     return new timedelta({
-      microseconds: Math.round(this.total_seconds() * 1000000 * n)
+      microseconds: Math.round(this.totalSeconds() * 1000000 * n)
     })
   }
 
@@ -136,20 +136,20 @@ export class date {
     return new date(now.getFullYear(), now.getMonth() + 1, now.getDate())
   }
 
-  static fromtimestamp(timestamp: number): date {
+  static fromTimestamp(timestamp: number): date {
     const d = new Date(timestamp * 1000)
     return new date(d.getFullYear(), d.getMonth() + 1, d.getDate())
   }
 
-  static fromisoformat(dateString: string): date {
+  static fromIsoFormat(dateString: string): date {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString)
     if (!match || !match[1] || !match[2] || !match[3]) {
-      throw new Error(`Invalid isoformat string: '${dateString}'`)
+      throw new Error(`Invalid isoFormat string: '${dateString}'`)
     }
     return new date(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]))
   }
 
-  static fromordinal(ordinal: number): date {
+  static fromOrdinal(ordinal: number): date {
     // Days since year 1
     const d = new Date(Date.UTC(1, 0, ordinal))
     return new date(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate())
@@ -163,7 +163,7 @@ export class date {
     )
   }
 
-  toordinal(): number {
+  toOrdinal(): number {
     const d = new Date(Date.UTC(this.year, this.month - 1, this.day))
     const epoch = new Date(Date.UTC(1, 0, 1))
     return Math.floor((d.getTime() - epoch.getTime()) / (24 * 60 * 60 * 1000)) + 1
@@ -175,12 +175,12 @@ export class date {
     return (d.getDay() + 6) % 7
   }
 
-  isoweekday(): number {
+  isoWeekday(): number {
     // Monday is 1, Sunday is 7
     return this.weekday() + 1
   }
 
-  isocalendar(): [number, number, number] {
+  isoCalendar(): [number, number, number] {
     const d = new Date(this.year, this.month - 1, this.day)
     const dayOfYear = Math.floor(
       (d.getTime() - new Date(this.year, 0, 0).getTime()) / (24 * 60 * 60 * 1000)
@@ -203,10 +203,10 @@ export class date {
       }
     }
 
-    return [year, week, this.isoweekday()]
+    return [year, week, this.isoWeekday()]
   }
 
-  isoformat(): string {
+  isoFormat(): string {
     return `${String(this.year)}-${String(this.month).padStart(2, "0")}-${String(this.day).padStart(2, "0")}`
   }
 
@@ -215,7 +215,7 @@ export class date {
   }
 
   toString(): string {
-    return this.isoformat()
+    return this.isoFormat()
   }
 
   __add__(delta: timedelta): date {
@@ -236,23 +236,23 @@ export class date {
   }
 
   __lt__(other: date): boolean {
-    return this.toordinal() < other.toordinal()
+    return this.toOrdinal() < other.toOrdinal()
   }
 
   __le__(other: date): boolean {
-    return this.toordinal() <= other.toordinal()
+    return this.toOrdinal() <= other.toOrdinal()
   }
 
   __gt__(other: date): boolean {
-    return this.toordinal() > other.toordinal()
+    return this.toOrdinal() > other.toOrdinal()
   }
 
   __ge__(other: date): boolean {
-    return this.toordinal() >= other.toordinal()
+    return this.toOrdinal() >= other.toOrdinal()
   }
 
   __eq__(other: date): boolean {
-    return this.toordinal() === other.toordinal()
+    return this.toOrdinal() === other.toOrdinal()
   }
 
   static min = new date(1, 1, 1)
@@ -284,10 +284,10 @@ export class time {
     this.tzinfo = null
   }
 
-  static fromisoformat(timeString: string): time {
+  static fromIsoFormat(timeString: string): time {
     const match = /^(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?$/.exec(timeString)
     if (!match || !match[1] || !match[2] || !match[3]) {
-      throw new Error(`Invalid isoformat string: '${timeString}'`)
+      throw new Error(`Invalid isoFormat string: '${timeString}'`)
     }
     const microsecond = match[4] ? parseInt(match[4].padEnd(6, "0").slice(0, 6)) : 0
     return new time(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]), microsecond)
@@ -307,7 +307,7 @@ export class time {
     )
   }
 
-  isoformat(
+  isoFormat(
     timespec: "auto" | "hours" | "minutes" | "seconds" | "milliseconds" | "microseconds" = "auto"
   ): string {
     const hh = String(this.hour).padStart(2, "0")
@@ -342,7 +342,7 @@ export class time {
   }
 
   toString(): string {
-    return this.isoformat()
+    return this.isoFormat()
   }
 
   static min = new time(0, 0, 0, 0)
@@ -400,7 +400,7 @@ export class datetime extends date {
     )
   }
 
-  static utcnow(): datetime {
+  static utcNow(): datetime {
     const d = new Date()
     return new datetime(
       d.getUTCFullYear(),
@@ -413,7 +413,7 @@ export class datetime extends date {
     )
   }
 
-  static override fromtimestamp(timestamp: number): datetime {
+  static override fromTimestamp(timestamp: number): datetime {
     const d = new Date(timestamp * 1000)
     return new datetime(
       d.getFullYear(),
@@ -426,7 +426,7 @@ export class datetime extends date {
     )
   }
 
-  static utcfromtimestamp(timestamp: number): datetime {
+  static utcfromTimestamp(timestamp: number): datetime {
     const d = new Date(timestamp * 1000)
     return new datetime(
       d.getUTCFullYear(),
@@ -439,7 +439,7 @@ export class datetime extends date {
     )
   }
 
-  static override fromisoformat(s: string): datetime {
+  static override fromIsoFormat(s: string): datetime {
     // Parse ISO format: YYYY-MM-DD[T]HH:MM:SS[.ffffff]
     const match = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?$/.exec(s)
     if (!match || !match[1] || !match[2] || !match[3] || !match[4] || !match[5] || !match[6]) {
@@ -448,7 +448,7 @@ export class datetime extends date {
       if (dateMatch && dateMatch[1] && dateMatch[2] && dateMatch[3]) {
         return new datetime(parseInt(dateMatch[1]), parseInt(dateMatch[2]), parseInt(dateMatch[3]))
       }
-      throw new Error(`Invalid isoformat string: '${s}'`)
+      throw new Error(`Invalid isoFormat string: '${s}'`)
     }
     const microsecond = match[7] ? parseInt(match[7].padEnd(6, "0").slice(0, 6)) : 0
     return new datetime(
@@ -511,13 +511,13 @@ export class datetime extends date {
     return d.getTime() / 1000
   }
 
-  override isoformat(
+  override isoFormat(
     sep: string = "T",
     timespec: "auto" | "hours" | "minutes" | "seconds" | "milliseconds" | "microseconds" = "auto"
   ): string {
-    const dateStr = super.isoformat()
+    const dateStr = super.isoFormat()
     const t = new time(this.hour, this.minute, this.second, this.microsecond)
-    return `${dateStr}${sep}${t.isoformat(timespec)}`
+    return `${dateStr}${sep}${t.isoFormat(timespec)}`
   }
 
   ctime(): string {
@@ -546,20 +546,20 @@ export class datetime extends date {
   }
 
   override toString(): string {
-    return this.isoformat(" ")
+    return this.isoFormat(" ")
   }
 
   override __add__(delta: timedelta): datetime {
     const totalMicroseconds =
-      this.timestamp() * 1000000 + this.microsecond + delta.total_seconds() * 1000000
-    return datetime.fromtimestamp(totalMicroseconds / 1000000)
+      this.timestamp() * 1000000 + this.microsecond + delta.totalSeconds() * 1000000
+    return datetime.fromTimestamp(totalMicroseconds / 1000000)
   }
 
   override __sub__(other: datetime | date | timedelta): datetime | timedelta {
     if (other instanceof timedelta) {
       const totalMicroseconds =
-        this.timestamp() * 1000000 + this.microsecond - other.total_seconds() * 1000000
-      return datetime.fromtimestamp(totalMicroseconds / 1000000)
+        this.timestamp() * 1000000 + this.microsecond - other.totalSeconds() * 1000000
+      return datetime.fromTimestamp(totalMicroseconds / 1000000)
     }
     if (other instanceof datetime) {
       const diff = this.timestamp() - other.timestamp()

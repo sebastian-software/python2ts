@@ -18,7 +18,7 @@ import {
   range,
   map,
   filter,
-  divmod,
+  divMod,
   min,
   max,
   int,
@@ -156,15 +156,15 @@ describe("E2E: Built-in Functions Execution", () => {
     })
   })
 
-  describe("divmod()", () => {
+  describe("divMod()", () => {
     it("should return quotient and remainder", () => {
-      expect(divmod(7, 3)).toEqual([2, 1])
-      expect(divmod(10, 3)).toEqual([3, 1])
+      expect(divMod(7, 3)).toEqual([2, 1])
+      expect(divMod(10, 3)).toEqual([3, 1])
     })
 
     it("should follow Python semantics for negative numbers", () => {
-      expect(divmod(-7, 3)).toEqual([-3, 2])
-      expect(divmod(7, -3)).toEqual([-3, -2])
+      expect(divMod(-7, 3)).toEqual([-3, 2])
+      expect(divMod(7, -3)).toEqual([-3, -2])
     })
   })
 

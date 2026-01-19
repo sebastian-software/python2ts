@@ -36,13 +36,13 @@ result = reduce(lambda x, y: x + y, [1, 2, 3, 4, 5])`
       `)
     })
 
-    it("should convert lru_cache decorator", () => {
-      const python = `from functools import lru_cache
-@lru_cache(maxsize=128)
+    it("should convert lruCache decorator", () => {
+      const python = `from functools import lruCache
+@lruCache(maxsize=128)
 def fib(n):
     return n`
       expect(transpile(python)).toMatchInlineSnapshot(`
-        "const fib = lru_cache({ maxsize: 128 })(function fib(n) {
+        "const fib = lruCache({ maxsize: 128 })(function fib(n) {
           return n;
         })"
       `)
@@ -95,10 +95,10 @@ result = functools.reduce(add, numbers)`
     })
   })
 
-  describe("Runtime: lru_cache", () => {
+  describe("Runtime: lruCache", () => {
     it("should cache function results", () => {
       let callCount = 0
-      const expensive = functools.lru_cache((n: number) => {
+      const expensive = functools.lruCache((n: number) => {
         callCount++
         return n * 2
       })
@@ -111,13 +111,13 @@ result = functools.reduce(add, numbers)`
       expect(callCount).toBe(2)
     })
 
-    it("should provide cache_info", () => {
-      const cached = functools.lru_cache((n: number) => n * 2)
+    it("should provide cacheInfo", () => {
+      const cached = functools.lruCache((n: number) => n * 2)
       cached(1)
       cached(1)
       cached(2)
 
-      const info = cached.cache_info()
+      const info = cached.cacheInfo()
       expect(info.hits).toBe(1)
       expect(info.misses).toBe(2)
       expect(info.currsize).toBe(2)
@@ -125,7 +125,7 @@ result = functools.reduce(add, numbers)`
 
     it("should clear cache", () => {
       let callCount = 0
-      const cached = functools.lru_cache((n: number) => {
+      const cached = functools.lruCache((n: number) => {
         callCount++
         return n
       })
@@ -134,7 +134,7 @@ result = functools.reduce(add, numbers)`
       cached(1)
       expect(callCount).toBe(1)
 
-      cached.cache_clear()
+      cached.cacheClear()
       cached(1)
       expect(callCount).toBe(2)
     })
@@ -154,48 +154,48 @@ result = functools.reduce(add, numbers)`
     })
   })
 
-  describe("Runtime: attrgetter", () => {
+  describe("Runtime: attrGetter", () => {
     it("should get single attribute", () => {
-      const getName = functools.attrgetter<string>("name")
+      const getName = functools.attrGetter<string>("name")
       expect(getName({ name: "John", age: 30 })).toBe("John")
     })
 
     it("should get nested attribute", () => {
-      const getCity = functools.attrgetter<string>("address.city")
+      const getCity = functools.attrGetter<string>("address.city")
       expect(getCity({ address: { city: "NYC" } })).toBe("NYC")
     })
 
     it("should get multiple attributes", () => {
-      const getNameAge = functools.attrgetter<string | number>("name", "age")
+      const getNameAge = functools.attrGetter<string | number>("name", "age")
       expect(getNameAge({ name: "John", age: 30 })).toEqual(["John", 30])
     })
   })
 
-  describe("Runtime: itemgetter", () => {
+  describe("Runtime: itemGetter", () => {
     it("should get single item by index", () => {
-      const getSecond = functools.itemgetter<number>(1)
+      const getSecond = functools.itemGetter<number>(1)
       expect(getSecond([10, 20, 30])).toBe(20)
     })
 
     it("should get single item by key", () => {
-      const getName = functools.itemgetter<string>("name")
+      const getName = functools.itemGetter<string>("name")
       expect(getName({ name: "John" })).toBe("John")
     })
 
     it("should get multiple items", () => {
-      const getItems = functools.itemgetter<number>(0, 2)
+      const getItems = functools.itemGetter<number>(0, 2)
       expect(getItems([10, 20, 30])).toEqual([10, 30])
     })
   })
 
-  describe("Runtime: methodcaller", () => {
+  describe("Runtime: methodCaller", () => {
     it("should call method without args", () => {
-      const upper = functools.methodcaller("toUpperCase")
+      const upper = functools.methodCaller("toUpperCase")
       expect(upper("hello")).toBe("HELLO")
     })
 
     it("should call method with args", () => {
-      const split = functools.methodcaller("split", ",")
+      const split = functools.methodCaller("split", ",")
       expect(split("a,b,c")).toEqual(["a", "b", "c"])
     })
   })
@@ -209,10 +209,10 @@ result = functools.reduce(add, numbers)`
     })
   })
 
-  describe("Runtime: cmp_to_key", () => {
+  describe("Runtime: cmpToKey", () => {
     it("should convert comparison function to key", () => {
       const compare = (a: number, b: number) => a - b
-      const key = functools.cmp_to_key(compare)
+      const key = functools.cmpToKey(compare)
       const k1 = key(5)
       const k2 = key(3)
       expect(k1.__lt__(k2)).toBe(false)

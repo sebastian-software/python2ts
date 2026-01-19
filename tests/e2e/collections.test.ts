@@ -138,7 +138,7 @@ q = deque([1, 2, 3])
 
     it("should append to left", () => {
       const d = new collections.deque([1, 2])
-      d.appendleft(0)
+      d.appendLeft(0)
       expect(d.toArray()).toEqual([0, 1, 2])
     })
 
@@ -150,7 +150,7 @@ q = deque([1, 2, 3])
 
     it("should pop from left", () => {
       const d = new collections.deque([1, 2, 3])
-      expect(d.popleft()).toBe(1)
+      expect(d.popLeft()).toBe(1)
       expect(d.toArray()).toEqual([2, 3])
     })
 
@@ -180,7 +180,7 @@ q = deque([1, 2, 3])
 
     it("should extend from left", () => {
       const d = new collections.deque([1])
-      d.extendleft([2, 3])
+      d.extendLeft([2, 3])
       expect(d.toArray()).toEqual([3, 2, 1])
     })
 

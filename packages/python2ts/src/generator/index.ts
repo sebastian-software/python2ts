@@ -34,7 +34,7 @@ const prettierOptions: prettier.Options = {
 /** List of functions available in the main pythonlib export (builtins + core) */
 const BUILTINS = new Set([
   // Core operations
-  "floordiv",
+  "floorDiv",
   "pow",
   "mod",
   "sprintf",
@@ -43,7 +43,7 @@ const BUILTINS = new Set([
   "contains",
   "repeatValue",
   "strFormat",
-  "divmod",
+  "divMod",
   // Collection constructors
   "list",
   "dict",

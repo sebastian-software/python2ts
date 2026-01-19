@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest"
 import {
-  floordiv,
+  floorDiv,
   mod,
-  divmod,
+  divMod,
   slice,
   at,
   sprintf,
@@ -46,17 +46,17 @@ import { pow, repeatValue as repeat } from "pythonlib"
 
 describe("Runtime Library", () => {
   describe("Arithmetic Operations", () => {
-    describe("floordiv", () => {
+    describe("floorDiv", () => {
       it("should perform floor division for positive numbers", () => {
-        expect(floordiv(10, 3)).toBe(3)
-        expect(floordiv(9, 3)).toBe(3)
-        expect(floordiv(7, 2)).toBe(3)
+        expect(floorDiv(10, 3)).toBe(3)
+        expect(floorDiv(9, 3)).toBe(3)
+        expect(floorDiv(7, 2)).toBe(3)
       })
 
       it("should perform floor division for negative numbers (Python semantics)", () => {
-        expect(floordiv(-10, 3)).toBe(-4)
-        expect(floordiv(10, -3)).toBe(-4)
-        expect(floordiv(-10, -3)).toBe(3)
+        expect(floorDiv(-10, 3)).toBe(-4)
+        expect(floorDiv(10, -3)).toBe(-4)
+        expect(floorDiv(-10, -3)).toBe(3)
       })
     })
 
@@ -458,13 +458,13 @@ describe("Runtime Library", () => {
 
     describe("startswith() / endswith()", () => {
       it("should check prefix", () => {
-        expect(string.startswith("hello world", "hello")).toBe(true)
-        expect(string.startswith("hello world", "world")).toBe(false)
+        expect(string.startsWith("hello world", "hello")).toBe(true)
+        expect(string.startsWith("hello world", "world")).toBe(false)
       })
 
       it("should check suffix", () => {
-        expect(string.endswith("hello world", "world")).toBe(true)
-        expect(string.endswith("hello world", "hello")).toBe(false)
+        expect(string.endsWith("hello world", "world")).toBe(true)
+        expect(string.endsWith("hello world", "hello")).toBe(false)
       })
     })
 
@@ -557,10 +557,10 @@ describe("Runtime Library", () => {
       })
     })
 
-    describe("divmod()", () => {
+    describe("divMod()", () => {
       it("should return quotient and remainder", () => {
-        expect(divmod(7, 3)).toEqual([2, 1])
-        expect(divmod(-7, 3)).toEqual([-3, 2])
+        expect(divMod(7, 3)).toEqual([2, 1])
+        expect(divMod(-7, 3)).toEqual([-3, 2])
       })
     })
 
@@ -790,9 +790,9 @@ describe("Runtime Library", () => {
 
   describe("String methods", () => {
     it("swapcase should swap character cases", () => {
-      expect(string.swapcase("Hello World")).toBe("hELLO wORLD")
-      expect(string.swapcase("ABC")).toBe("abc")
-      expect(string.swapcase("abc")).toBe("ABC")
+      expect(string.swapCase("Hello World")).toBe("hELLO wORLD")
+      expect(string.swapCase("ABC")).toBe("abc")
+      expect(string.swapCase("abc")).toBe("ABC")
     })
 
     it("strIndex should find substring or throw", () => {
@@ -802,15 +802,15 @@ describe("Runtime Library", () => {
     })
 
     it("strRindex should find last substring or throw", () => {
-      expect(string.rindex("hello", "l")).toBe(3)
-      expect(string.rindex("abcabc", "bc")).toBe(4)
-      expect(() => string.rindex("hello", "xyz")).toThrow()
+      expect(string.rIndex("hello", "l")).toBe(3)
+      expect(string.rIndex("abcabc", "bc")).toBe(4)
+      expect(() => string.rIndex("hello", "xyz")).toThrow()
     })
 
     it("rsplit should split from the right", () => {
-      expect(string.rsplit("a,b,c,d", ",", 2)).toEqual(["a,b", "c", "d"])
-      expect(string.rsplit("a,b,c", ",")).toEqual(["a", "b", "c"])
-      expect(string.rsplit("hello", ",")).toEqual(["hello"])
+      expect(string.rSplit("a,b,c,d", ",", 2)).toEqual(["a,b", "c", "d"])
+      expect(string.rSplit("a,b,c", ",")).toEqual(["a", "b", "c"])
+      expect(string.rSplit("hello", ",")).toEqual(["hello"])
     })
   })
 
@@ -979,23 +979,23 @@ describe("Runtime Library", () => {
   describe("Dict methods", () => {
     it("dictSetdefault should return existing value", () => {
       const obj = { a: 1 }
-      expect(dict.setdefault(obj, "a", 99)).toBe(1)
+      expect(dict.setDefault(obj, "a", 99)).toBe(1)
       expect(obj.a).toBe(1)
     })
 
     it("dictSetdefault should set and return default for missing key", () => {
       const obj: Record<string, number> = { a: 1 }
-      expect(dict.setdefault(obj, "b", 2)).toBe(2)
+      expect(dict.setDefault(obj, "b", 2)).toBe(2)
       expect(obj.b).toBe(2)
     })
 
     it("dictFromkeys should create dict from keys", () => {
-      const result = dict.fromkeys(["a", "b", "c"], 0)
+      const result = dict.fromKeys(["a", "b", "c"], 0)
       expect(result).toEqual({ a: 0, b: 0, c: 0 })
     })
 
     it("dictFromkeys should use undefined as default", () => {
-      const result = dict.fromkeys(["x", "y"])
+      const result = dict.fromKeys(["x", "y"])
       expect(result).toEqual({ x: undefined, y: undefined })
     })
 
@@ -1033,7 +1033,7 @@ describe("Runtime Library", () => {
 
     it("dictPopitem should remove and return last item", () => {
       const obj: Record<string, number> = { a: 1, b: 2 }
-      const [key, value] = dict.popitem(obj)
+      const [key, value] = dict.popItem(obj)
       expect(key).toBe("b")
       expect(value).toBe(2)
       expect(obj).toEqual({ a: 1 })
@@ -1041,7 +1041,7 @@ describe("Runtime Library", () => {
 
     it("dictPopitem should throw for empty dict", () => {
       const obj: Record<string, number> = {}
-      expect(() => dict.popitem(obj)).toThrow("dictionary is empty")
+      expect(() => dict.popItem(obj)).toThrow("dictionary is empty")
     })
 
     it("dictUpdate should update with another dict", () => {
@@ -1108,13 +1108,13 @@ describe("Runtime Library", () => {
     })
 
     it("setIssubset should check if all elements are in other set", () => {
-      expect(set.issubset(new Set([1, 2]), new Set([1, 2, 3]))).toBe(true)
-      expect(set.issubset(new Set([1, 4]), new Set([1, 2, 3]))).toBe(false)
+      expect(set.isSubset(new Set([1, 2]), new Set([1, 2, 3]))).toBe(true)
+      expect(set.isSubset(new Set([1, 4]), new Set([1, 2, 3]))).toBe(false)
     })
 
     it("setIssuperset should check if contains all elements of other set", () => {
-      expect(set.issuperset(new Set([1, 2, 3]), new Set([1, 2]))).toBe(true)
-      expect(set.issuperset(new Set([1, 2]), new Set([1, 2, 3]))).toBe(false)
+      expect(set.isSuperset(new Set([1, 2, 3]), new Set([1, 2]))).toBe(true)
+      expect(set.isSuperset(new Set([1, 2]), new Set([1, 2, 3]))).toBe(false)
     })
 
     it("setAdd should add element to set", () => {
@@ -1203,8 +1203,8 @@ describe("Runtime Library", () => {
     })
 
     it("setIsdisjoint should check if no common elements", () => {
-      expect(set.isdisjoint(new Set([1, 2]), new Set([3, 4]))).toBe(true)
-      expect(set.isdisjoint(new Set([1, 2]), new Set([2, 3]))).toBe(false)
+      expect(set.isDisjoint(new Set([1, 2]), new Set([3, 4]))).toBe(true)
+      expect(set.isDisjoint(new Set([1, 2]), new Set([2, 3]))).toBe(false)
     })
   })
 })

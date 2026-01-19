@@ -149,9 +149,9 @@ export const set = {
   },
 
   /**
-   * Python set.issubset() - test if all elements are in other
+   * Python set.isSubset() - test if all elements are in other
    */
-  issubset<T>(a: Set<T>, b: Set<T>): boolean {
+  isSubset<T>(a: Set<T>, b: Set<T>): boolean {
     for (const item of a) {
       if (!b.has(item)) return false
     }
@@ -159,9 +159,9 @@ export const set = {
   },
 
   /**
-   * Python set.issuperset() - test if all other elements are in this set
+   * Python set.isSuperset() - test if all other elements are in this set
    */
-  issuperset<T>(a: Set<T>, b: Set<T>): boolean {
+  isSuperset<T>(a: Set<T>, b: Set<T>): boolean {
     for (const item of b) {
       if (!a.has(item)) return false
     }
@@ -169,9 +169,9 @@ export const set = {
   },
 
   /**
-   * Python set.isdisjoint() - test if no common elements
+   * Python set.isDisjoint() - test if no common elements
    */
-  isdisjoint<T>(a: Set<T>, b: Set<T>): boolean {
+  isDisjoint<T>(a: Set<T>, b: Set<T>): boolean {
     for (const item of a) {
       if (b.has(item)) return false
     }

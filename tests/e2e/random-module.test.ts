@@ -19,7 +19,7 @@ describe("E2E: random module", () => {
     it("should transform random.randint", () => {
       const result = transpile("x = random.randint(1, 10)")
       expect(result).toContain('from "pythonlib/random"')
-      expect(result).toContain("randint(1, 10)")
+      expect(result).toContain("randInt(1, 10)")
     })
 
     it("should transform random.choice", () => {
@@ -44,9 +44,9 @@ describe("E2E: random module", () => {
       }
     })
 
-    it("random.randint should return value in [a, b]", () => {
+    it("random.randInt should return value in [a, b]", () => {
       for (let i = 0; i < 100; i++) {
-        const val = random.randint(1, 10)
+        const val = random.randInt(1, 10)
         expect(val).toBeGreaterThanOrEqual(1)
         expect(val).toBeLessThanOrEqual(10)
         expect(Number.isInteger(val)).toBe(true)
@@ -104,21 +104,21 @@ describe("E2E: random module", () => {
       expect(arr.sort()).toEqual(original.sort())
     })
 
-    it("random.randrange should return value in range", () => {
+    it("random.randRange should return value in range", () => {
       for (let i = 0; i < 100; i++) {
-        const val = random.randrange(10)
+        const val = random.randRange(10)
         expect(val).toBeGreaterThanOrEqual(0)
         expect(val).toBeLessThan(10)
       }
 
       for (let i = 0; i < 100; i++) {
-        const val = random.randrange(5, 10)
+        const val = random.randRange(5, 10)
         expect(val).toBeGreaterThanOrEqual(5)
         expect(val).toBeLessThan(10)
       }
 
       for (let i = 0; i < 100; i++) {
-        const val = random.randrange(0, 10, 2)
+        const val = random.randRange(0, 10, 2)
         expect(val % 2).toBe(0)
         expect(val).toBeGreaterThanOrEqual(0)
         expect(val).toBeLessThan(10)

@@ -59,21 +59,24 @@ We adopt a **subpath exports architecture** where:
 
 ### Import Categories
 
-| Category         | Import Path             | Examples                                  |
-| ---------------- | ----------------------- | ----------------------------------------- |
-| Builtins         | `pythonlib`             | `len`, `range`, `sorted`, `enumerate`     |
-| Core operations  | `pythonlib`             | `floordiv`, `mod`, `pow`, `slice`         |
-| Collection types | `pythonlib`             | `list`, `dict`, `set`, `tuple`            |
-| itertools        | `pythonlib/itertools`   | `chain`, `combinations`, `permutations`   |
-| functools        | `pythonlib/functools`   | `partial`, `reduce`, `lru_cache`          |
-| collections      | `pythonlib/collections` | `Counter`, `defaultdict`, `deque`         |
-| math             | `pythonlib/math`        | `sqrt`, `floor`, `ceil`, `pi`, `e`        |
-| random           | `pythonlib/random`      | `randint`, `choice`, `shuffle`            |
-| datetime         | `pythonlib/datetime`    | `datetime`, `date`, `time`, `timedelta`   |
-| json             | `pythonlib/json`        | `loads`, `dumps`, `load`, `dump`          |
-| re               | `pythonlib/re`          | `search`, `match`, `findall`, `sub`       |
-| os               | `pythonlib/os`          | `path`, `getcwd`, `sep`                   |
-| string           | `pythonlib/string`      | `Template`, `capwords`, `ascii_lowercase` |
+| Category         | Import Path             | Examples                                 |
+| ---------------- | ----------------------- | ---------------------------------------- |
+| Builtins         | `pythonlib`             | `len`, `range`, `sorted`, `enumerate`    |
+| Core operations  | `pythonlib`             | `floorDiv`, `mod`, `pow`, `slice`        |
+| Collection types | `pythonlib`             | `list`, `dict`, `set`, `tuple`           |
+| itertools        | `pythonlib/itertools`   | `chain`, `combinations`, `zipLongest`    |
+| functools        | `pythonlib/functools`   | `partial`, `reduce`, `lruCache`          |
+| collections      | `pythonlib/collections` | `Counter`, `defaultdict`, `deque`        |
+| math             | `pythonlib/math`        | `sqrt`, `floor`, `ceil`, `pi`, `e`       |
+| random           | `pythonlib/random`      | `randInt`, `choice`, `shuffle`           |
+| datetime         | `pythonlib/datetime`    | `datetime`, `date`, `time`, `timedelta`  |
+| json             | `pythonlib/json`        | `loads`, `dumps`, `load`, `dump`         |
+| re               | `pythonlib/re`          | `search`, `match`, `findAll`, `sub`      |
+| os               | `pythonlib/os`          | `path`, `getCwd`, `sep`                  |
+| string           | `pythonlib/string`      | `Template`, `capWords`, `asciiLowercase` |
+
+> **Note:** All function names use **camelCase** to follow TypeScript conventions. See
+> [ADR-0011](./0011-camelcase-api-convention.md) for the naming rationale.
 
 ### Generator Implementation
 

@@ -85,20 +85,20 @@ describe("E2E: json module", () => {
         expect(result).toContain("  ")
       })
 
-      it("should serialize with sort_keys", () => {
-        const result = json.dumps({ c: 3, a: 1, b: 2 }, { sort_keys: true })
+      it("should serialize with sortKeys", () => {
+        const result = json.dumps({ c: 3, a: 1, b: 2 }, { sortKeys: true })
         const parsed = JSON.parse(result) as Record<string, number>
         expect(Object.keys(parsed)).toEqual(["a", "b", "c"])
       })
 
-      it("should handle ensure_ascii", () => {
-        const result = json.dumps({ name: "日本語" }, { ensure_ascii: true })
+      it("should handle ensureAscii", () => {
+        const result = json.dumps({ name: "日本語" }, { ensureAscii: true })
         expect(result).not.toContain("日")
         expect(result).toContain("\\u")
       })
 
-      it("should not escape non-ASCII when ensure_ascii is false", () => {
-        const result = json.dumps({ name: "日本語" }, { ensure_ascii: false })
+      it("should not escape non-ASCII when ensureAscii is false", () => {
+        const result = json.dumps({ name: "日本語" }, { ensureAscii: false })
         expect(result).toContain("日本語")
       })
 

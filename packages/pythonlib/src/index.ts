@@ -52,16 +52,16 @@ export const datetime = datetimeModule
 export const re = reModule
 export const string = {
   ...stringModule.string,
-  ascii_lowercase: stringModule.ascii_lowercase,
-  ascii_uppercase: stringModule.ascii_uppercase,
-  ascii_letters: stringModule.ascii_letters,
+  asciiLowercase: stringModule.asciiLowercase,
+  asciiUppercase: stringModule.asciiUppercase,
+  asciiLetters: stringModule.asciiLetters,
   digits: stringModule.digits,
-  hexdigits: stringModule.hexdigits,
-  octdigits: stringModule.octdigits,
+  hexDigits: stringModule.hexDigits,
+  octDigits: stringModule.octDigits,
   punctuation: stringModule.punctuation,
   whitespace: stringModule.whitespace,
   printable: stringModule.printable,
-  capwords: stringModule.capwords,
+  capWords: stringModule.capWords,
   Template: stringModule.Template
 }
 
@@ -100,9 +100,9 @@ export const set: SetConstructor = Object.assign(
 // Core operations (Python-specific semantics)
 // =============================================================================
 
-export const floordiv = core.floordiv
+export const floorDiv = core.floorDiv
 export const mod = core.mod
-export const divmod = core.divmod
+export const divMod = core.divMod
 export const sprintf = core.sprintf
 export const strFormat = core.strFormat
 export const slice = core.slice

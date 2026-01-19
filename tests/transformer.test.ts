@@ -77,10 +77,10 @@ describe("Transformer", () => {
       expect(result.code).toBe("(10 / 2);")
     })
 
-    it("should transform floor division to py.floordiv", () => {
+    it("should transform floor division to py.floorDiv", () => {
       const result = transform("10 // 3")
-      expect(result.code).toBe("floordiv(10, 3);")
-      expect(result.usesRuntime.has("floordiv")).toBe(true)
+      expect(result.code).toBe("floorDiv(10, 3);")
+      expect(result.usesRuntime.has("floorDiv")).toBe(true)
     })
 
     it("should transform power to py.pow", () => {
@@ -286,7 +286,7 @@ describe("Transformer", () => {
   describe("Runtime tracking", () => {
     it("should track used runtime functions", () => {
       const result = transform("x = 10 // 3\ny = len([1,2,3])")
-      expect(result.usesRuntime.has("floordiv")).toBe(true)
+      expect(result.usesRuntime.has("floorDiv")).toBe(true)
       expect(result.usesRuntime.has("len")).toBe(true)
     })
   })

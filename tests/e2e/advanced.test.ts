@@ -118,7 +118,7 @@ describe("E2E: Advanced Features", () => {
       expect(ts).toContain("-")
       expect(ts).toContain("*")
       expect(ts).toContain("/")
-      expect(ts).toContain("floordiv")
+      expect(ts).toContain("floorDiv")
       expect(ts).toContain("mod")
       expect(ts).toContain("pow")
     })
@@ -214,10 +214,10 @@ else:
     })
 
     it("startswith/endswith should check prefixes and suffixes", () => {
-      expect(string.startswith("hello world", "hello")).toBe(true)
-      expect(string.startswith("hello world", "world")).toBe(false)
-      expect(string.endswith("hello world", "world")).toBe(true)
-      expect(string.endswith("hello world", "hello")).toBe(false)
+      expect(string.startsWith("hello world", "hello")).toBe(true)
+      expect(string.startsWith("hello world", "world")).toBe(false)
+      expect(string.endsWith("hello world", "world")).toBe(true)
+      expect(string.endsWith("hello world", "hello")).toBe(false)
     })
 
     it("replace should replace substrings", () => {

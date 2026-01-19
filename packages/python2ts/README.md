@@ -96,7 +96,7 @@ function fibonacci(n: number): number[] {
 | `match/case`                 | `switch/case`                         |
 | `async def` / `await`        | `async function` / `await`            |
 | `with open() as f:`          | `using` declaration                   |
-| `//` (floor div)             | `floordiv()` (Python semantics)       |
+| `//` (floor div)             | `floorDiv()` (Python semantics)       |
 | `%` (modulo)                 | `mod()` (Python semantics)            |
 | `**` (power)                 | `pow()`                               |
 | `arr[1:-1]` (slicing)        | `slice()` (full support)              |
@@ -237,9 +237,22 @@ functions. It's automatically included as a dependency.
 ```typescript
 // Generated imports (grouped by module)
 import { range, enumerate, len } from "pythonlib"
-import { chain, combinations } from "pythonlib/itertools"
+import { chain, zipLongest } from "pythonlib/itertools"
 import { Counter } from "pythonlib/collections"
 ```
+
+### TypeScript-Native Naming
+
+Python functions are automatically converted to **camelCase** in the generated TypeScript:
+
+| Python            | TypeScript       |
+| ----------------- | ---------------- |
+| `lru_cache`       | `lruCache`       |
+| `zip_longest`     | `zipLongest`     |
+| `ascii_lowercase` | `asciiLowercase` |
+| `total_seconds`   | `totalSeconds`   |
+
+This gives you Python's powerful APIs with TypeScript's familiar naming conventions.
 
 ## Runtime Support
 

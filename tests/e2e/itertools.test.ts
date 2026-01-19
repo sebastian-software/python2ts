@@ -54,7 +54,7 @@ result = list(product([1, 2], ['a', 'b']))
 
     it("should transform multiple itertools functions", () => {
       const python = `
-from itertools import chain, cycle, repeat, islice, takewhile, dropwhile
+from itertools import chain, cycle, repeat, islice, takeWhile, dropWhile
 `
       const result = transpile(python, { includeRuntime: false })
       expect(result.trim()).toBe("")
@@ -141,14 +141,14 @@ from itertools import chain, cycle, repeat, islice, takewhile, dropwhile
       expect(result).toEqual([1, 2, 3])
     })
 
-    it("takewhile should return array", () => {
-      const result = itertools.takewhile((x) => x < 5, [1, 4, 6, 4, 1])
+    it("takeWhile should return array", () => {
+      const result = itertools.takeWhile((x) => x < 5, [1, 4, 6, 4, 1])
       expect(Array.isArray(result)).toBe(true)
       expect(result).toEqual([1, 4])
     })
 
-    it("dropwhile should return array", () => {
-      const result = itertools.dropwhile((x) => x < 5, [1, 4, 6, 4, 1])
+    it("dropWhile should return array", () => {
+      const result = itertools.dropWhile((x) => x < 5, [1, 4, 6, 4, 1])
       expect(Array.isArray(result)).toBe(true)
       expect(result).toEqual([6, 4, 1])
     })

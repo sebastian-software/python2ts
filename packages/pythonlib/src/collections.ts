@@ -151,7 +151,7 @@ export class deque<T> {
   /**
    * Add element to the left end
    */
-  appendleft(x: T): void {
+  appendLeft(x: T): void {
     this.items.unshift(x)
     if (this.maxlen !== null && this.items.length > this.maxlen) {
       this.items.pop()
@@ -168,7 +168,7 @@ export class deque<T> {
   /**
    * Remove and return element from the left end
    */
-  popleft(): T | undefined {
+  popLeft(): T | undefined {
     return this.items.shift()
   }
 
@@ -184,9 +184,9 @@ export class deque<T> {
   /**
    * Extend the left side with elements from iterable
    */
-  extendleft(iterable: Iterable<T>): void {
+  extendLeft(iterable: Iterable<T>): void {
     for (const x of iterable) {
-      this.appendleft(x)
+      this.appendLeft(x)
     }
   }
 

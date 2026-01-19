@@ -29,10 +29,10 @@ describe("random module", () => {
     })
   })
 
-  describe("randint()", () => {
+  describe("randInt()", () => {
     it("should return integers in the inclusive range", () => {
       for (let i = 0; i < 100; i++) {
-        const r = random.randint(1, 6)
+        const r = random.randInt(1, 6)
         expect(Number.isInteger(r)).toBe(true)
         expect(r).toBeGreaterThanOrEqual(1)
         expect(r).toBeLessThanOrEqual(6)
@@ -40,10 +40,10 @@ describe("random module", () => {
     })
   })
 
-  describe("randrange()", () => {
+  describe("randRange()", () => {
     it("should work with just stop parameter", () => {
       for (let i = 0; i < 100; i++) {
-        const r = random.randrange(10)
+        const r = random.randRange(10)
         expect(Number.isInteger(r)).toBe(true)
         expect(r).toBeGreaterThanOrEqual(0)
         expect(r).toBeLessThan(10)
@@ -52,7 +52,7 @@ describe("random module", () => {
 
     it("should work with start and stop", () => {
       for (let i = 0; i < 100; i++) {
-        const r = random.randrange(5, 10)
+        const r = random.randRange(5, 10)
         expect(r).toBeGreaterThanOrEqual(5)
         expect(r).toBeLessThan(10)
       }
@@ -60,7 +60,7 @@ describe("random module", () => {
 
     it("should work with step", () => {
       for (let i = 0; i < 100; i++) {
-        const r = random.randrange(0, 10, 2)
+        const r = random.randRange(0, 10, 2)
         expect(r % 2).toBe(0)
         expect(r).toBeGreaterThanOrEqual(0)
         expect(r).toBeLessThan(10)
@@ -68,11 +68,11 @@ describe("random module", () => {
     })
 
     it("should throw for zero step", () => {
-      expect(() => random.randrange(0, 10, 0)).toThrow("step cannot be zero")
+      expect(() => random.randRange(0, 10, 0)).toThrow("step cannot be zero")
     })
 
     it("should throw for empty range", () => {
-      expect(() => random.randrange(10, 5)).toThrow("empty range")
+      expect(() => random.randRange(10, 5)).toThrow("empty range")
     })
   })
 
@@ -156,15 +156,15 @@ describe("random module", () => {
     })
   })
 
-  describe("gauss() / normalvariate()", () => {
+  describe("gauss() / normalVariate()", () => {
     it("should return numbers centered around mu", () => {
       const samples = Array.from({ length: 1000 }, () => random.gauss(0, 1))
       const mean = samples.reduce((a, b) => a + b) / samples.length
       expect(Math.abs(mean)).toBeLessThan(0.2) // Should be close to 0
     })
 
-    it("normalvariate should be an alias for gauss", () => {
-      expect(random.normalvariate).toBe(random.gauss)
+    it("normalVariate should be an alias for gauss", () => {
+      expect(random.normalVariate).toBe(random.gauss)
     })
   })
 
@@ -186,59 +186,59 @@ describe("random module", () => {
     })
   })
 
-  describe("expovariate()", () => {
+  describe("expoVariate()", () => {
     it("should return positive numbers", () => {
       for (let i = 0; i < 100; i++) {
-        const r = random.expovariate(1)
+        const r = random.expoVariate(1)
         expect(r).toBeGreaterThan(0)
       }
     })
   })
 
-  describe("gammavariate()", () => {
+  describe("gammaVariate()", () => {
     it("should return positive numbers", () => {
       for (let i = 0; i < 100; i++) {
-        const r = random.gammavariate(2, 1)
+        const r = random.gammaVariate(2, 1)
         expect(r).toBeGreaterThan(0)
       }
     })
 
     it("should work with alpha <= 1", () => {
       for (let i = 0; i < 100; i++) {
-        const r = random.gammavariate(0.5, 1)
+        const r = random.gammaVariate(0.5, 1)
         expect(r).toBeGreaterThan(0)
       }
     })
 
     it("should throw for invalid parameters", () => {
-      expect(() => random.gammavariate(0, 1)).toThrow()
-      expect(() => random.gammavariate(1, 0)).toThrow()
+      expect(() => random.gammaVariate(0, 1)).toThrow()
+      expect(() => random.gammaVariate(1, 0)).toThrow()
     })
   })
 
-  describe("betavariate()", () => {
+  describe("betaVariate()", () => {
     it("should return numbers in [0, 1]", () => {
       for (let i = 0; i < 100; i++) {
-        const r = random.betavariate(2, 5)
+        const r = random.betaVariate(2, 5)
         expect(r).toBeGreaterThanOrEqual(0)
         expect(r).toBeLessThanOrEqual(1)
       }
     })
   })
 
-  describe("lognormvariate()", () => {
+  describe("logNormVariate()", () => {
     it("should return positive numbers", () => {
       for (let i = 0; i < 100; i++) {
-        const r = random.lognormvariate(0, 1)
+        const r = random.logNormVariate(0, 1)
         expect(r).toBeGreaterThan(0)
       }
     })
   })
 
-  describe("vonmisesvariate()", () => {
+  describe("vonMisesVariate()", () => {
     it("should return numbers (circular distribution)", () => {
       for (let i = 0; i < 100; i++) {
-        const r = random.vonmisesvariate(0, 1)
+        const r = random.vonMisesVariate(0, 1)
         expect(typeof r).toBe("number")
         expect(Number.isFinite(r)).toBe(true)
       }
@@ -246,26 +246,26 @@ describe("random module", () => {
 
     it("should handle very small kappa (uniform on circle)", () => {
       for (let i = 0; i < 10; i++) {
-        const r = random.vonmisesvariate(0, 0)
+        const r = random.vonMisesVariate(0, 0)
         expect(r).toBeGreaterThanOrEqual(0)
         expect(r).toBeLessThan(2 * Math.PI)
       }
     })
   })
 
-  describe("paretovariate()", () => {
+  describe("paretoVariate()", () => {
     it("should return numbers >= 1", () => {
       for (let i = 0; i < 100; i++) {
-        const r = random.paretovariate(2)
+        const r = random.paretoVariate(2)
         expect(r).toBeGreaterThanOrEqual(1)
       }
     })
   })
 
-  describe("weibullvariate()", () => {
+  describe("weibullVariate()", () => {
     it("should return positive numbers", () => {
       for (let i = 0; i < 100; i++) {
-        const r = random.weibullvariate(1, 1)
+        const r = random.weibullVariate(1, 1)
         expect(r).toBeGreaterThan(0)
       }
     })
@@ -530,14 +530,14 @@ describe("datetime module", () => {
       expect(d.weekday()).toBe(0)
     })
 
-    it("should get isoweekday", () => {
+    it("should get isoWeekday", () => {
       const d = new datetime.date(2024, 1, 1) // Monday
-      expect(d.isoweekday()).toBe(1)
+      expect(d.isoWeekday()).toBe(1)
     })
 
-    it("should get isoformat", () => {
+    it("should get isoFormat", () => {
       const d = new datetime.date(2024, 1, 15)
-      expect(d.isoformat()).toBe("2024-01-15")
+      expect(d.isoFormat()).toBe("2024-01-15")
     })
 
     it("should replace parts", () => {
@@ -560,9 +560,9 @@ describe("datetime module", () => {
       expect(t.strftime("%H:%M:%S")).toBe("14:30:45")
     })
 
-    it("should get isoformat", () => {
+    it("should get isoFormat", () => {
       const t = new datetime.time(14, 30, 45)
-      expect(t.isoformat()).toBe("14:30:45")
+      expect(t.isoFormat()).toBe("14:30:45")
     })
 
     it("should replace parts", () => {
@@ -589,9 +589,9 @@ describe("datetime module", () => {
       expect(dt.strftime("%Y-%m-%d %H:%M:%S")).toBe("2024-01-15 14:30:45")
     })
 
-    it("should get isoformat", () => {
+    it("should get isoFormat", () => {
       const dt = new datetime.datetime(2024, 1, 15, 14, 30, 45)
-      expect(dt.isoformat()).toContain("2024-01-15")
+      expect(dt.isoFormat()).toContain("2024-01-15")
     })
 
     it("should extract date", () => {
@@ -613,8 +613,8 @@ describe("datetime module", () => {
       expect(ts).toBeGreaterThan(0)
     })
 
-    it("should parse from isoformat", () => {
-      const dt = datetime.datetime.fromisoformat("2024-01-15T14:30:45")
+    it("should parse from isoFormat", () => {
+      const dt = datetime.datetime.fromIsoFormat("2024-01-15T14:30:45")
       expect(dt.year).toBe(2024)
       expect(dt.hour).toBe(14)
     })
@@ -631,26 +631,26 @@ describe("datetime module", () => {
   describe("timedelta class", () => {
     it("should create a timedelta", () => {
       const td = new datetime.timedelta({ days: 1, hours: 2 })
-      expect(td.total_seconds()).toBe(86400 + 7200)
+      expect(td.totalSeconds()).toBe(86400 + 7200)
     })
 
     it("should handle negative values", () => {
       const td = new datetime.timedelta({ days: -1 })
-      expect(td.total_seconds()).toBe(-86400)
+      expect(td.totalSeconds()).toBe(-86400)
     })
 
     it("should add timedeltas", () => {
       const td1 = new datetime.timedelta({ days: 1 })
       const td2 = new datetime.timedelta({ hours: 12 })
       const result = td1.add(td2)
-      expect(result.total_seconds()).toBe(86400 + 43200)
+      expect(result.totalSeconds()).toBe(86400 + 43200)
     })
 
     it("should subtract timedeltas", () => {
       const td1 = new datetime.timedelta({ days: 2 })
       const td2 = new datetime.timedelta({ days: 1 })
       const result = td1.subtract(td2)
-      expect(result.total_seconds()).toBe(86400)
+      expect(result.totalSeconds()).toBe(86400)
     })
   })
 })
@@ -671,8 +671,8 @@ describe("json module", () => {
       expect(result).toContain("  ")
     })
 
-    it("should support sort_keys", () => {
-      const result = json.dumps({ b: 2, a: 1 }, { sort_keys: true })
+    it("should support sortKeys", () => {
+      const result = json.dumps({ b: 2, a: 1 }, { sortKeys: true })
       expect(result.indexOf("a")).toBeLessThan(result.indexOf("b"))
     })
 
@@ -749,33 +749,33 @@ describe("re module", () => {
     })
   })
 
-  describe("fullmatch()", () => {
+  describe("fullMatch()", () => {
     it("should match entire string", () => {
-      const m = re.fullmatch("\\d+", "12345")
+      const m = re.fullMatch("\\d+", "12345")
       expect(m).not.toBeNull()
     })
 
     it("should return null for partial match", () => {
-      const m = re.fullmatch("\\d+", "123abc")
+      const m = re.fullMatch("\\d+", "123abc")
       expect(m).toBeNull()
     })
   })
 
-  describe("findall()", () => {
+  describe("findAll()", () => {
     it("should find all matches", () => {
-      const matches = re.findall("\\d+", "a1b2c3")
+      const matches = re.findAll("\\d+", "a1b2c3")
       expect(matches).toEqual(["1", "2", "3"])
     })
 
     it("should return empty array for no matches", () => {
-      const matches = re.findall("\\d+", "abc")
+      const matches = re.findAll("\\d+", "abc")
       expect(matches).toEqual([])
     })
   })
 
-  describe("finditer()", () => {
+  describe("findIter()", () => {
     it("should iterate over matches", () => {
-      const matches = [...re.finditer("\\d+", "a1b2c3")]
+      const matches = [...re.findIter("\\d+", "a1b2c3")]
       expect(matches).toHaveLength(3)
       expect(matches[0]?.group(0)).toBe("1")
     })
@@ -856,10 +856,10 @@ describe("functools module", () => {
     })
   })
 
-  describe("lru_cache()", () => {
+  describe("lruCache()", () => {
     it("should cache function results", () => {
       let callCount = 0
-      const fn = functools.lru_cache((n: number) => {
+      const fn = functools.lruCache((n: number) => {
         callCount++
         return n * 2
       })
@@ -868,63 +868,63 @@ describe("functools module", () => {
       expect(callCount).toBe(1) // Only called once due to cache
     })
 
-    it("should provide cache_info", () => {
-      const fn = functools.lru_cache((n: number) => n * 2)
+    it("should provide cacheInfo", () => {
+      const fn = functools.lruCache((n: number) => n * 2)
       fn(1)
       fn(1)
       fn(2)
-      const info = fn.cache_info()
+      const info = fn.cacheInfo()
       expect(info.hits).toBe(1)
       expect(info.misses).toBe(2)
     })
 
-    it("should provide cache_clear", () => {
-      const fn = functools.lru_cache((n: number) => n * 2)
+    it("should provide cacheClear", () => {
+      const fn = functools.lruCache((n: number) => n * 2)
       fn(1)
-      fn.cache_clear()
-      const info = fn.cache_info()
+      fn.cacheClear()
+      const info = fn.cacheInfo()
       expect(info.currsize).toBe(0)
     })
   })
 
-  describe("attrgetter()", () => {
+  describe("attrGetter()", () => {
     it("should get attribute from object", () => {
-      const getName = functools.attrgetter("name")
+      const getName = functools.attrGetter("name")
       expect(getName({ name: "John" })).toBe("John")
     })
 
     it("should support nested attributes", () => {
-      const getCity = functools.attrgetter("address.city")
+      const getCity = functools.attrGetter("address.city")
       expect(getCity({ address: { city: "NYC" } })).toBe("NYC")
     })
 
     it("should support multiple attributes", () => {
-      const getNameAge = functools.attrgetter("name", "age")
+      const getNameAge = functools.attrGetter("name", "age")
       expect(getNameAge({ name: "John", age: 30 })).toEqual(["John", 30])
     })
   })
 
-  describe("itemgetter()", () => {
+  describe("itemGetter()", () => {
     it("should get item from array", () => {
-      const getSecond = functools.itemgetter(1)
+      const getSecond = functools.itemGetter(1)
       expect(getSecond([10, 20, 30])).toBe(20)
     })
 
     it("should get item from object", () => {
-      const getA = functools.itemgetter("a")
+      const getA = functools.itemGetter("a")
       expect(getA({ a: 1, b: 2 })).toBe(1)
     })
 
     it("should support multiple items", () => {
-      const getItems = functools.itemgetter(0, 2)
+      const getItems = functools.itemGetter(0, 2)
       expect(getItems([10, 20, 30])).toEqual([10, 30])
     })
   })
 
-  describe("cmp_to_key()", () => {
+  describe("cmpToKey()", () => {
     it("should convert comparison function to key function", () => {
       const cmp = (a: number, b: number) => a - b
-      const key = functools.cmp_to_key(cmp)
+      const key = functools.cmpToKey(cmp)
       const arr = [3, 1, 2]
       arr.sort((a, b) => {
         const ka = key(a)
@@ -960,33 +960,33 @@ describe("os module", () => {
       expect(tail).toBe("file.txt")
     })
 
-    it("splitext should split extension", () => {
-      const [root, ext] = os.path.splitext("/path/to/file.txt")
+    it("splitExt should split extension", () => {
+      const [root, ext] = os.path.splitExt("/path/to/file.txt")
       expect(root).toBe("/path/to/file")
       expect(ext).toBe(".txt")
     })
 
-    it("isabs should check if path is absolute", () => {
-      expect(os.path.isabs("/absolute/path")).toBe(true)
-      expect(os.path.isabs("relative/path")).toBe(false)
+    it("isAbs should check if path is absolute", () => {
+      expect(os.path.isAbs("/absolute/path")).toBe(true)
+      expect(os.path.isAbs("relative/path")).toBe(false)
     })
 
-    it("normpath should normalize path", () => {
-      expect(os.path.normpath("a/b/../c")).toBe("a/c")
-      expect(os.path.normpath("a//b")).toBe("a/b")
+    it("normPath should normalize path", () => {
+      expect(os.path.normPath("a/b/../c")).toBe("a/c")
+      expect(os.path.normPath("a//b")).toBe("a/b")
     })
 
-    it("abspath should normalize path", () => {
-      const result = os.path.abspath("a/../b")
+    it("absPath should normalize path", () => {
+      const result = os.path.absPath("a/../b")
       expect(result).toBe("b")
     })
 
-    it("relpath should return relative path", () => {
-      expect(os.path.relpath("/a/b/c", "/a")).toBe("b/c")
+    it("relPath should return relative path", () => {
+      expect(os.path.relPath("/a/b/c", "/a")).toBe("b/c")
     })
 
-    it("commonpath should return common path prefix", () => {
-      expect(os.path.commonpath(["/a/b/c", "/a/b/d"])).toBe("/a/b")
+    it("commonPath should return common path prefix", () => {
+      expect(os.path.commonPath(["/a/b/c", "/a/b/d"])).toBe("/a/b")
     })
   })
 
@@ -1007,8 +1007,8 @@ describe("os module", () => {
       expect(os.getenv("NONEXISTENT_VAR_12345", "default")).toBe("default")
     })
 
-    it("getcwd should return current directory", () => {
-      const cwd = os.getcwd()
+    it("getCwd should return current directory", () => {
+      const cwd = os.getCwd()
       expect(typeof cwd).toBe("string")
       expect(cwd.length).toBeGreaterThan(0)
     })
@@ -1019,8 +1019,8 @@ describe("os module", () => {
       expect(os.sep).toBe("/")
     })
 
-    it("should export linesep", () => {
-      expect(os.linesep).toBe("\n")
+    it("should export lineSep", () => {
+      expect(os.lineSep).toBe("\n")
     })
 
     it("should export name", () => {

@@ -8,7 +8,7 @@ import {
   getNodeText,
   getChildren
 } from "python2ts"
-import { floordiv, mod, slice, range, len, int, float, str, bool } from "pythonlib"
+import { floorDiv, mod, slice, range, len, int, float, str, bool } from "pythonlib"
 import { pow } from "pythonlib"
 
 describe("Integration Tests", () => {
@@ -96,7 +96,7 @@ for i in range(10):
 
       const result = generate(python)
 
-      expect(result.usedRuntimeFunctions).toContain("floordiv")
+      expect(result.usedRuntimeFunctions).toContain("floorDiv")
       expect(result.usedRuntimeFunctions).toContain("pow")
       expect(result.usedRuntimeFunctions).toContain("len")
       expect(result.usedRuntimeFunctions).toContain("range")
@@ -122,8 +122,8 @@ for i in range(10):
   describe("Runtime verification", () => {
     it("should execute Python semantics correctly", () => {
       // Test floor division
-      expect(floordiv(7, 2)).toBe(3)
-      expect(floordiv(-7, 2)).toBe(-4) // Python rounds towards -infinity
+      expect(floorDiv(7, 2)).toBe(3)
+      expect(floorDiv(-7, 2)).toBe(-4) // Python rounds towards -infinity
 
       // Test modulo
       expect(mod(-7, 3)).toBe(2) // Python semantics

@@ -16,9 +16,9 @@ export const dict = {
   },
 
   /**
-   * Python dict.setdefault() - get value or set default
+   * Python dict.setDefault() - get value or set default
    */
-  setdefault<K extends string | number | symbol, V>(obj: Record<K, V>, key: K, defaultValue: V): V {
+  setDefault<K extends string | number | symbol, V>(obj: Record<K, V>, key: K, defaultValue: V): V {
     if (!(key in obj)) {
       obj[key] = defaultValue
     }
@@ -46,9 +46,9 @@ export const dict = {
   },
 
   /**
-   * Python dict.popitem() - remove and return last item
+   * Python dict.popItem() - remove and return last item
    */
-  popitem<K extends string | number | symbol, V>(obj: Record<K, V>): [K, V] {
+  popItem<K extends string | number | symbol, V>(obj: Record<K, V>): [K, V] {
     const keys = Object.keys(obj) as K[]
     if (keys.length === 0) {
       throw new Error("dictionary is empty")
@@ -115,9 +115,9 @@ export const dict = {
   },
 
   /**
-   * Python dict.fromkeys() - create dict from keys
+   * Python dict.fromKeys() - create dict from keys
    */
-  fromkeys<K extends string | number | symbol, V>(keys: K[], value?: V): Record<K, V | undefined> {
+  fromKeys<K extends string | number | symbol, V>(keys: K[], value?: V): Record<K, V | undefined> {
     const result = {} as Record<K, V | undefined>
     for (const key of keys) {
       result[key] = value

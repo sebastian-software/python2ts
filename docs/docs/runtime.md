@@ -6,6 +6,11 @@ sidebar_position: 4
 
 The runtime library provides Python-compatible implementations of standard library modules.
 
+**Naming Convention:** All function names use **camelCase** to feel native in TypeScript. For
+example, Python's `zip_longest` becomes `zipLongest`, and `lru_cache` becomes `lruCache`. See
+[ADR-0011](https://github.com/sebastian-software/python2ts/blob/main/docs/adr/0011-camelcase-api-convention.md)
+for the complete naming rationale.
+
 ## Installation
 
 ```bash
@@ -65,7 +70,7 @@ import {
   product,
   chain,
   groupby,
-  zip_longest,
+  zipLongest,
   accumulate
 } from "pythonlib/itertools"
 
@@ -89,7 +94,7 @@ groupby([1, 1, 2, 2, 3])
 // → [[1, [1,1]], [2, [2,2]], [3, [3]]]
 
 // Zip with fill
-zip_longest([1, 2, 3], ["a", "b"], { fillvalue: "-" })
+zipLongest([1, 2, 3], ["a", "b"], { fillvalue: "-" })
 // → [[1,"a"], [2,"b"], [3,"-"]]
 
 // Accumulate
@@ -102,7 +107,7 @@ accumulate([1, 2, 3, 4, 5])
 Higher-order functions:
 
 ```typescript
-import { partial, reduce, lru_cache, attrgetter, itemgetter } from "pythonlib/functools"
+import { partial, reduce, lruCache, attrGetter, itemGetter } from "pythonlib/functools"
 
 // Partial application
 const add = (a: number, b: number) => a + b
@@ -114,7 +119,7 @@ reduce((a, b) => a + b, [1, 2, 3, 4, 5])
 // → 15
 
 // LRU Cache
-const expensive = lru_cache((n: number) => {
+const expensive = lruCache((n: number) => {
   console.log(`Computing ${n}`)
   return n * 2
 })
@@ -122,14 +127,14 @@ expensive(5) // logs "Computing 5", returns 10
 expensive(5) // returns 10 (cached, no log)
 
 // Cache info
-expensive.cache_info()
+expensive.cacheInfo()
 // → { hits: 1, misses: 1, maxsize: 128, currsize: 1 }
 
 // Attribute/Item getters
-const getName = attrgetter("name")
+const getName = attrGetter("name")
 getName({ name: "John" }) // → "John"
 
-const getSecond = itemgetter(1)
+const getSecond = itemGetter(1)
 getSecond([10, 20, 30]) // → 20
 ```
 
@@ -154,9 +159,9 @@ dd.get("key") // → [1, 2]
 
 // deque (double-ended queue)
 const d = new deque([1, 2, 3])
-d.appendleft(0) // [0, 1, 2, 3]
+d.appendLeft(0) // [0, 1, 2, 3]
 d.append(4) // [0, 1, 2, 3, 4]
-d.popleft() // → 0
+d.popLeft() // → 0
 d.pop() // → 4
 ```
 
@@ -183,7 +188,7 @@ delta.totalSeconds() // → 615600
 Python-style regex with named groups:
 
 ```typescript
-import { search, findall, split, sub } from "pythonlib/re"
+import { search, findAll, split, sub } from "pythonlib/re"
 
 // Search
 const m = search("(?P<name>\\w+)@(?P<domain>\\w+)", "user@example")
@@ -191,7 +196,7 @@ m?.group("name") // → "user"
 m?.group("domain") // → "example"
 
 // Find all
-findall("\\d+", "a1b2c3") // → ["1", "2", "3"]
+findAll("\\d+", "a1b2c3") // → ["1", "2", "3"]
 
 // Split
 split("[,;]", "a,b;c") // → ["a", "b", "c"]
@@ -220,9 +225,9 @@ log(e) // → 1
 Random number generation:
 
 ```typescript
-import { randint, choice, shuffle, sample, uniform } from "pythonlib/random"
+import { randInt, choice, shuffle, sample, uniform } from "pythonlib/random"
 
-randint(1, 10) // Random integer 1-10
+randInt(1, 10) // Random integer 1-10
 choice(["a", "b"]) // Random element
 shuffle([1, 2, 3]) // Shuffle in place
 sample([1, 2, 3], 2) // Random sample
@@ -246,20 +251,20 @@ String constants and utilities:
 
 ```typescript
 import {
-  ascii_lowercase,
-  ascii_uppercase,
+  asciiLowercase,
+  asciiUppercase,
   digits,
   punctuation,
-  capwords,
+  capWords,
   Template
 } from "pythonlib/string"
 
-ascii_lowercase // "abcdefghijklmnopqrstuvwxyz"
-ascii_uppercase // "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+asciiLowercase // "abcdefghijklmnopqrstuvwxyz"
+asciiUppercase // "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 digits // "0123456789"
 punctuation // "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 
-capwords("hello world") // "Hello World"
+capWords("hello world") // "Hello World"
 
 // Template strings
 const t = new Template("Hello, $name!")

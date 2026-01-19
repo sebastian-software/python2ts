@@ -1,5 +1,6 @@
 import type { SyntaxNode } from "@lezer/common"
 import { getNodeText, getChildren, parse, type ParseResult } from "../parser/index.js"
+import { toJsName } from "./name-mappings.js"
 
 export interface TransformContext {
   source: string
@@ -1011,8 +1012,8 @@ function transformBinaryExpression(node: SyntaxNode, ctx: TransformContext): str
 
   switch (opText) {
     case "//":
-      ctx.usesRuntime.add("floordiv")
-      return `floordiv(${leftCode}, ${rightCode})`
+      ctx.usesRuntime.add("floorDiv")
+      return `floorDiv(${leftCode}, ${rightCode})`
     case "**":
       ctx.usesRuntime.add("pow")
       return `pow(${leftCode}, ${rightCode})`
@@ -1437,20 +1438,20 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
       ctx.usesRuntime.add("itertools/islice")
       return `islice(${args})`
     case "takewhile":
-      ctx.usesRuntime.add("itertools/takewhile")
-      return `takewhile(${args})`
+      ctx.usesRuntime.add("itertools/takeWhile")
+      return `takeWhile(${args})`
     case "dropwhile":
-      ctx.usesRuntime.add("itertools/dropwhile")
-      return `dropwhile(${args})`
+      ctx.usesRuntime.add("itertools/dropWhile")
+      return `dropWhile(${args})`
     case "zip_longest":
-      ctx.usesRuntime.add("itertools/zip_longest")
-      return `zip_longest(${args})`
+      ctx.usesRuntime.add("itertools/zipLongest")
+      return `zipLongest(${args})`
     case "compress":
       ctx.usesRuntime.add("itertools/compress")
       return `compress(${args})`
     case "filterfalse":
-      ctx.usesRuntime.add("itertools/filterfalse")
-      return `filterfalse(${args})`
+      ctx.usesRuntime.add("itertools/filterFalse")
+      return `filterFalse(${args})`
     case "accumulate":
       ctx.usesRuntime.add("itertools/accumulate")
       return `accumulate(${args})`
@@ -1467,8 +1468,8 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
       ctx.usesRuntime.add("itertools/pairwise")
       return `pairwise(${args})`
     case "combinations_with_replacement":
-      ctx.usesRuntime.add("itertools/combinations_with_replacement")
-      return `combinations_with_replacement(${args})`
+      ctx.usesRuntime.add("itertools/combinationsWithReplacement")
+      return `combinationsWithReplacement(${args})`
 
     // collections classes/functions
     case "Counter":
@@ -1489,8 +1490,8 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
       ctx.usesRuntime.add("functools/reduce")
       return `reduce(${args})`
     case "lru_cache":
-      ctx.usesRuntime.add("functools/lru_cache")
-      return `lru_cache(${args})`
+      ctx.usesRuntime.add("functools/lruCache")
+      return `lruCache(${args})`
     case "cache":
       ctx.usesRuntime.add("functools/cache")
       return `cache(${args})`
@@ -1498,11 +1499,11 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
       ctx.usesRuntime.add("functools/wraps")
       return `wraps(${args})`
     case "cmp_to_key":
-      ctx.usesRuntime.add("functools/cmp_to_key")
-      return `cmp_to_key(${args})`
+      ctx.usesRuntime.add("functools/cmpToKey")
+      return `cmpToKey(${args})`
     case "total_ordering":
-      ctx.usesRuntime.add("functools/total_ordering")
-      return `total_ordering(${args})`
+      ctx.usesRuntime.add("functools/totalOrdering")
+      return `totalOrdering(${args})`
 
     // json functions
     case "dumps":
@@ -1537,8 +1538,8 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
       ctx.usesRuntime.add("string/Template")
       return `new Template(${args})`
     case "capwords":
-      ctx.usesRuntime.add("string/capwords")
-      return `capwords(${args})`
+      ctx.usesRuntime.add("string/capWords")
+      return `capWords(${args})`
 
     default:
       // Regular function call
@@ -1584,8 +1585,9 @@ function transformModuleCall(
 
   // random module
   if (moduleName === "random") {
-    ctx.usesRuntime.add(`random/${funcName}`)
-    return `${funcName}(${args})`
+    const jsName = toJsName(funcName)
+    ctx.usesRuntime.add(`random/${jsName}`)
+    return `${jsName}(${args})`
   }
 
   // json module
@@ -1598,50 +1600,58 @@ function transformModuleCall(
   if (moduleName === "os") {
     // os.path.* functions - keep as namespace since path is a nested module
     if (funcName.startsWith("path.")) {
+      const pathFuncName = funcName.slice(5)
+      const jsPathFunc = toJsName(pathFuncName)
       ctx.usesRuntime.add("os/path")
-      return `path.${funcName.slice(5)}(${args})`
+      return `path.${jsPathFunc}(${args})`
     }
     // os.* functions
-    ctx.usesRuntime.add(`os/${funcName}`)
-    return `${funcName}(${args})`
+    const jsName = toJsName(funcName)
+    ctx.usesRuntime.add(`os/${jsName}`)
+    return `${jsName}(${args})`
   }
 
   // datetime module
   if (moduleName === "datetime") {
-    ctx.usesRuntime.add(`datetime/${funcName}`)
+    const jsName = toJsName(funcName)
+    ctx.usesRuntime.add(`datetime/${jsName}`)
     // Classes need 'new'
     if (["datetime", "date", "time", "timedelta"].includes(funcName)) {
-      return `new ${funcName}(${args})`
+      return `new ${jsName}(${args})`
     }
-    return `${funcName}(${args})`
+    return `${jsName}(${args})`
   }
 
   // re module
   if (moduleName === "re") {
-    ctx.usesRuntime.add(`re/${funcName}`)
-    return `${funcName}(${args})`
+    const jsName = toJsName(funcName)
+    ctx.usesRuntime.add(`re/${jsName}`)
+    return `${jsName}(${args})`
   }
 
   // string module - constants and functions
   if (moduleName === "string") {
-    ctx.usesRuntime.add(`string/${funcName}`)
+    const jsName = toJsName(funcName)
+    ctx.usesRuntime.add(`string/${jsName}`)
     // Template is a class
     if (funcName === "Template") {
       return `new Template(${args})`
     }
-    return funcName.includes("(") ? `${funcName}(${args})` : funcName
+    return funcName.includes("(") ? `${jsName}(${args})` : jsName
   }
 
   // functools module
   if (moduleName === "functools") {
-    ctx.usesRuntime.add(`functools/${funcName}`)
-    return `${funcName}(${args})`
+    const jsName = toJsName(funcName)
+    ctx.usesRuntime.add(`functools/${jsName}`)
+    return `${jsName}(${args})`
   }
 
   // itertools module (for itertools.chain() style calls)
   if (moduleName === "itertools") {
-    ctx.usesRuntime.add(`itertools/${funcName}`)
-    return `${funcName}(${args})`
+    const jsName = toJsName(funcName)
+    ctx.usesRuntime.add(`itertools/${jsName}`)
+    return `${jsName}(${args})`
   }
 
   // collections module
@@ -1698,7 +1708,7 @@ function transformMethodCall(
       return `string.title(${objCode})`
     case "swapcase":
       ctx.usesRuntime.add("string")
-      return `string.swapcase(${objCode})`
+      return `string.swapCase(${objCode})`
     case "casefold":
       return `${objCode}.toLowerCase()`
 
@@ -1728,7 +1738,7 @@ function transformMethodCall(
       return `string.index(${objCode}, ${args})`
     case "rindex":
       ctx.usesRuntime.add("string")
-      return `string.rindex(${objCode}, ${args})`
+      return `string.rIndex(${objCode}, ${args})`
     case "count":
       ctx.usesRuntime.add("string")
       return `string.count(${objCode}, ${args})`
@@ -1753,7 +1763,7 @@ function transformMethodCall(
       return `string.replace(${objCode}, ${args})`
     case "zfill":
       ctx.usesRuntime.add("string")
-      return `string.zfill(${objCode}, ${args})`
+      return `string.zFill(${objCode}, ${args})`
     case "center":
       ctx.usesRuntime.add("string")
       return `string.center(${objCode}, ${args})`
@@ -1769,7 +1779,7 @@ function transformMethodCall(
       return args ? `${objCode}.split(${args})` : `${objCode}.split(/\\s+/)`
     case "rsplit":
       ctx.usesRuntime.add("string")
-      return `string.rsplit(${objCode}, ${args})`
+      return `string.rSplit(${objCode}, ${args})`
     case "splitlines":
       return `${objCode}.split(/\\r?\\n/)`
     case "partition":
@@ -1777,7 +1787,7 @@ function transformMethodCall(
       return `string.partition(${objCode}, ${args})`
     case "rpartition":
       ctx.usesRuntime.add("string")
-      return `string.rpartition(${objCode}, ${args})`
+      return `string.rPartition(${objCode}, ${args})`
 
     // String format method
     case "format":

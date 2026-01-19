@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { transpile } from "python2ts"
-import { floordiv, mod, pow } from "pythonlib"
+import { floorDiv, mod, pow } from "pythonlib"
 
 describe("E2E: Literals", () => {
   describe("Numbers", () => {
@@ -126,8 +126,8 @@ describe("E2E: Literals", () => {
     })
 
     it("should produce executable TypeScript for floor division", () => {
-      expect(floordiv(10, 3)).toBe(3)
-      expect(floordiv(-10, 3)).toBe(-4) // Python semantics
+      expect(floorDiv(10, 3)).toBe(3)
+      expect(floorDiv(-10, 3)).toBe(-4) // Python semantics
     })
 
     it("should produce executable TypeScript for modulo", () => {
