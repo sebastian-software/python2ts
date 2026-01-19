@@ -112,7 +112,7 @@ jobs:
         run: pnpm build
 
       - name: Run tests with Deno
-        run: deno run -A npm:vitest --run tests/runtime-modules.test.ts tests/runtime.test.ts
+        run: deno run -A npm:vitest --run
 
   test-browser:
     name: Test (Browser)
