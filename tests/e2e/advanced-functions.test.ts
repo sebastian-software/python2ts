@@ -197,6 +197,58 @@ describe("E2E: Advanced Functions", () => {
     })
   })
 
+  describe("Keyword-only Parameters (*)", () => {
+    it("should convert bare * to options object", () => {
+      const python = `def func(a, *, b, c=10):
+    pass`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function func(a, { b, c = 10 }: { b?: unknown; c?: unknown } = {}) {
+
+        }"
+      `)
+    })
+
+    it("should convert keyword-only with types", () => {
+      const python = `def fetch(url: str, *, timeout: int = 30, retries: int = 3):
+    pass`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function fetch(url: string, { timeout = 30, retries = 3 }: { timeout?: number; retries?: number } = {}) {
+
+        }"
+      `)
+    })
+
+    it("should handle positional-only (/) and keyword-only (*) together", () => {
+      const python = `def func(a, /, b, *, c, d=1):
+    pass`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function func(a, b, { c, d = 1 }: { c?: unknown; d?: unknown } = {}) {
+
+        }"
+      `)
+    })
+
+    it("should convert keyword-only after *args", () => {
+      const python = `def func(*args, keyword_only=True):
+    pass`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function func({ keyword_only = true }: { keyword_only?: unknown } = {}, ...args) {
+
+        }"
+      `)
+    })
+
+    it("should handle keyword-only with **kwargs", () => {
+      const python = `def func(*, option=True, **kwargs):
+    pass`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function func({ option = true }: { option?: unknown } = {}, kwargs: Record<string, unknown> = {}) {
+
+        }"
+      `)
+    })
+  })
+
   describe("Combined Advanced Features", () => {
     it("should handle function with all parameter types", () => {
       const python = `def complex_func(a, b=1, *args, **kwargs):

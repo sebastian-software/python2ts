@@ -5319,12 +5319,62 @@ function transformGenericClass(
   return jsdoc ? `${jsdoc}\n${classDecl}` : classDecl
 }
 
+interface ParsedParam {
+  name: string
+  type: string | null
+  defaultValue: string | null
+}
+
 function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
   const params: string[] = []
+  const kwOnlyParams: ParsedParam[] = []
   let restParam: string | null = null
   let kwargsParam: string | null = null
+  let inKeywordOnly = false
   let i = 0
+
+  // Helper to parse a single parameter
+  const parseParam = (startIndex: number): { param: ParsedParam; consumed: number } | null => {
+    const child = children[startIndex]
+    if (!child || child.name !== "VariableName") return null
+
+    const nameCode = getNodeText(child, ctx.source)
+    let tsType: string | null = null
+    let defaultValue: string | null = null
+    let offset = 1
+
+    // Check for type annotation
+    const nextChild = children[startIndex + 1]
+    if (nextChild && nextChild.name === "TypeDef") {
+      tsType = extractTypeAnnotation(nextChild, ctx)
+      offset = 2
+    }
+
+    // Check for default value
+    const afterType = children[startIndex + offset]
+    if (afterType && afterType.name === "AssignOp") {
+      const defaultValChild = children[startIndex + offset + 1]
+      if (defaultValChild) {
+        defaultValue = transformNode(defaultValChild, ctx)
+        offset += 2
+      }
+    }
+
+    return {
+      param: { name: nameCode, type: tsType, defaultValue },
+      consumed: offset
+    }
+  }
+
+  // Helper to format a regular parameter
+  const formatParam = (p: ParsedParam): string => {
+    const typeAnnotation = p.type ? `: ${p.type}` : ""
+    if (p.defaultValue !== null) {
+      return `${p.name}${typeAnnotation} = ${p.defaultValue}`
+    }
+    return `${p.name}${typeAnnotation}`
+  }
 
   while (i < children.length) {
     const child = children[i]
@@ -5333,18 +5383,18 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
       continue
     }
 
-    // Skip parentheses and commas
-    if (child.name === "(" || child.name === ")" || child.name === ",") {
+    // Skip parentheses, commas, and positional-only marker (/)
+    if (child.name === "(" || child.name === ")" || child.name === "," || child.name === "/") {
       i++
       continue
     }
 
-    // Check for *args (rest parameter)
+    // Check for * (either *args or keyword-only marker)
     if (child.name === "*" || getNodeText(child, ctx.source) === "*") {
       const nextChild = children[i + 1]
       if (nextChild && nextChild.name === "VariableName") {
+        // This is *args (rest parameter)
         const name = getNodeText(nextChild, ctx.source)
-        // Check for type annotation after *args
         const typeChild = children[i + 2]
         if (typeChild && typeChild.name === "TypeDef") {
           const tsType = extractTypeAnnotation(typeChild, ctx)
@@ -5354,19 +5404,21 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
           restParam = `...${name}`
           i += 2
         }
+        // After *args, remaining params are keyword-only
+        inKeywordOnly = true
         continue
       }
+      // Bare * - keyword-only marker
+      inKeywordOnly = true
       i++
       continue
     }
 
-    // Check for **kwargs - store separately to add at the end
+    // Check for **kwargs
     if (child.name === "**" || getNodeText(child, ctx.source) === "**") {
       const nextChild = children[i + 1]
       if (nextChild && nextChild.name === "VariableName") {
-        const name = getNodeText(nextChild, ctx.source)
-        // Store kwargs separately - it will be handled after rest param
-        kwargsParam = name
+        kwargsParam = getNodeText(nextChild, ctx.source)
         i += 2
         continue
       }
@@ -5374,38 +5426,18 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
       continue
     }
 
-    // Check for parameter: VariableName [TypeDef] [AssignOp Value]
+    // Handle regular parameter
     if (child.name === "VariableName") {
-      const nameCode = getNodeText(child, ctx.source)
-      let typeAnnotation = ""
-      let offset = 1
-
-      // Check for type annotation
-      const nextChild = children[i + 1]
-      if (nextChild && nextChild.name === "TypeDef") {
-        const tsType = extractTypeAnnotation(nextChild, ctx)
-        if (tsType) {
-          typeAnnotation = `: ${tsType}`
+      const result = parseParam(i)
+      if (result) {
+        if (inKeywordOnly) {
+          kwOnlyParams.push(result.param)
+        } else {
+          params.push(formatParam(result.param))
         }
-        offset = 2
+        i += result.consumed
+        continue
       }
-
-      // Check for default value
-      const afterType = children[i + offset]
-      if (afterType && afterType.name === "AssignOp") {
-        const defaultValChild = children[i + offset + 1]
-        if (defaultValChild) {
-          const defaultCode = transformNode(defaultValChild, ctx)
-          params.push(`${nameCode}${typeAnnotation} = ${defaultCode}`)
-          i += offset + 2
-          continue
-        }
-      }
-
-      // Parameter without default
-      params.push(`${nameCode}${typeAnnotation}`)
-      i += offset
-      continue
     }
 
     // Parameter with default value wrapped in a node (legacy handling)
@@ -5418,13 +5450,17 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
       if (name) {
         const nameCode = getNodeText(name, ctx.source)
         const tsType = extractTypeAnnotation(typeDef, ctx)
-        const typeAnnotation = tsType ? `: ${tsType}` : ""
+        let defaultValue: string | null = null
 
         if (defaultVal && name !== defaultVal && defaultVal.name !== "TypeDef") {
-          const defaultCode = transformNode(defaultVal, ctx)
-          params.push(`${nameCode}${typeAnnotation} = ${defaultCode}`)
+          defaultValue = transformNode(defaultVal, ctx)
+        }
+
+        const param: ParsedParam = { name: nameCode, type: tsType, defaultValue }
+        if (inKeywordOnly) {
+          kwOnlyParams.push(param)
         } else {
-          params.push(`${nameCode}${typeAnnotation}`)
+          params.push(formatParam(param))
         }
       }
       i++
@@ -5434,9 +5470,30 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
     i++
   }
 
-  // Add kwargs parameter
-  // If rest param exists, kwargs must come before it with a default value
-  // Note: This changes the calling convention - caller must pass kwargs object explicitly
+  // Build keyword-only params as destructured options object
+  if (kwOnlyParams.length > 0) {
+    const destructuredNames: string[] = []
+    const typeProps: string[] = []
+    const defaults: string[] = []
+
+    for (const p of kwOnlyParams) {
+      destructuredNames.push(p.name)
+      // All keyword-only params are optional in the type (they have defaults or caller must provide)
+      const propType = p.type ?? "unknown"
+      typeProps.push(`${p.name}?: ${propType}`)
+      if (p.defaultValue !== null) {
+        defaults.push(`${p.name} = ${p.defaultValue}`)
+      } else {
+        defaults.push(p.name)
+      }
+    }
+
+    const destructure = `{ ${defaults.join(", ")} }`
+    const typeAnnotation = `{ ${typeProps.join("; ")} }`
+    params.push(`${destructure}: ${typeAnnotation} = {}`)
+  }
+
+  // Add kwargs parameter if present
   if (kwargsParam) {
     const kwargsType = ": Record<string, unknown>"
     params.push(`${kwargsParam}${kwargsType} = {}`)
