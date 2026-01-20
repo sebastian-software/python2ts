@@ -389,4 +389,48 @@ describe("E2E: Functions", () => {
       expect(result).toContain("function*")
     })
   })
+
+  describe("Parameter Reassignment", () => {
+    it("should not create new variable when reassigning parameter", () => {
+      const python = `def func(dtype):
+    if dtype is None:
+        dtype = bool
+    return dtype`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function func(dtype) {
+          if ((dtype === null)) {
+            dtype = bool;
+        }
+          return dtype;
+        }"
+      `)
+    })
+
+    it("should not create new variable when reassigning parameter with default", () => {
+      const python = `def _any(a, axis=None, dtype=None, out=None):
+    if dtype is None:
+        dtype = bool_dt
+    return umr_any(a, axis, dtype, out)`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function _any(a, axis = null, dtype = null, out = null) {
+          if ((dtype === null)) {
+            dtype = bool_dt;
+        }
+          return umr_any(a, axis, dtype, out);
+        }"
+      `)
+    })
+
+    it("should still create new variable for new local variables", () => {
+      const python = `def func(a):
+    b = 10
+    return a + b`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function func(a) {
+          let b = 10;
+          return (a + b);
+        }"
+      `)
+    })
+  })
 })

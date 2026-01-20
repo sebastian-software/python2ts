@@ -111,6 +111,12 @@ export function generate(
 
   let code = result.code
 
+  // Add hoisted imports (imports that were inside function bodies) at the top
+  if (result.hoistedImports.length > 0) {
+    const hoistedCode = result.hoistedImports.join("\n")
+    code = hoistedCode + "\n\n" + code
+  }
+
   // Add runtime import at the top if needed
   if (runtimeImport) {
     code = runtimeImport + "\n\n" + code

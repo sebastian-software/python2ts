@@ -159,3 +159,8 @@ export const isinstance = builtins.isinstance
 export const type = builtins.type
 export const input = builtins.input
 export const format = builtins.format
+
+// Attribute access
+export const getattr = builtins.getattr
+export const hasattr = builtins.hasattr
+export const setattr = builtins.setattr

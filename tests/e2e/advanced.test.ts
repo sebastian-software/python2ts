@@ -296,4 +296,20 @@ else:
       expect(slice("hello", undefined, undefined, -1)).toBe("olleh")
     })
   })
+
+  describe("Tuple Unpacking with Trailing Comma", () => {
+    it("should handle single-element tuple unpacking", () => {
+      const python = `arr, = values`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
+        `"let [arr] = values;"`
+      )
+    })
+
+    it("should handle single-element tuple unpacking from function call", () => {
+      const python = `result, = get_results()`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
+        `"let [result] = get_results();"`
+      )
+    })
+  })
 })

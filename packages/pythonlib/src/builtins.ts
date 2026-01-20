@@ -734,3 +734,67 @@ export function format(value: unknown, spec: string): string {
 
   return result
 }
+
+// ============================================================
+// Attribute Access
+// ============================================================
+
+/**
+ * Python getattr() function - get an attribute from an object
+ *
+ * @param obj - The object to get the attribute from
+ * @param name - The name of the attribute
+ * @param defaultValue - Optional default value if attribute doesn't exist
+ * @returns The attribute value or default value
+ */
+export function getattr<T>(obj: unknown, name: string, defaultValue?: T): T | undefined {
+  if (obj === null || obj === undefined) {
+    if (arguments.length >= 3) {
+      return defaultValue
+    }
+    throw new TypeError(
+      `'${obj === null ? "NoneType" : "undefined"}' object has no attribute '${name}'`
+    )
+  }
+
+  const target = obj as Record<string, unknown>
+  if (name in target) {
+    return target[name] as T
+  }
+
+  if (arguments.length >= 3) {
+    return defaultValue
+  }
+
+  throw new TypeError(`'${typeof obj}' object has no attribute '${name}'`)
+}
+
+/**
+ * Python hasattr() function - check if an object has an attribute
+ *
+ * @param obj - The object to check
+ * @param name - The name of the attribute
+ * @returns True if the attribute exists, false otherwise
+ */
+export function hasattr(obj: unknown, name: string): boolean {
+  if (obj === null || obj === undefined) {
+    return false
+  }
+  return name in (obj as Record<string, unknown>)
+}
+
+/**
+ * Python setattr() function - set an attribute on an object
+ *
+ * @param obj - The object to set the attribute on
+ * @param name - The name of the attribute
+ * @param value - The value to set
+ */
+export function setattr(obj: unknown, name: string, value: unknown): void {
+  if (obj === null || obj === undefined) {
+    throw new TypeError(
+      `'${obj === null ? "NoneType" : "undefined"}' object has no attribute '${name}'`
+    )
+  }
+  ;(obj as Record<string, unknown>)[name] = value
+}

@@ -21,7 +21,10 @@ import {
   min,
   max,
   int,
-  float
+  float,
+  getattr,
+  hasattr,
+  setattr
 } from "pythonlib"
 
 describe("E2E: Built-in Functions Execution", () => {
@@ -286,6 +289,71 @@ describe("E2E: Built-in Functions Execution", () => {
       expect(result).toContain("1")
       expect(result).toContain("2")
       expect(result).toContain("3")
+    })
+  })
+
+  describe("getattr()", () => {
+    it("should get attribute from object", () => {
+      const obj = { name: "test", value: 42 }
+      expect(getattr(obj, "name")).toBe("test")
+      expect(getattr(obj, "value")).toBe(42)
+    })
+
+    it("should return default value for missing attribute", () => {
+      const obj = { name: "test" }
+      expect(getattr(obj, "missing", "default")).toBe("default")
+      expect(getattr(obj, "missing", null)).toBe(null)
+    })
+
+    it("should throw for missing attribute without default", () => {
+      const obj = { name: "test" }
+      expect(() => getattr(obj, "missing")).toThrow()
+    })
+
+    it("should handle null/undefined objects with default", () => {
+      expect(getattr(null, "attr", "default")).toBe("default")
+      expect(getattr(undefined, "attr", "default")).toBe("default")
+    })
+  })
+
+  describe("hasattr()", () => {
+    it("should return true for existing attributes", () => {
+      const obj = { name: "test", value: 42 }
+      expect(hasattr(obj, "name")).toBe(true)
+      expect(hasattr(obj, "value")).toBe(true)
+    })
+
+    it("should return false for missing attributes", () => {
+      const obj = { name: "test" }
+      expect(hasattr(obj, "missing")).toBe(false)
+    })
+
+    it("should return false for null/undefined objects", () => {
+      expect(hasattr(null, "attr")).toBe(false)
+      expect(hasattr(undefined, "attr")).toBe(false)
+    })
+  })
+
+  describe("setattr()", () => {
+    it("should set attribute on object", () => {
+      const obj: Record<string, unknown> = { name: "test" }
+      setattr(obj, "value", 42)
+      expect(obj.value).toBe(42)
+    })
+
+    it("should overwrite existing attribute", () => {
+      const obj: Record<string, unknown> = { name: "test" }
+      setattr(obj, "name", "updated")
+      expect(obj.name).toBe("updated")
+    })
+
+    it("should throw for null/undefined objects", () => {
+      expect(() => {
+        setattr(null, "attr", "value")
+      }).toThrow()
+      expect(() => {
+        setattr(undefined, "attr", "value")
+      }).toThrow()
     })
   })
 })

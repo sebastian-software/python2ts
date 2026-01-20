@@ -190,7 +190,7 @@ describe("E2E: Advanced Functions", () => {
       const python = `def flexible(*args, **kwargs):
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "function flexible(...args) {
+        "function flexible(kwargs: Record<string, unknown> = {}, ...args) {
 
         }"
       `)
@@ -202,7 +202,7 @@ describe("E2E: Advanced Functions", () => {
       const python = `def complex_func(a, b=1, *args, **kwargs):
     pass`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "function complex_func(a, b = 1, ...args) {
+        "function complex_func(a, b = 1, kwargs: Record<string, unknown> = {}, ...args) {
 
         }"
       `)

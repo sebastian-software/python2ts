@@ -90,6 +90,22 @@ describe("E2E: Comprehensions", () => {
         dict([...range(5)].map((i) => [i, (i * i)]));"
       `)
     })
+
+    it("should transform dict comprehension with tuple unpacking", () => {
+      expect(transpile("{k: v for k, v in items}")).toMatchInlineSnapshot(`
+        "import { dict } from "pythonlib"
+
+        dict(items.map(([k, v]) => [k, v]));"
+      `)
+    })
+
+    it("should transform dict comprehension with tuple unpacking and 'is not' condition", () => {
+      expect(transpile("{k: v for k, v in items if v is not None}")).toMatchInlineSnapshot(`
+        "import { dict } from "pythonlib"
+
+        dict(items.filter(([k, v]) => (v !== null)).map(([k, v]) => [k, v]));"
+      `)
+    })
   })
 
   describe("Set Comprehensions", () => {

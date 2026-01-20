@@ -12,11 +12,16 @@ export interface TransformContext {
   definedClasses: Set<string>
   /** Whether currently processing an abstract class (ABC) */
   isAbstractClass?: boolean
+  /** Depth counter for function bodies (0 = module level, 1+ = inside function) */
+  insideFunctionBody: number
+  /** Imports found inside function bodies that need to be hoisted to module level */
+  hoistedImports: string[]
 }
 
 export interface TransformResult {
   code: string
   usesRuntime: Set<string>
+  hoistedImports: string[]
 }
 
 function createContext(source: string): TransformContext {
@@ -25,7 +30,9 @@ function createContext(source: string): TransformContext {
     indentLevel: 0,
     usesRuntime: new Set(),
     scopeStack: [new Set()], // Start with one global scope
-    definedClasses: new Set()
+    definedClasses: new Set(),
+    insideFunctionBody: 0,
+    hoistedImports: []
   }
 }
 
@@ -610,7 +617,8 @@ export function transform(input: string | ParseResult): TransformResult {
 
   return {
     code,
-    usesRuntime: ctx.usesRuntime
+    usesRuntime: ctx.usesRuntime,
+    hoistedImports: ctx.hoistedImports
   }
 }
 
@@ -761,11 +769,13 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
   // Find type annotation (TypeDef before AssignOp)
   const typeDef = children.slice(0, assignOpIndex).find((c) => c.name === "TypeDef")
 
+  // Check for trailing comma before AssignOp (indicates tuple unpacking even for single target)
+  const beforeAssign = children.slice(0, assignOpIndex)
+  const hasTrailingComma = beforeAssign.some((c) => c.name === ",")
+
   // Collect targets (before =) and values (after =)
   // Filter out commas and TypeDef nodes (type annotations like `: int`)
-  const targets = children
-    .slice(0, assignOpIndex)
-    .filter((c) => c.name !== "," && c.name !== "TypeDef")
+  const targets = beforeAssign.filter((c) => c.name !== "," && c.name !== "TypeDef")
   const values = children.slice(assignOpIndex + 1).filter((c) => c.name !== ",")
 
   /* v8 ignore next 3 -- defensive: empty targets/values can't occur with valid Python @preserve */
@@ -794,8 +804,8 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
     }
   }
 
-  // Single target assignment
-  if (targets.length === 1) {
+  // Single target assignment (but not if there's a trailing comma, which indicates tuple unpacking)
+  if (targets.length === 1 && !hasTrailingComma) {
     const target = targets[0]
     /* v8 ignore next -- @preserve */
     if (!target) return getNodeText(node, ctx.source)
@@ -1004,11 +1014,36 @@ function transformBinaryExpression(node: SyntaxNode, ctx: TransformContext): str
 
   const left = children[0]
   const op = children[1]
-  const right = children[2]
 
-  if (!left || !op || !right) return getNodeText(node, ctx.source)
+  if (!left || !op) return getNodeText(node, ctx.source)
 
   const opText = getNodeText(op, ctx.source)
+
+  // Handle 'is not' and 'not in' operators (4 children: left, is/not, not/in, right)
+  if ((opText === "is" || opText === "not") && children.length >= 4) {
+    const secondOp = children[2]
+    const secondOpText = secondOp ? getNodeText(secondOp, ctx.source) : ""
+    if (opText === "is" && secondOpText === "not") {
+      // "is not" -> "!=="
+      const right = children[3]
+      if (!right) return getNodeText(node, ctx.source)
+      const leftCode = transformNode(left, ctx)
+      const rightCode = transformNode(right, ctx)
+      return `(${leftCode} !== ${rightCode})`
+    }
+    if (opText === "not" && secondOpText === "in") {
+      // "not in" -> "!contains()"
+      const right = children[3]
+      if (!right) return getNodeText(node, ctx.source)
+      const leftCode = transformNode(left, ctx)
+      const rightCode = transformNode(right, ctx)
+      ctx.usesRuntime.add("contains")
+      return `!contains(${leftCode}, ${rightCode})`
+    }
+  }
+
+  const right = children[2]
+  if (!right) return getNodeText(node, ctx.source)
 
   // Handle chained comparisons (e.g., 1 < 2 < 3 -> (1 < 2) && (2 < 3))
   if (isComparisonOperator(opText) && isChainedComparison(left)) {
@@ -1427,6 +1462,15 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
     case "bin":
       ctx.usesRuntime.add("bin")
       return `bin(${args})`
+    case "getattr":
+      ctx.usesRuntime.add("getattr")
+      return `getattr(${args})`
+    case "hasattr":
+      ctx.usesRuntime.add("hasattr")
+      return `hasattr(${args})`
+    case "setattr":
+      ctx.usesRuntime.add("setattr")
+      return `setattr(${args})`
 
     // itertools functions
     case "chain":
@@ -1933,8 +1977,10 @@ function transformArgList(node: SyntaxNode, ctx: TransformContext): string {
     if (item.name === "**" || (item.name === "ArithOp" && getNodeText(item, ctx.source) === "**")) {
       const nextItem = items[i + 1]
       if (nextItem) {
-        // **kwargs spreads object properties as keyword arguments
-        args.push(`...Object.entries(${transformNode(nextItem, ctx)})`)
+        // **kwargs passes object as keyword arguments
+        // In TypeScript, we pass the object directly (functions expecting **kwargs
+        // are transpiled to accept a Record<string, unknown> parameter)
+        kwArgs.push({ name: "__spread__", value: transformNode(nextItem, ctx) })
         i += 2
         continue
       }
@@ -1963,8 +2009,29 @@ function transformArgList(node: SyntaxNode, ctx: TransformContext): string {
   // Combine positional and keyword arguments
   // Keyword arguments are passed as an options object: { key: value }
   if (kwArgs.length > 0) {
-    const kwArgsStr = kwArgs.map((kw) => `${kw.name}: ${kw.value}`).join(", ")
-    args.push(`{ ${kwArgsStr} }`)
+    // Separate spread kwargs from regular keyword args
+    const spreadKwargs = kwArgs.filter((kw) => kw.name === "__spread__")
+    const regularKwargs = kwArgs.filter((kw) => kw.name !== "__spread__")
+
+    if (regularKwargs.length > 0 && spreadKwargs.length > 0) {
+      // Combine regular kwargs with spread: { ...spread, key: value }
+      const regularStr = regularKwargs.map((kw) => `${kw.name}: ${kw.value}`).join(", ")
+      const spreadStr = spreadKwargs.map((kw) => `...${kw.value}`).join(", ")
+      args.push(`{ ${spreadStr}, ${regularStr} }`)
+    } else if (spreadKwargs.length > 0) {
+      // Only spread kwargs - pass the object directly if single, or merge if multiple
+      const firstSpread = spreadKwargs[0]
+      if (spreadKwargs.length === 1 && firstSpread) {
+        args.push(firstSpread.value)
+      } else {
+        const spreadStr = spreadKwargs.map((kw) => `...${kw.value}`).join(", ")
+        args.push(`{ ${spreadStr} }`)
+      }
+    } else {
+      // Only regular kwargs
+      const kwArgsStr = regularKwargs.map((kw) => `${kw.name}: ${kw.value}`).join(", ")
+      args.push(`{ ${kwArgsStr} }`)
+    }
   }
 
   return args.join(", ")
@@ -2128,14 +2195,41 @@ function transformArrayExpression(node: SyntaxNode, ctx: TransformContext): stri
 
 function transformDictionaryExpression(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
-  const pairs: string[] = []
 
   // Filter out braces and commas
   const items = children.filter(
     (c) => c.name !== "{" && c.name !== "}" && c.name !== "," && c.name !== ":"
   )
 
-  // Process key-value pairs (items come in pairs: key, value)
+  // Check if all keys are valid TypeScript object literal keys (strings, numbers)
+  // If any key is a complex expression (function call, etc.), use Map instead
+  const keyNodes: SyntaxNode[] = []
+  for (let i = 0; i < items.length; i += 2) {
+    const key = items[i]
+    if (key) keyNodes.push(key)
+  }
+
+  const allKeysValidForObjectLiteral = keyNodes.every(
+    (key) => key.name === "String" || key.name === "Number" || key.name === "VariableName"
+  )
+
+  // If any key is not a valid object literal key (e.g., function call), use Map
+  if (!allKeysValidForObjectLiteral) {
+    const mapPairs: string[] = []
+    for (let i = 0; i < items.length; i += 2) {
+      const key = items[i]
+      const value = items[i + 1]
+      if (key && value) {
+        const keyCode = transformNode(key, ctx)
+        const valueCode = transformNode(value, ctx)
+        mapPairs.push(`[${keyCode}, ${valueCode}]`)
+      }
+    }
+    return `new Map([${mapPairs.join(", ")}])`
+  }
+
+  // Standard object literal for simple keys
+  const pairs: string[] = []
   for (let i = 0; i < items.length; i += 2) {
     const key = items[i]
     const value = items[i + 1]
@@ -3044,11 +3138,20 @@ function transformImportStatement(node: SyntaxNode, ctx: TransformContext): stri
   // Determine if this is a "from X import Y" or "import X" style
   const hasFrom = children.some((c) => c.name === "from")
 
+  let importCode: string
   if (hasFrom) {
-    return transformFromImport(children, ctx)
+    importCode = transformFromImport(children, ctx)
   } else {
-    return transformSimpleImport(children, ctx)
+    importCode = transformSimpleImport(children, ctx)
   }
+
+  // If we're inside a function body, hoist the import to module level
+  if (ctx.insideFunctionBody > 0 && importCode) {
+    ctx.hoistedImports.push(importCode)
+    return "" // Don't include the import in the function body
+  }
+
+  return importCode
 }
 
 function transformSimpleImport(children: SyntaxNode[], ctx: TransformContext): string {
@@ -3387,13 +3490,94 @@ function transformWithStatement(node: SyntaxNode, ctx: TransformContext): string
   return result
 }
 
+/**
+ * Extract parameter names from a ParamList node for scope tracking
+ */
+function extractParamNames(node: SyntaxNode, source: string): string[] {
+  const children = getChildren(node)
+  const names: string[] = []
+  let i = 0
+
+  while (i < children.length) {
+    const child = children[i]
+    if (!child) {
+      i++
+      continue
+    }
+
+    // Skip parentheses, commas, and operators
+    if (
+      child.name === "(" ||
+      child.name === ")" ||
+      child.name === "," ||
+      child.name === "/" ||
+      child.name === ":"
+    ) {
+      i++
+      continue
+    }
+
+    // Handle *args
+    if (child.name === "*" || getNodeText(child, source) === "*") {
+      const nextChild = children[i + 1]
+      if (nextChild && nextChild.name === "VariableName") {
+        names.push(getNodeText(nextChild, source))
+        i += 2
+        continue
+      }
+      i++
+      continue
+    }
+
+    // Handle **kwargs
+    if (child.name === "**" || getNodeText(child, source) === "**") {
+      const nextChild = children[i + 1]
+      if (nextChild && nextChild.name === "VariableName") {
+        names.push(getNodeText(nextChild, source))
+        i += 2
+        continue
+      }
+      i++
+      continue
+    }
+
+    // Regular parameter
+    if (child.name === "VariableName") {
+      names.push(getNodeText(child, source))
+      i++
+      continue
+    }
+
+    // Parameter wrapped in AssignParam or DefaultParam
+    if (child.name === "AssignParam" || child.name === "DefaultParam") {
+      const paramChildren = getChildren(child)
+      const name = paramChildren.find((c) => c.name === "VariableName")
+      if (name) {
+        names.push(getNodeText(name, source))
+      }
+      i++
+      continue
+    }
+
+    i++
+  }
+
+  return names
+}
+
 function transformBody(
   node: SyntaxNode,
   ctx: TransformContext,
-  skipFirst: boolean = false
+  skipFirst: boolean = false,
+  predeclaredVars: string[] = []
 ): string {
   ctx.indentLevel++
   pushScope(ctx) // Each block body gets its own scope
+
+  // Pre-declare variables (e.g., function parameters) so reassignments don't create new 'let' declarations
+  for (const v of predeclaredVars) {
+    declareVariable(ctx, v)
+  }
   const children = getChildren(node)
   const indent = "  ".repeat(ctx.indentLevel)
 
@@ -3471,7 +3655,12 @@ function transformFunctionDefinition(node: SyntaxNode, ctx: TransformContext): s
     : { jsdoc: null, skipFirstStatement: false }
 
   const params = paramList ? transformParamList(paramList, ctx) : ""
-  const bodyCode = body ? transformBody(body, ctx, skipFirstStatement) : ""
+  // Extract parameter names to pre-declare them in the function body scope
+  const paramNames = paramList ? extractParamNames(paramList, ctx.source) : []
+  // Track that we're inside a function body for import hoisting
+  ctx.insideFunctionBody++
+  const bodyCode = body ? transformBody(body, ctx, skipFirstStatement, paramNames) : ""
+  ctx.insideFunctionBody--
 
   // Check if function is a generator (contains yield)
   const isGenerator = body ? containsYield(body) : false
@@ -3738,9 +3927,16 @@ function transformClassMethod(
 
   // Transform parameters, removing 'self' or 'cls'
   const params = paramList ? transformMethodParamList(paramList, ctx) : ""
+  // Extract parameter names (excluding self/cls) for scope tracking
+  const paramNames = paramList
+    ? extractParamNames(paramList, ctx.source).filter((n) => n !== "self" && n !== "cls")
+    : []
 
   // Transform body, replacing 'self' with 'this'
-  const bodyCode = body ? transformClassMethodBody(body, ctx, skipFirstStatement) : ""
+  // Track that we're inside a function body for import hoisting
+  ctx.insideFunctionBody++
+  const bodyCode = body ? transformClassMethodBody(body, ctx, skipFirstStatement, paramNames) : ""
+  ctx.insideFunctionBody--
 
   // Check if method is a generator (contains yield)
   const isGenerator = body ? containsYield(body) : false
@@ -3944,9 +4140,17 @@ function transformMethodParamListImpl(
 function transformClassMethodBody(
   node: SyntaxNode,
   ctx: TransformContext,
-  skipFirst: boolean = false
+  skipFirst: boolean = false,
+  predeclaredVars: string[] = []
 ): string {
   ctx.indentLevel++
+  pushScope(ctx) // Each method body gets its own scope
+
+  // Pre-declare variables (e.g., method parameters) so reassignments don't create new 'let' declarations
+  for (const v of predeclaredVars) {
+    declareVariable(ctx, v)
+  }
+
   const children = getChildren(node)
   const indent = "  ".repeat(ctx.indentLevel)
 
@@ -3995,6 +4199,7 @@ function transformClassMethodBody(
     })
     .filter((s) => s.trim() !== "")
 
+  popScope(ctx)
   ctx.indentLevel--
   return statements.join("\n")
 }
@@ -4133,6 +4338,7 @@ function transformDecoratedStatement(node: SyntaxNode, ctx: TransformContext): s
   }
 
   const params = paramList ? transformParamList(paramList, ctx) : ""
+  const paramNames = paramList ? extractParamNames(paramList, ctx.source) : []
 
   // Handle @overload: generate only function signature (no body)
   if (decorators.length === 1 && decorators[0]?.name === "overload") {
@@ -4141,7 +4347,10 @@ function transformDecoratedStatement(node: SyntaxNode, ctx: TransformContext): s
     return `function ${funcName}(${params})${returnTypeStr}`
   }
 
-  const bodyCode = body ? transformBody(body, ctx) : ""
+  // Track that we're inside a function body for import hoisting
+  ctx.insideFunctionBody++
+  const bodyCode = body ? transformBody(body, ctx, false, paramNames) : ""
+  ctx.insideFunctionBody--
 
   // Build the decorated function
   // @decorator def func(): ... -> const func = decorator(function func() { ... })
@@ -5191,9 +5400,10 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
     i++
   }
 
-  // Add kwargs parameter before rest param if no rest param exists
-  // If both exist, kwargs is not supported (rest param must be last in JS)
-  if (kwargsParam && !restParam) {
+  // Add kwargs parameter
+  // If rest param exists, kwargs must come before it with a default value
+  // Note: This changes the calling convention - caller must pass kwargs object explicitly
+  if (kwargsParam) {
     const kwargsType = ": Record<string, unknown>"
     params.push(`${kwargsParam}${kwargsType} = {}`)
   }
@@ -5417,16 +5627,36 @@ function transformDictComprehension(node: SyntaxNode, ctx: TransformContext): st
       item.name === "for" ||
       (item.name === "Keyword" && getNodeText(item, ctx.source) === "for")
     ) {
-      const varNode = clauseItems[i + 1]
-      const iterableNode = clauseItems[i + 3]
+      // Collect all variables between 'for' and 'in' (handles tuple unpacking like 'for k, v in ...')
+      const variables: string[] = []
+      let j = i + 1
+      while (j < clauseItems.length) {
+        const currentItem = clauseItems[j]
+        if (
+          currentItem?.name === "in" ||
+          (currentItem && getNodeText(currentItem, ctx.source) === "in")
+        ) {
+          break
+        }
+        const varItem = clauseItems[j]
+        if (varItem && varItem.name !== ",") {
+          variables.push(transformNode(varItem, ctx))
+        }
+        j++
+      }
 
-      if (varNode && iterableNode) {
+      // Skip 'in' and get iterable
+      const iterableNode = clauseItems[j + 1]
+
+      const firstVariable = variables[0]
+      if (variables.length > 0 && iterableNode && firstVariable) {
+        const variable = variables.length === 1 ? firstVariable : `[${variables.join(", ")}]`
         clauses.push({
           type: "for",
-          variable: transformNode(varNode, ctx),
+          variable,
           iterable: transformNode(iterableNode, ctx)
         })
-        i += 4
+        i = j + 2
       } else {
         i++
       }
