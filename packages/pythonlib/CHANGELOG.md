@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/sebastian-software/python2ts/compare/pythonlib-v1.0.0...pythonlib-v1.0.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* resolve 7 transpiler bugs from issue reports ([952fbe8](https://github.com/sebastian-software/python2ts/commit/952fbe8346e41eaf96246b63e15c9745f37ca4c0))
+
 ## [0.2.1](https://github.com/sebastian-software/python2ts/compare/pythonlib-v0.2.0...pythonlib-v0.2.1) (2026-01-19)
 
 

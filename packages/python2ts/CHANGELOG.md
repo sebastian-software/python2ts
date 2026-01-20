@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.0](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.0.0...python2ts-v1.1.0) (2026-01-20)
+
+
+### Features
+
+* add NumPy-style docstring parsing support ([fd54354](https://github.com/sebastian-software/python2ts/commit/fd54354bc5ac46e10359363869ddcd201a053cfa)), closes [#10](https://github.com/sebastian-software/python2ts/issues/10)
+* convert keyword-only parameters (*) to options object ([720ddf5](https://github.com/sebastian-software/python2ts/commit/720ddf5a314b5da0a30a4614f69dec015bab3749)), closes [#13](https://github.com/sebastian-software/python2ts/issues/13)
+
+
+### Bug Fixes
+
+* resolve 7 transpiler bugs from issue reports ([952fbe8](https://github.com/sebastian-software/python2ts/commit/952fbe8346e41eaf96246b63e15c9745f37ca4c0))
+
 ## [0.2.1](https://github.com/sebastian-software/python2ts/compare/python2ts-v0.2.0...python2ts-v0.2.1) (2026-01-19)
 
 
