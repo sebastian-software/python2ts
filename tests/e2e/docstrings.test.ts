@@ -275,6 +275,105 @@ def example():
     })
   })
 
+  describe("NumPy-style docstrings", () => {
+    it("should parse NumPy-style Parameters section", () => {
+      const python = `
+def greet(name):
+    """
+    Greet someone by name.
+
+    Parameters
+    ----------
+    name : str
+        The name to greet.
+    """
+    return name
+`
+      const result = transpile(python, { includeRuntime: false })
+      expect(result).toContain("/**")
+      expect(result).toContain(" * Greet someone by name.")
+      expect(result).toContain("@param name - The name to greet.")
+      expect(result).toContain(" */")
+    })
+
+    it("should parse NumPy-style Returns section", () => {
+      const python = `
+def compute():
+    """
+    Compute a value.
+
+    Returns
+    -------
+    int
+        The computed value.
+    """
+    return 42
+`
+      const result = transpile(python, { includeRuntime: false })
+      expect(result).toContain("@returns The computed value.")
+      expect(result).not.toContain("@returns int")
+    })
+
+    it("should parse NumPy-style Raises section", () => {
+      const python = `
+def divide(a, b):
+    """
+    Divide two numbers.
+
+    Raises
+    ------
+    ZeroDivisionError
+        If b is zero.
+    ValueError
+        If inputs are invalid.
+    """
+    return a / b
+`
+      const result = transpile(python, { includeRuntime: false })
+      expect(result).toContain("@throws {ZeroDivisionError} If b is zero.")
+      expect(result).toContain("@throws {ValueError} If inputs are invalid.")
+    })
+
+    it("should parse full NumPy-style docstring", () => {
+      const python = `
+def process(data, options):
+    """
+    Process the input data.
+
+    A longer description of what this function does
+    across multiple lines.
+
+    Parameters
+    ----------
+    data : array_like
+        The input data to process.
+    options : dict
+        Processing options.
+
+    Returns
+    -------
+    ndarray
+        The processed result.
+
+    Raises
+    ------
+    TypeError
+        If data is not array-like.
+    """
+    pass
+`
+      const result = transpile(python, { includeRuntime: false })
+      expect(result).toContain("/**")
+      expect(result).toContain(" * Process the input data.")
+      expect(result).toContain(" * A longer description of what this function does")
+      expect(result).toContain("@param data - The input data to process.")
+      expect(result).toContain("@param options - Processing options.")
+      expect(result).toContain("@returns The processed result.")
+      expect(result).toContain("@throws {TypeError} If data is not array-like.")
+      expect(result).toContain(" */")
+    })
+  })
+
   describe("edge cases", () => {
     it("should handle empty docstring", () => {
       const python = `
