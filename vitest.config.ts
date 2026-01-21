@@ -37,6 +37,7 @@ export default defineConfig({
       "pythonlib/itertools": resolve(__dirname, "packages/pythonlib/src/itertools.ts"),
       "pythonlib/collections": resolve(__dirname, "packages/pythonlib/src/collections.ts"),
       "pythonlib/string": resolve(__dirname, "packages/pythonlib/src/string.ts"),
+      "pythonlib/hashlib": resolve(__dirname, "packages/pythonlib/src/hashlib.ts"),
       python2ts: resolve(__dirname, "packages/python2ts/src/index.ts")
     }
   }

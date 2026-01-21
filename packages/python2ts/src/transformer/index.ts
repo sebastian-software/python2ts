@@ -1787,6 +1787,18 @@ function transformModuleCall(
     return `${funcName}(${args})`
   }
 
+  // hashlib module
+  if (moduleName === "hashlib") {
+    const jsName = toJsName(funcName)
+    ctx.usesRuntime.add(`hashlib/${jsName}`)
+    // Async functions need await
+    if (["pbkdf2_hmac", "scrypt", "compare_digest", "file_digest"].includes(funcName)) {
+      const asyncJsName = toJsName(funcName)
+      return `await ${asyncJsName}(${args})`
+    }
+    return `${jsName}(${args})`
+  }
+
   return null
 }
 
@@ -1987,6 +1999,12 @@ function transformMethodCall(
     case "issuperset":
       ctx.usesRuntime.add("set")
       return `set.issuperset(${objCode}, ${args})`
+
+    // Hash object methods (hashlib) - async
+    case "digest":
+      return `await ${objCode}.digest()`
+    case "hexdigest":
+      return `await ${objCode}.hexdigest()`
 
     /* v8 ignore next 2 -- unknown method, let caller handle @preserve */
     default:

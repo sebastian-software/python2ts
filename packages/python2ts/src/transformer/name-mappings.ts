@@ -170,7 +170,15 @@ export const PYTHON_TO_JS_NAMES: Record<string, string> = {
   // core module
   // ============================================================================
   floordiv: "floorDiv",
-  divmod: "divMod"
+  divmod: "divMod",
+
+  // ============================================================================
+  // hashlib module
+  // ============================================================================
+  pbkdf2_hmac: "pbkdf2Hmac",
+  compare_digest: "compareDigest",
+  file_digest: "fileDigest",
+  new: "newHash"
 }
 
 /**
