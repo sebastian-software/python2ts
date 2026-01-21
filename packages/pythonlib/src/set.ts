@@ -1,6 +1,8 @@
 /**
  * Python set methods for TypeScript
  * Usage: py.set.intersection(), py.set.union(), etc.
+ *
+ * Uses ES2024 native Set methods where available for optimal performance.
  */
 
 export const set = {
@@ -67,26 +69,22 @@ export const set = {
 
   /**
    * Python set.union() - returns new set with all elements
+   * Uses ES2024 Set.prototype.union()
    */
   union<T>(a: Set<T>, ...others: Iterable<T>[]): Set<T> {
-    const result = new Set(a)
+    let result: Set<T> = new Set(a)
     for (const other of others) {
-      for (const item of other) {
-        result.add(item)
-      }
+      result = result.union(other instanceof Set ? other : new Set(other)) as Set<T>
     }
     return result
   },
 
   /**
    * Python set.intersection() - returns new set with common elements
+   * Uses ES2024 Set.prototype.intersection()
    */
   intersection<T>(a: Set<T>, b: Set<T>): Set<T> {
-    const result = new Set<T>()
-    for (const item of a) {
-      if (b.has(item)) result.add(item)
-    }
-    return result
+    return a.intersection(b)
   },
 
   /**
@@ -100,13 +98,10 @@ export const set = {
 
   /**
    * Python set.difference() - returns new set with elements in a but not in b
+   * Uses ES2024 Set.prototype.difference()
    */
   difference<T>(a: Set<T>, b: Set<T>): Set<T> {
-    const result = new Set<T>()
-    for (const item of a) {
-      if (!b.has(item)) result.add(item)
-    }
-    return result
+    return a.difference(b)
   },
 
   /**
@@ -120,61 +115,43 @@ export const set = {
 
   /**
    * Python set.symmetric_difference() - returns new set with elements in either but not both
+   * Uses ES2024 Set.prototype.symmetricDifference()
    */
   symmetricDifference<T>(a: Set<T>, b: Set<T>): Set<T> {
-    const result = new Set<T>()
-    for (const item of a) {
-      if (!b.has(item)) result.add(item)
-    }
-    for (const item of b) {
-      if (!a.has(item)) result.add(item)
-    }
-    return result
+    return a.symmetricDifference(b)
   },
 
   /**
    * Python set.symmetric_difference_update() - update with symmetric difference
+   * Uses ES2024 Set.prototype.symmetricDifference()
    */
   symmetricDifferenceUpdate<T>(a: Set<T>, b: Set<T>): void {
-    const toAdd: T[] = []
-    const toRemove: T[] = []
-    for (const item of a) {
-      if (b.has(item)) toRemove.push(item)
-    }
-    for (const item of b) {
-      if (!a.has(item)) toAdd.push(item)
-    }
-    for (const item of toRemove) a.delete(item)
-    for (const item of toAdd) a.add(item)
+    const result = a.symmetricDifference(b)
+    a.clear()
+    for (const item of result) a.add(item)
   },
 
   /**
    * Python set.isSubset() - test if all elements are in other
+   * Uses ES2024 Set.prototype.isSubsetOf()
    */
   isSubset<T>(a: Set<T>, b: Set<T>): boolean {
-    for (const item of a) {
-      if (!b.has(item)) return false
-    }
-    return true
+    return a.isSubsetOf(b)
   },
 
   /**
    * Python set.isSuperset() - test if all other elements are in this set
+   * Uses ES2024 Set.prototype.isSupersetOf()
    */
   isSuperset<T>(a: Set<T>, b: Set<T>): boolean {
-    for (const item of b) {
-      if (!a.has(item)) return false
-    }
-    return true
+    return a.isSupersetOf(b)
   },
 
   /**
    * Python set.isDisjoint() - test if no common elements
+   * Uses ES2024 Set.prototype.isDisjointFrom()
    */
   isDisjoint<T>(a: Set<T>, b: Set<T>): boolean {
-    for (const item of a) {
-      if (b.has(item)) return false
-    }
-    return true
+    return a.isDisjointFrom(b)
   }
 }
