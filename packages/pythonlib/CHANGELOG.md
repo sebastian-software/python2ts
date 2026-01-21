@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.0.2](https://github.com/sebastian-software/python2ts/compare/pythonlib-v1.0.1...pythonlib-v1.0.2) (2026-01-21)
+
+
+### Performance
+
+* **pythonlib:** avoid double array copy with toSorted/toReversed ([5153259](https://github.com/sebastian-software/python2ts/commit/5153259bd29b14bea19c0b43c59a7aca10b51422))
+
+
+### Code Refactoring
+
+* **pythonlib:** use ES2023 immutable array methods ([3ff8805](https://github.com/sebastian-software/python2ts/commit/3ff8805534d2c84e37766562df000d1be16b4d2a))
+* **pythonlib:** use ES2024 Iterator Helpers for map/filter ([3116980](https://github.com/sebastian-software/python2ts/commit/311698055e3e110abcc63b7928270ae92552ff94))
+* **pythonlib:** use ES2024 native Set methods ([32e99e0](https://github.com/sebastian-software/python2ts/commit/32e99e0c1e6a65f9cc3fd281e1a6db003627ba9d))
+
+
+### Documentation
+
+* **pythonlib:** add [@module](https://github.com/module) tags for TypeDoc module descriptions ([64ad074](https://github.com/sebastian-software/python2ts/commit/64ad07426dca16deb3cdf6d9890fe8f8a4187066))
+* **pythonlib:** enhance JSDoc with Python docs links and descriptions ([b4b7e0a](https://github.com/sebastian-software/python2ts/commit/b4b7e0abe4f70dbf3f7a17cb4a1d2ce240b37efb))
+
 ## [1.0.1](https://github.com/sebastian-software/python2ts/compare/pythonlib-v1.0.0...pythonlib-v1.0.1) (2026-01-20)
 
 

@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.2.0](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.1.0...python2ts-v1.2.0) (2026-01-21)
+
+
+### Features
+
+* add ESLint prefer-const post-processing for optimal variable declarations ([209a1f9](https://github.com/sebastian-software/python2ts/commit/209a1f96d098cb493a7da00374325989be3c14f9)), closes [#16](https://github.com/sebastian-software/python2ts/issues/16)
+* improve code quality of generated TypeScript ([e0f49f1](https://github.com/sebastian-software/python2ts/commit/e0f49f1b85e76fe0410eef851bb6574ef37f939d))
+* **transpiler:** add ESLint rules for cleaner output ([737335d](https://github.com/sebastian-software/python2ts/commit/737335d06ab5a4bca173ed44836d693e17fccbf6))
+* **transpiler:** add prefer-arrow-callback ESLint rule ([7825978](https://github.com/sebastian-software/python2ts/commit/7825978aff845deb883d4bb137f0c6ec6c333315))
+* **transpiler:** add prefer-rest-params and prefer-spread rules ([9f45b1e](https://github.com/sebastian-software/python2ts/commit/9f45b1e730a72313e0475e45e49ab9ac193dfda4))
+* **transpiler:** add TypeScript type-aware ESLint rules ([e16104f](https://github.com/sebastian-software/python2ts/commit/e16104f850e88f069e5522a6e87146ff7dc130ee))
+
+
+### Code Refactoring
+
+* **transpiler:** use typescript-eslint presets ([16db776](https://github.com/sebastian-software/python2ts/commit/16db776ce83f3ac18d902efab158d528a5eed0aa))
+
 ## [1.1.0](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.0.0...python2ts-v1.1.0) (2026-01-20)
 
 
