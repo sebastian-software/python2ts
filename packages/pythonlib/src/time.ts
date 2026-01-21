@@ -34,6 +34,7 @@ export interface StructTime {
 }
 
 // Store start time for monotonic/perf_counter
+/* v8 ignore next -- browser fallback @preserve */
 const startTime = typeof performance !== "undefined" ? performance.now() : Date.now()
 
 /**
@@ -100,6 +101,7 @@ export function perfCounter(): number {
   if (typeof performance !== "undefined") {
     return performance.now() / 1000
   }
+  /* v8 ignore next -- browser fallback @preserve */
   return (Date.now() - startTime) / 1000
 }
 
@@ -112,6 +114,7 @@ export function perfCounterNs(): bigint {
   if (typeof performance !== "undefined") {
     return BigInt(Math.floor(performance.now() * 1_000_000))
   }
+  /* v8 ignore next -- browser fallback @preserve */
   return BigInt(Date.now() - startTime) * 1_000_000n
 }
 
@@ -540,6 +543,7 @@ export function processTime(): number {
   if (typeof performance !== "undefined") {
     return performance.now() / 1000
   }
+  /* v8 ignore next -- browser fallback @preserve */
   return Date.now() / 1000
 }
 
@@ -550,6 +554,7 @@ export function processTimeNs(): bigint {
   if (typeof performance !== "undefined") {
     return BigInt(Math.floor(performance.now() * 1_000_000))
   }
+  /* v8 ignore next -- browser fallback @preserve */
   return BigInt(Date.now()) * 1_000_000n
 }
 

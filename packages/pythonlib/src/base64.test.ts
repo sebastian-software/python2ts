@@ -131,4 +131,54 @@ describe("base64 module", () => {
       expect(decoder.decode(result)).toBe("hello")
     })
   })
+
+  describe("a85encode()", () => {
+    it("should encode to Ascii85", () => {
+      const result = base64.a85encode("test")
+      expect(result).toBeInstanceOf(Uint8Array)
+    })
+
+    it("should encode all zeros as z", () => {
+      const result = base64.a85encode(new Uint8Array([0, 0, 0, 0]))
+      expect(decoder.decode(result)).toBe("z")
+    })
+
+    it("should handle short input", () => {
+      const result = base64.a85encode("hi")
+      expect(result).toBeInstanceOf(Uint8Array)
+    })
+  })
+
+  describe("a85decode()", () => {
+    it("should decode Ascii85", () => {
+      const encoded = base64.a85encode("hello")
+      const decoded = base64.a85decode(encoded)
+      expect(decoder.decode(decoded)).toBe("hello")
+    })
+
+    it("should decode z as four zeros", () => {
+      const result = base64.a85decode("z")
+      expect(result).toEqual(new Uint8Array([0, 0, 0, 0]))
+    })
+
+    it("should handle whitespace", () => {
+      const encoded = decoder.decode(base64.a85encode("test"))
+      const withWhitespace = encoded.slice(0, 2) + " \n" + encoded.slice(2)
+      const result = base64.a85decode(withWhitespace)
+      expect(decoder.decode(result)).toBe("test")
+    })
+
+    it("should throw for invalid characters", () => {
+      expect(() => base64.a85decode("\x00")).toThrow("Invalid Ascii85 character")
+    })
+  })
+
+  describe("b85encode/decode()", () => {
+    it("should be alias for a85encode/decode", () => {
+      const data = "test"
+      expect(base64.b85encode(data)).toEqual(base64.a85encode(data))
+      const encoded = base64.a85encode(data)
+      expect(base64.b85decode(encoded)).toEqual(base64.a85decode(encoded))
+    })
+  })
 })

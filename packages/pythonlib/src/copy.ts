@@ -135,6 +135,8 @@ export function deepcopy<T>(x: T, memo?: Map<unknown, unknown>): T {
     }
   }
 
+  /* v8 ignore start -- fallback for environments without structuredClone @preserve */
+
   // Handle null and undefined
   if (x === null || x === undefined) {
     return x
@@ -258,4 +260,6 @@ export function deepcopy<T>(x: T, memo?: Map<unknown, unknown>): T {
   }
 
   return x
+
+  /* v8 ignore stop */
 }

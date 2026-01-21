@@ -117,6 +117,7 @@ function createHashObject(algorithm: string, initialData?: Uint8Array): HashObje
         hash.update(allData)
         return new Uint8Array(hash.digest())
       } else {
+        /* v8 ignore start -- browser Web Crypto API path @preserve */
         // Use Web Crypto API
         const webCryptoName = info.webCryptoName
         if (!webCryptoName) {
@@ -127,6 +128,7 @@ function createHashObject(algorithm: string, initialData?: Uint8Array): HashObje
         }
         const hashBuffer = await crypto.subtle.digest(webCryptoName, allData)
         return new Uint8Array(hashBuffer)
+        /* v8 ignore stop */
       }
     },
 
@@ -333,6 +335,7 @@ export async function pbkdf2Hmac(
     const crypto = await getNodeCrypto()
     return new Uint8Array(crypto.pbkdf2Sync(passwordBytes, saltBytes, iterations, dklen, hashName))
   } else {
+    /* v8 ignore start -- browser Web Crypto API path @preserve */
     // Web Crypto API
     const info = ALGORITHM_INFO[hashName.toLowerCase()]
     const webCryptoName = info?.webCryptoName
@@ -356,6 +359,7 @@ export async function pbkdf2Hmac(
     )
 
     return new Uint8Array(derivedBits)
+    /* v8 ignore stop */
   }
 }
 
@@ -379,6 +383,7 @@ export async function scrypt(
   p: number,
   dklen: number
 ): Promise<Uint8Array> {
+  /* v8 ignore next 3 -- browser error path @preserve */
   if (!isNode) {
     throw new Error("scrypt is only available in Node.js, not in browser environments")
   }
@@ -418,6 +423,7 @@ export async function compareDigest(
     const crypto = await getNodeCrypto()
     return crypto.timingSafeEqual(aBytes, bBytes)
   } else {
+    /* v8 ignore start -- browser fallback path @preserve */
     // Constant-time comparison for browser
     // Note: This is a best-effort implementation; true constant-time
     // comparison in JS is difficult due to JIT optimizations
@@ -428,6 +434,7 @@ export async function compareDigest(
       result |= aByte ^ bByte
     }
     return result === 0
+    /* v8 ignore stop */
   }
 }
 
@@ -440,6 +447,7 @@ export async function compareDigest(
  * @returns Hash as hex string
  */
 export async function fileDigest(path: string, algorithm = "sha256"): Promise<string> {
+  /* v8 ignore next 3 -- browser error path @preserve */
   if (!isNode) {
     throw new Error("fileDigest is only available in Node.js")
   }

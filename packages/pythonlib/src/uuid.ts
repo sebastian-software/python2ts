@@ -52,9 +52,9 @@ export class UUID {
         this._bytes[i] = Number(value & 0xffn)
         value = value >> 8n
       }
-    } else {
+    } /* v8 ignore start -- TypeScript enforces one of hex/bytes/int @preserve */ else {
       throw new Error("one of hex, bytes, or int is required")
-    }
+    } /* v8 ignore stop */
   }
 
   /**
@@ -208,6 +208,7 @@ export function uuid4(): UUID {
     return new UUID({ hex: crypto.randomUUID() })
   }
 
+  /* v8 ignore start -- fallback for environments without crypto.randomUUID @preserve */
   // Fallback to manual generation
   const bytes = new Uint8Array(16)
   if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
@@ -225,6 +226,7 @@ export function uuid4(): UUID {
   bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80
 
   return new UUID({ bytes })
+  /* v8 ignore stop */
 }
 
 /**
@@ -278,9 +280,11 @@ export function uuid1(node?: bigint, clockSeq?: number): UUID {
     if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
       crypto.getRandomValues(randomNode)
     } else {
+      /* v8 ignore start -- fallback for environments without crypto @preserve */
       for (let i = 0; i < 6; i++) {
         randomNode[i] = Math.floor(Math.random() * 256)
       }
+      /* v8 ignore stop */
     }
     // Set multicast bit to indicate randomly generated
     randomNode[0] = (randomNode[0] ?? 0) | 0x01

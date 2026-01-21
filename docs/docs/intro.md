@@ -11,6 +11,16 @@ Python dominates AI, ML, and data science. TypeScript powers modern web applicat
 ecosystem of 3+ million packages. **python2ts** brings them together — transpile Python to
 production-ready TypeScript with full type safety.
 
+## The Numbers
+
+| Metric                 | Value                           |
+| ---------------------- | ------------------------------- |
+| **Tests**              | 2000+                           |
+| **Python Modules**     | 20+                             |
+| **Dependencies**       | 0 (pythonlib)                   |
+| **Runtimes Supported** | 4 (Node.js, Bun, Deno, Browser) |
+| **Python Features**    | 15+ major constructs            |
+
 ## Why python2ts?
 
 ### The AI Era Demands Language Interoperability
@@ -30,10 +40,10 @@ in a different world: browsers, serverless functions, edge computing, React fron
 
 ### Two Packages, One Solution
 
-| Package       | Description                                         |
-| ------------- | --------------------------------------------------- |
-| **python2ts** | The transpiler CLI and API                          |
-| **pythonlib** | Python standard library for TypeScript (standalone) |
+| Package       | Description                                          | Dependencies |
+| ------------- | ---------------------------------------------------- | ------------ |
+| **python2ts** | The transpiler CLI and API                           | Minimal      |
+| **pythonlib** | Python standard library for TypeScript (20+ modules) | **Zero**     |
 
 Use them together or separately — `pythonlib` works standalone if you just want Python's itertools,
 functools, or collections in TypeScript.
@@ -73,3 +83,92 @@ function fibonacci(n: number): number[] {
 
 console.log(fibonacci(10))
 ```
+
+## What's in pythonlib?
+
+A comprehensive implementation of Python's most useful modules:
+
+### Core Utilities
+
+| Module          | Highlights                                                             |
+| --------------- | ---------------------------------------------------------------------- |
+| **itertools**   | `combinations`, `permutations`, `product`, `chain`, `cycle`, `groupby` |
+| **functools**   | `lruCache`, `partial`, `reduce`, `pipe`, `compose`                     |
+| **collections** | `Counter`, `defaultdict`, `deque`, `OrderedDict`                       |
+
+### Data & Time
+
+| Module       | Highlights                                                   |
+| ------------ | ------------------------------------------------------------ |
+| **datetime** | `datetime`, `date`, `time`, `timedelta` with full arithmetic |
+| **json**     | `loads`, `dumps` with Python-compatible semantics            |
+| **re**       | `search`, `match`, `findAll`, `sub` with named groups        |
+
+### Math & Random
+
+| Module     | Highlights                                             |
+| ---------- | ------------------------------------------------------ |
+| **math**   | `sqrt`, `floor`, `ceil`, `factorial`, `gcd`, `pi`, `e` |
+| **random** | `randInt`, `choice`, `shuffle`, `sample`, `uniform`    |
+
+### File System
+
+| Module       | Highlights                                          |
+| ------------ | --------------------------------------------------- |
+| **os**       | `path.join`, `environ`, `getcwd`, `listdir`, `walk` |
+| **pathlib**  | `Path` class with `readText`, `writeText`, `glob`   |
+| **glob**     | Pattern matching for files                          |
+| **shutil**   | `copy`, `move`, `rmtree`                            |
+| **tempfile** | `NamedTemporaryFile`, `TemporaryDirectory`          |
+
+### Security & Encoding
+
+| Module      | Highlights                                  |
+| ----------- | ------------------------------------------- |
+| **hashlib** | `md5`, `sha256`, `sha512`                   |
+| **base64**  | `b64encode`, `b64decode`, URL-safe variants |
+| **uuid**    | `uuid4`, `uuid1`, `UUID` class              |
+
+### More
+
+| Module         | Highlights                              |
+| -------------- | --------------------------------------- |
+| **string**     | `Template`, `capWords`, ASCII constants |
+| **subprocess** | `run`, `call`, `checkOutput`            |
+| **urllib**     | `urlparse`, `urljoin`, `quote`          |
+| **logging**    | `getLogger`, `basicConfig`, handlers    |
+| **sys**        | `argv`, `platform`, `exit`              |
+| **time**       | `sleep`, `time`, `strftime`             |
+| **copy**       | `copy`, `deepcopy`                      |
+
+## Supported Python Features
+
+| Feature                         | Status |
+| ------------------------------- | :----: |
+| Functions & type hints          |   ✅   |
+| Classes & inheritance           |   ✅   |
+| Dataclasses                     |   ✅   |
+| Generics (`TypeVar`, `Generic`) |   ✅   |
+| Protocols                       |   ✅   |
+| TypedDict                       |   ✅   |
+| List/dict/set comprehensions    |   ✅   |
+| Pattern matching (`match`)      |   ✅   |
+| Async/await                     |   ✅   |
+| Decorators                      |   ✅   |
+| Context managers (`with`)       |   ✅   |
+| f-strings                       |   ✅   |
+| Generators                      |   ✅   |
+| Walrus operator (`:=`)          |   ✅   |
+| Multiple inheritance            |   ✅   |
+
+## Runtime Support
+
+Tested on every commit:
+
+- **Node.js** v22, v24
+- **Bun** latest
+- **Deno** v2.x
+- **Browsers** via Playwright (Chrome, Firefox, Safari)
+
+Also works in: Cloudflare Workers, AWS Lambda, Vercel Edge Functions, and any other JavaScript
+runtime.
