@@ -11,7 +11,13 @@
 // ============================================================
 
 /**
- * Python range() function
+ * Return a sequence of numbers from start to stop (exclusive) by step.
+ *
+ * @param startOrStop - If only one argument, this is stop (start defaults to 0). Otherwise, this is start.
+ * @param stop - The end value (exclusive)
+ * @param step - The increment (default: 1)
+ * @returns An iterable of numbers
+ * @see {@link https://docs.python.org/3/library/functions.html#func-range | Python range()}
  */
 export function range(startOrStop: number, stop?: number, step?: number): Iterable<number> {
   let start: number
@@ -48,7 +54,12 @@ export function range(startOrStop: number, stop?: number, step?: number): Iterab
 }
 
 /**
- * Python enumerate() function
+ * Return an iterable of tuples containing (index, value) pairs.
+ *
+ * @param iterable - The sequence to enumerate
+ * @param start - The starting index (default: 0)
+ * @returns An iterable of [index, value] tuples
+ * @see {@link https://docs.python.org/3/library/functions.html#enumerate | Python enumerate()}
  */
 export function enumerate<T>(iterable: Iterable<T>, start = 0): Iterable<[number, T]> {
   return {
@@ -62,7 +73,13 @@ export function enumerate<T>(iterable: Iterable<T>, start = 0): Iterable<[number
 }
 
 /**
- * Python zip() function
+ * Iterate over multiple iterables in parallel, yielding tuples.
+ *
+ * Stops when the shortest iterable is exhausted.
+ *
+ * @param iterables - The iterables to zip together
+ * @returns An iterable of tuples containing elements from each input
+ * @see {@link https://docs.python.org/3/library/functions.html#zip | Python zip()}
  */
 export function zip<T extends unknown[][]>(
   ...iterables: { [K in keyof T]: Iterable<T[K]> }
@@ -86,7 +103,13 @@ export function zip<T extends unknown[][]>(
 }
 
 /**
- * Safe iteration helper for for-in loops
+ * Return an iterator object for the given iterable.
+ *
+ * For objects without Symbol.iterator, returns the object's keys.
+ *
+ * @param obj - The object to iterate over
+ * @returns An iterable
+ * @see {@link https://docs.python.org/3/library/functions.html#iter | Python iter()}
  */
 export function iter<T>(
   obj: Iterable<T> | Record<string, unknown> | null | undefined
@@ -104,8 +127,13 @@ export function iter<T>(
 }
 
 /**
- * Python reversed() function
- * Uses ES2023 Array.prototype.toReversed() for immutable reversal
+ * Return a reversed iterator over the values of the given sequence.
+ *
+ * Uses ES2023 Array.prototype.toReversed() for immutable reversal.
+ *
+ * @param iterable - The sequence to reverse
+ * @returns An iterable yielding elements in reverse order
+ * @see {@link https://docs.python.org/3/library/functions.html#reversed | Python reversed()}
  */
 export function reversed<T>(iterable: Iterable<T>): Iterable<T> {
   // toReversed() already returns a new array, so no need to copy first if already an array
@@ -114,8 +142,14 @@ export function reversed<T>(iterable: Iterable<T>): Iterable<T> {
 }
 
 /**
- * Python sorted() function
- * Uses ES2023 Array.prototype.toSorted() for immutable sorting
+ * Return a new sorted list from the items in the iterable.
+ *
+ * Uses ES2023 Array.prototype.toSorted() for immutable sorting.
+ *
+ * @param iterable - The sequence to sort
+ * @param options - Sorting options: key function and/or reverse flag
+ * @returns A new sorted array
+ * @see {@link https://docs.python.org/3/library/functions.html#sorted | Python sorted()}
  */
 export function sorted<T>(
   iterable: Iterable<T>,
@@ -157,16 +191,29 @@ function getIterator<T>(iterable: Iterable<T>): IteratorHelpers<T> {
 }
 
 /**
- * Python map() function
- * Uses ES2024 Iterator.prototype.map()
+ * Apply a function to every item of the iterable and yield the results.
+ *
+ * Uses ES2024 Iterator.prototype.map() for lazy evaluation.
+ *
+ * @param fn - The function to apply to each element
+ * @param iterable - The input iterable
+ * @returns An iterable of transformed values
+ * @see {@link https://docs.python.org/3/library/functions.html#map | Python map()}
  */
 export function map<T, U>(fn: (x: T) => U, iterable: Iterable<T>): Iterable<U> {
   return getIterator(iterable).map(fn)
 }
 
 /**
- * Python filter() function
- * Uses ES2024 Iterator.prototype.filter()
+ * Return an iterable yielding items where the function returns true.
+ *
+ * If function is null, return items that are truthy.
+ * Uses ES2024 Iterator.prototype.filter() for lazy evaluation.
+ *
+ * @param fn - The predicate function (or null for truthiness check)
+ * @param iterable - The input iterable
+ * @returns An iterable of filtered values
+ * @see {@link https://docs.python.org/3/library/functions.html#filter | Python filter()}
  */
 export function filter<T>(fn: ((x: T) => boolean) | null, iterable: Iterable<T>): Iterable<T> {
   // Python's filter(None, iterable) filters by truthiness
@@ -179,7 +226,11 @@ export function filter<T>(fn: ((x: T) => boolean) | null, iterable: Iterable<T>)
 // ============================================================
 
 /**
- * Convert to list (array)
+ * Convert an iterable to a list (array).
+ *
+ * @param iterable - The iterable to convert (optional, defaults to empty list)
+ * @returns A new array containing the iterable's elements
+ * @see {@link https://docs.python.org/3/library/functions.html#func-list | Python list()}
  */
 export function list<T>(iterable?: Iterable<T>): T[] {
   if (iterable === undefined) {
@@ -189,21 +240,33 @@ export function list<T>(iterable?: Iterable<T>): T[] {
 }
 
 /**
- * Create a Map (Python dict)
+ * Create a new dictionary (Map) from key-value pairs.
+ *
+ * @param entries - Optional iterable of [key, value] pairs
+ * @returns A new Map
+ * @see {@link https://docs.python.org/3/library/functions.html#func-dict | Python dict()}
  */
 export function dict<K, V>(entries?: Iterable<[K, V]>): Map<K, V> {
   return new Map(entries)
 }
 
 /**
- * Create a Set
+ * Create a new set from an iterable.
+ *
+ * @param iterable - Optional iterable of elements
+ * @returns A new Set
+ * @see {@link https://docs.python.org/3/library/functions.html#func-set | Python set()}
  */
 export function set<T>(iterable?: Iterable<T>): Set<T> {
   return new Set(iterable)
 }
 
 /**
- * Create a tuple (readonly array)
+ * Create an immutable tuple (frozen array).
+ *
+ * @param items - The elements to include in the tuple
+ * @returns A frozen (readonly) array
+ * @see {@link https://docs.python.org/3/library/functions.html#func-tuple | Python tuple()}
  */
 export function tuple<T extends unknown[]>(...items: T): Readonly<T> {
   return Object.freeze([...items]) as Readonly<T>
@@ -214,7 +277,13 @@ export function tuple<T extends unknown[]>(...items: T): Readonly<T> {
 // ============================================================
 
 /**
- * Python len() function
+ * Return the number of items in an object.
+ *
+ * Works with strings, arrays, Maps, Sets, and objects with a length property.
+ *
+ * @param obj - The object to measure
+ * @returns The number of items
+ * @see {@link https://docs.python.org/3/library/functions.html#len | Python len()}
  */
 export function len(
   obj: string | unknown[] | Map<unknown, unknown> | Set<unknown> | { length: number }
@@ -233,14 +302,22 @@ export function len(
 }
 
 /**
- * Python abs() function
+ * Return the absolute value of a number.
+ *
+ * @param x - The number
+ * @returns The absolute value
+ * @see {@link https://docs.python.org/3/library/functions.html#abs | Python abs()}
  */
 export function abs(x: number): number {
   return Math.abs(x)
 }
 
 /**
- * Python min() function
+ * Return the smallest item in an iterable or the smallest of two or more arguments.
+ *
+ * @param args - An iterable, or multiple values to compare
+ * @returns The minimum value
+ * @see {@link https://docs.python.org/3/library/functions.html#min | Python min()}
  */
 export function min<T>(...args: T[] | [Iterable<T>]): T {
   const first = args[0]
@@ -265,7 +342,11 @@ export function min<T>(...args: T[] | [Iterable<T>]): T {
 }
 
 /**
- * Python max() function
+ * Return the largest item in an iterable or the largest of two or more arguments.
+ *
+ * @param args - An iterable, or multiple values to compare
+ * @returns The maximum value
+ * @see {@link https://docs.python.org/3/library/functions.html#max | Python max()}
  */
 export function max<T>(...args: T[] | [Iterable<T>]): T {
   const first = args[0]
@@ -290,7 +371,12 @@ export function max<T>(...args: T[] | [Iterable<T>]): T {
 }
 
 /**
- * Python sum() function
+ * Return the sum of all items in the iterable plus an optional start value.
+ *
+ * @param iterable - The numbers to sum
+ * @param start - The initial value (default: 0)
+ * @returns The sum
+ * @see {@link https://docs.python.org/3/library/functions.html#sum | Python sum()}
  */
 export function sum(iterable: Iterable<number>, start = 0): number {
   let total = start
@@ -301,7 +387,11 @@ export function sum(iterable: Iterable<number>, start = 0): number {
 }
 
 /**
- * Python all() function
+ * Return True if all elements of the iterable are truthy (or if empty).
+ *
+ * @param iterable - The elements to test
+ * @returns True if all elements are truthy
+ * @see {@link https://docs.python.org/3/library/functions.html#all | Python all()}
  */
 export function all(iterable: Iterable<unknown>): boolean {
   for (const item of iterable) {
@@ -311,7 +401,11 @@ export function all(iterable: Iterable<unknown>): boolean {
 }
 
 /**
- * Python any() function
+ * Return True if any element of the iterable is truthy.
+ *
+ * @param iterable - The elements to test
+ * @returns True if any element is truthy
+ * @see {@link https://docs.python.org/3/library/functions.html#any | Python any()}
  */
 export function any(iterable: Iterable<unknown>): boolean {
   for (const item of iterable) {
@@ -321,7 +415,14 @@ export function any(iterable: Iterable<unknown>): boolean {
 }
 
 /**
- * Python round() function
+ * Round a number to a given precision in decimal digits.
+ *
+ * Uses banker's rounding (round half to even) for values exactly halfway.
+ *
+ * @param number - The number to round
+ * @param ndigits - Number of decimal places (default: 0)
+ * @returns The rounded number
+ * @see {@link https://docs.python.org/3/library/functions.html#round | Python round()}
  */
 export function round(number: number, ndigits?: number): number {
   if (ndigits === undefined || ndigits === 0) {
@@ -337,7 +438,11 @@ export function round(number: number, ndigits?: number): number {
 }
 
 /**
- * Python ord()
+ * Return the Unicode code point for a one-character string.
+ *
+ * @param char - A single character
+ * @returns The Unicode code point
+ * @see {@link https://docs.python.org/3/library/functions.html#ord | Python ord()}
  */
 export function ord(char: string): number {
   if (char.length !== 1) {
@@ -347,14 +452,22 @@ export function ord(char: string): number {
 }
 
 /**
- * Python chr()
+ * Return the string representing a character at the given Unicode code point.
+ *
+ * @param code - The Unicode code point
+ * @returns A single-character string
+ * @see {@link https://docs.python.org/3/library/functions.html#chr | Python chr()}
  */
 export function chr(code: number): string {
   return String.fromCharCode(code)
 }
 
 /**
- * Python hex()
+ * Convert an integer to a lowercase hexadecimal string prefixed with "0x".
+ *
+ * @param x - The integer to convert
+ * @returns Hexadecimal string (e.g., "0xff")
+ * @see {@link https://docs.python.org/3/library/functions.html#hex | Python hex()}
  */
 export function hex(x: number): string {
   const prefix = x < 0 ? "-0x" : "0x"
@@ -362,7 +475,11 @@ export function hex(x: number): string {
 }
 
 /**
- * Python oct()
+ * Convert an integer to an octal string prefixed with "0o".
+ *
+ * @param x - The integer to convert
+ * @returns Octal string (e.g., "0o17")
+ * @see {@link https://docs.python.org/3/library/functions.html#oct | Python oct()}
  */
 export function oct(x: number): string {
   const prefix = x < 0 ? "-0o" : "0o"
@@ -370,7 +487,11 @@ export function oct(x: number): string {
 }
 
 /**
- * Python bin()
+ * Convert an integer to a binary string prefixed with "0b".
+ *
+ * @param x - The integer to convert
+ * @returns Binary string (e.g., "0b1010")
+ * @see {@link https://docs.python.org/3/library/functions.html#bin | Python bin()}
  */
 export function bin(x: number): string {
   const prefix = x < 0 ? "-0b" : "0b"
@@ -382,7 +503,14 @@ export function bin(x: number): string {
 // ============================================================
 
 /**
- * Python int() function
+ * Convert a value to an integer.
+ *
+ * Truncates floats toward zero. Parses strings in the given base.
+ *
+ * @param x - The value to convert
+ * @param base - The base for string conversion (default: 10)
+ * @returns The integer value
+ * @see {@link https://docs.python.org/3/library/functions.html#int | Python int()}
  */
 export function int(x: string | number | boolean, base?: number): number {
   if (typeof x === "boolean") {
@@ -399,7 +527,11 @@ export function int(x: string | number | boolean, base?: number): number {
 }
 
 /**
- * Python float() function
+ * Convert a value to a floating-point number.
+ *
+ * @param x - The value to convert
+ * @returns The float value
+ * @see {@link https://docs.python.org/3/library/functions.html#float | Python float()}
  */
 export function float(x: string | number): number {
   if (typeof x === "number") {
@@ -413,7 +545,13 @@ export function float(x: string | number): number {
 }
 
 /**
- * Python str() function
+ * Convert a value to its string representation.
+ *
+ * Uses Python-style formatting for booleans (True/False), None, and collections.
+ *
+ * @param x - The value to convert
+ * @returns The string representation
+ * @see {@link https://docs.python.org/3/library/functions.html#func-str | Python str()}
  */
 export function str(x: unknown): string {
   if (x === null) {
@@ -451,7 +589,13 @@ export function str(x: unknown): string {
 }
 
 /**
- * Python repr() function
+ * Return a string containing a printable representation of an object.
+ *
+ * Strings are quoted, other types use str() representation.
+ *
+ * @param x - The value to represent
+ * @returns A printable representation
+ * @see {@link https://docs.python.org/3/library/functions.html#repr | Python repr()}
  */
 export function repr(x: unknown): string {
   if (typeof x === "string") {
@@ -461,7 +605,13 @@ export function repr(x: unknown): string {
 }
 
 /**
- * Python bool() function
+ * Convert a value to a boolean using Python's truthiness rules.
+ *
+ * False values: null, undefined, false, 0, empty strings, empty arrays, empty Maps/Sets.
+ *
+ * @param x - The value to convert
+ * @returns The boolean value
+ * @see {@link https://docs.python.org/3/library/functions.html#bool | Python bool()}
  */
 export function bool(x: unknown): boolean {
   if (x === null || x === undefined) {
@@ -486,7 +636,13 @@ export function bool(x: unknown): boolean {
 }
 
 /**
- * Python ascii() - returns ASCII representation
+ * Return a string containing a printable ASCII representation.
+ *
+ * Non-ASCII characters are escaped using \\xhh, \\uhhhh, or \\Uhhhhhhhh.
+ *
+ * @param x - The value to represent
+ * @returns ASCII-safe printable representation
+ * @see {@link https://docs.python.org/3/library/functions.html#ascii | Python ascii()}
  */
 export function ascii(x: unknown): string {
   const s = repr(x)
@@ -507,7 +663,14 @@ export function ascii(x: unknown): string {
 }
 
 /**
- * Python isinstance() - simplified version
+ * Return True if the object is an instance of the specified class.
+ *
+ * Supports JavaScript constructors (Number, String, etc.) and Python type names.
+ *
+ * @param obj - The object to check
+ * @param classInfo - The class or type name to check against
+ * @returns True if obj is an instance of classInfo
+ * @see {@link https://docs.python.org/3/library/functions.html#isinstance | Python isinstance()}
  */
 export function isinstance(obj: unknown, classInfo: unknown): boolean {
   if (classInfo === Number || classInfo === "int" || classInfo === "float") {
@@ -535,7 +698,13 @@ export function isinstance(obj: unknown, classInfo: unknown): boolean {
 }
 
 /**
- * Python type() - simplified version
+ * Return the type name of an object as a string.
+ *
+ * Returns Python-style type names: 'int', 'float', 'str', 'bool', 'list', 'dict', 'set'.
+ *
+ * @param obj - The object to check
+ * @returns The type name
+ * @see {@link https://docs.python.org/3/library/functions.html#type | Python type()}
  */
 export function type(obj: unknown): string {
   if (obj === null) return "NoneType"
@@ -551,7 +720,13 @@ export function type(obj: unknown): string {
 }
 
 /**
- * Python input() - for Node.js
+ * Read a line of input from the user.
+ *
+ * Note: This function requires async implementation in JavaScript environments.
+ *
+ * @param prompt - Optional prompt string to display
+ * @returns The input string
+ * @see {@link https://docs.python.org/3/library/functions.html#input | Python input()}
  */
 export function input(prompt?: string): string {
   if (prompt) {
@@ -603,7 +778,14 @@ function formatNumber(
 }
 
 /**
- * Python format() - formats a value according to format spec
+ * Convert a value to a formatted representation using a format specification.
+ *
+ * Supports Python format spec mini-language for numbers and strings.
+ *
+ * @param value - The value to format
+ * @param spec - The format specification string
+ * @returns The formatted string
+ * @see {@link https://docs.python.org/3/library/functions.html#format | Python format()}
  */
 export function format(value: unknown, spec: string): string {
   if (spec === "") {

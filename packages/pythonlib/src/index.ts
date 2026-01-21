@@ -1,20 +1,26 @@
 /**
- * Python Runtime Library for TypeScript
+ * Python Built-in Functions for TypeScript
  *
- * Import styles:
+ * This module provides Python's built-in functions that are always available
+ * without imports. These are the fundamental operations for working with data
+ * in Python, including iteration (range, enumerate, zip), aggregation (len,
+ * sum, min, max), type conversion (int, str, bool), and more.
  *
- * 1. Builtins (global Python functions):
- *    import { len, range, sorted, min, max } from "pythonlib"
+ * @example
+ * ```typescript
+ * // Direct imports
+ * import { len, range, sorted, min, max } from "pythonlib"
  *
- * 2. Module imports (like Python):
- *    import { dump, loads } from "pythonlib/json"
- *    import { match, search, sub } from "pythonlib/re"
- *    import { chain, combinations } from "pythonlib/itertools"
- *    import { Counter, defaultdict } from "pythonlib/collections"
+ * // Module imports (like Python)
+ * import { chain, combinations } from "pythonlib/itertools"
+ * import { Counter, defaultdict } from "pythonlib/collections"
  *
- * 3. Module namespaces (alternative):
- *    import { json, re, itertools } from "pythonlib"
- *    json.dump(...), re.match(...), itertools.chain(...)
+ * // Module namespaces
+ * import { json, re, itertools } from "pythonlib"
+ * ```
+ *
+ * @see {@link https://docs.python.org/3/library/functions.html | Python Built-in Functions}
+ * @module
  */
 
 // =============================================================================
