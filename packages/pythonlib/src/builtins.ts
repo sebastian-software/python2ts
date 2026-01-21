@@ -108,7 +108,9 @@ export function iter<T>(
  * Uses ES2023 Array.prototype.toReversed() for immutable reversal
  */
 export function reversed<T>(iterable: Iterable<T>): Iterable<T> {
-  return Array.from(iterable).toReversed()
+  // toReversed() already returns a new array, so no need to copy first if already an array
+  const arr: T[] = Array.isArray(iterable) ? (iterable as T[]) : Array.from(iterable)
+  return arr.toReversed()
 }
 
 /**
@@ -122,7 +124,9 @@ export function sorted<T>(
   const key = options?.key ?? ((x: T) => x)
   const reverse = options?.reverse ?? false
 
-  return Array.from(iterable).toSorted((a, b) => {
+  // toSorted() already returns a new array, so no need to copy first if already an array
+  const arr: T[] = Array.isArray(iterable) ? (iterable as T[]) : Array.from(iterable)
+  return arr.toSorted((a, b) => {
     const aKey = key(a)
     const bKey = key(b)
 
