@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.3.0...python2ts-v1.3.1) (2026-01-21)
+
+
+### Documentation
+
+* improve README files with marketing focus ([9db2108](https://github.com/sebastian-software/python2ts/commit/9db210874d52fe45e25a896a06ab4e53392d27ef))
+
 ## [1.3.0](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.2.0...python2ts-v1.3.0) (2026-01-21)
 
 
