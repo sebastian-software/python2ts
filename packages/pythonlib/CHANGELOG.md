@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.3](https://github.com/sebastian-software/python2ts/compare/pythonlib-v2.0.2...pythonlib-v2.0.3) (2026-01-21)
+
+
+### Bug Fixes
+
+* **transformer:** convert ellipsis to Ellipsis constant ([#30](https://github.com/sebastian-software/python2ts/issues/30)) ([834d122](https://github.com/sebastian-software/python2ts/commit/834d12251550978555570b0695b2bb125a85741a))
+
 ## [2.0.2](https://github.com/sebastian-software/python2ts/compare/pythonlib-v2.0.1...pythonlib-v2.0.2) (2026-01-21)
 
 
