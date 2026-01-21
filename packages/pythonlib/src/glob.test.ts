@@ -19,34 +19,37 @@ describe("glob module", () => {
   })
 
   describe("glob()", () => {
-    it("should match files with wildcard", () => {
-      const result = glob.glob(testDir + "/*.txt")
+    it("should match files with wildcard", async () => {
+      const result = await glob.glob(testDir + "/*.txt")
       expect(result.length).toBe(2)
       expect(result.some((p: string) => p.includes("file1.txt"))).toBe(true)
       expect(result.some((p: string) => p.includes("file2.txt"))).toBe(true)
     })
 
-    it("should match files with single char wildcard", () => {
-      const result = glob.glob(testDir + "/file?.txt")
+    it("should match files with single char wildcard", async () => {
+      const result = await glob.glob(testDir + "/file?.txt")
       expect(result.length).toBe(2)
     })
 
-    it("should return empty array for no matches", () => {
-      const result = glob.glob(testDir + "/*.xyz")
+    it("should return empty array for no matches", async () => {
+      const result = await glob.glob(testDir + "/*.xyz")
       expect(result).toEqual([])
     })
 
-    it("should match recursively with **", () => {
-      const result = glob.glob(testDir + "/**/*.txt")
+    it("should match recursively with **", async () => {
+      const result = await glob.glob(testDir + "/**/*.txt")
       expect(result.length).toBeGreaterThanOrEqual(3)
       expect(result.some((p: string) => p.includes("nested.txt"))).toBe(true)
     })
   })
 
   describe("iglob()", () => {
-    it("should return an iterator", () => {
+    it("should return an async iterator", async () => {
       const iter = glob.iglob(testDir + "/*.txt")
-      const results = [...iter]
+      const results: string[] = []
+      for await (const p of iter) {
+        results.push(p)
+      }
       expect(results.length).toBe(2)
     })
   })

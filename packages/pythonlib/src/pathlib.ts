@@ -1,13 +1,14 @@
 /**
  * Python pathlib module for TypeScript
  *
- * Provides object-oriented filesystem paths.
+ * Provides object-oriented filesystem paths with async operations.
  *
  * @see {@link https://docs.python.org/3/library/pathlib.html | Python pathlib documentation}
  * @module
  */
 
 import * as fs from "node:fs"
+import * as fsp from "node:fs/promises"
 import * as nodePath from "node:path"
 
 /**
@@ -195,14 +196,14 @@ export class Path {
     return `file://${absolute}`
   }
 
-  // Filesystem operations
+  // Filesystem operations (async)
 
   /**
    * Whether the path exists.
    */
-  exists(): boolean {
+  async exists(): Promise<boolean> {
     try {
-      fs.accessSync(this._path)
+      await fsp.access(this._path)
       return true
     } catch {
       return false
@@ -212,9 +213,9 @@ export class Path {
   /**
    * Whether the path is a file.
    */
-  isFile(): boolean {
+  async isFile(): Promise<boolean> {
     try {
-      return fs.statSync(this._path).isFile()
+      return (await fsp.stat(this._path)).isFile()
     } catch {
       return false
     }
@@ -223,9 +224,9 @@ export class Path {
   /**
    * Whether the path is a directory.
    */
-  isDir(): boolean {
+  async isDir(): Promise<boolean> {
     try {
-      return fs.statSync(this._path).isDirectory()
+      return (await fsp.stat(this._path)).isDirectory()
     } catch {
       return false
     }
@@ -234,9 +235,9 @@ export class Path {
   /**
    * Whether the path is a symbolic link.
    */
-  isSymlink(): boolean {
+  async isSymlink(): Promise<boolean> {
     try {
-      return fs.lstatSync(this._path).isSymbolicLink()
+      return (await fsp.lstat(this._path)).isSymbolicLink()
     } catch {
       return false
     }
@@ -248,8 +249,8 @@ export class Path {
    * @param encoding - Text encoding (default: utf-8)
    * @returns File contents as string
    */
-  readText(encoding: BufferEncoding = "utf-8"): string {
-    return fs.readFileSync(this._path, { encoding })
+  async readText(encoding: BufferEncoding = "utf-8"): Promise<string> {
+    return fsp.readFile(this._path, { encoding })
   }
 
   /**
@@ -258,8 +259,8 @@ export class Path {
    * @param data - Text to write
    * @param encoding - Text encoding (default: utf-8)
    */
-  writeText(data: string, encoding: BufferEncoding = "utf-8"): void {
-    fs.writeFileSync(this._path, data, { encoding })
+  async writeText(data: string, encoding: BufferEncoding = "utf-8"): Promise<void> {
+    await fsp.writeFile(this._path, data, { encoding })
   }
 
   /**
@@ -267,8 +268,8 @@ export class Path {
    *
    * @returns File contents as Uint8Array
    */
-  readBytes(): Uint8Array {
-    return new Uint8Array(fs.readFileSync(this._path))
+  async readBytes(): Promise<Uint8Array> {
+    return new Uint8Array(await fsp.readFile(this._path))
   }
 
   /**
@@ -276,8 +277,8 @@ export class Path {
    *
    * @param data - Bytes to write
    */
-  writeBytes(data: Uint8Array): void {
-    fs.writeFileSync(this._path, data)
+  async writeBytes(data: Uint8Array): Promise<void> {
+    await fsp.writeFile(this._path, data)
   }
 
   /**
@@ -285,9 +286,9 @@ export class Path {
    *
    * @param options - Options object
    */
-  mkdir(options?: { parents?: boolean; existOk?: boolean }): void {
+  async mkdir(options?: { parents?: boolean; existOk?: boolean }): Promise<void> {
     try {
-      fs.mkdirSync(this._path, { recursive: options?.parents ?? false })
+      await fsp.mkdir(this._path, { recursive: options?.parents ?? false })
     } catch (err) {
       if (!(options?.existOk && (err as NodeJS.ErrnoException).code === "EEXIST")) {
         throw err
@@ -298,15 +299,15 @@ export class Path {
   /**
    * Remove the directory.
    */
-  rmdir(): void {
-    fs.rmdirSync(this._path)
+  async rmdir(): Promise<void> {
+    await fsp.rmdir(this._path)
   }
 
   /**
    * Remove the file or symbolic link.
    */
-  unlink(): void {
-    fs.unlinkSync(this._path)
+  async unlink(): Promise<void> {
+    await fsp.unlink(this._path)
   }
 
   /**
@@ -315,9 +316,9 @@ export class Path {
    * @param target - New path
    * @returns The new Path
    */
-  rename(target: string | Path): Path {
+  async rename(target: string | Path): Promise<Path> {
     const targetPath = target instanceof Path ? target.toString() : target
-    fs.renameSync(this._path, targetPath)
+    await fsp.rename(this._path, targetPath)
     return new Path(targetPath)
   }
 
@@ -327,7 +328,7 @@ export class Path {
    * @param target - Target path to replace
    * @returns The new Path
    */
-  replace(target: string | Path): Path {
+  async replace(target: string | Path): Promise<Path> {
     return this.rename(target)
   }
 
@@ -354,8 +355,8 @@ export class Path {
    *
    * @returns Real path
    */
-  readlink(): Path {
-    return new Path(fs.readlinkSync(this._path))
+  async readlink(): Promise<Path> {
+    return new Path(await fsp.readlink(this._path))
   }
 
   /**
@@ -363,8 +364,8 @@ export class Path {
    *
    * @returns File stat object
    */
-  stat(): fs.Stats {
-    return fs.statSync(this._path)
+  async stat(): Promise<fs.Stats> {
+    return fsp.stat(this._path)
   }
 
   /**
@@ -372,8 +373,8 @@ export class Path {
    *
    * @returns Stat object for the symlink itself
    */
-  lstat(): fs.Stats {
-    return fs.lstatSync(this._path)
+  async lstat(): Promise<fs.Stats> {
+    return fsp.lstat(this._path)
   }
 
   /**
@@ -381,8 +382,9 @@ export class Path {
    *
    * @returns Array of Path objects
    */
-  iterdir(): Path[] {
-    return fs.readdirSync(this._path).map((name) => new Path(this._path, name))
+  async iterdir(): Promise<Path[]> {
+    const entries = await fsp.readdir(this._path)
+    return entries.map((name) => new Path(this._path, name))
   }
 
   /**
@@ -391,7 +393,7 @@ export class Path {
    * @param pattern - Glob pattern
    * @returns Array of matching Path objects
    */
-  glob(pattern: string): Path[] {
+  async glob(pattern: string): Promise<Path[]> {
     return this.matchGlob(pattern, false)
   }
 
@@ -401,21 +403,21 @@ export class Path {
    * @param pattern - Glob pattern
    * @returns Array of matching Path objects
    */
-  rglob(pattern: string): Path[] {
+  async rglob(pattern: string): Promise<Path[]> {
     return this.matchGlob(pattern, true)
   }
 
   /**
    * Internal glob matching implementation.
    */
-  private matchGlob(pattern: string, recursive: boolean): Path[] {
+  private async matchGlob(pattern: string, recursive: boolean): Promise<Path[]> {
     const results: Path[] = []
     const regex = this.globToRegex(pattern)
 
-    const walk = (dir: string): void => {
+    const walk = async (dir: string): Promise<void> => {
       let entries: string[]
       try {
-        entries = fs.readdirSync(dir)
+        entries = await fsp.readdir(dir)
       } catch {
         return
       }
@@ -430,8 +432,8 @@ export class Path {
 
         if (recursive) {
           try {
-            if (fs.statSync(fullPath).isDirectory()) {
-              walk(fullPath)
+            if ((await fsp.stat(fullPath)).isDirectory()) {
+              await walk(fullPath)
             }
           } catch {
             // Ignore errors accessing directories
@@ -440,7 +442,7 @@ export class Path {
       }
     }
 
-    walk(this._path)
+    await walk(this._path)
     return results
   }
 
@@ -463,9 +465,9 @@ export class Path {
    *
    * @param target - Target of the symlink
    */
-  symlinkTo(target: string | Path): void {
+  async symlinkTo(target: string | Path): Promise<void> {
     const targetPath = target instanceof Path ? target.toString() : target
-    fs.symlinkSync(targetPath, this._path)
+    await fsp.symlink(targetPath, this._path)
   }
 
   /**
@@ -473,9 +475,9 @@ export class Path {
    *
    * @param target - Target of the link
    */
-  linkTo(target: string | Path): void {
+  async linkTo(target: string | Path): Promise<void> {
     const targetPath = target instanceof Path ? target.toString() : target
-    fs.linkSync(targetPath, this._path)
+    await fsp.link(targetPath, this._path)
   }
 
   /**
@@ -483,8 +485,8 @@ export class Path {
    *
    * @param mode - Permission mode
    */
-  chmod(mode: number): void {
-    fs.chmodSync(this._path, mode)
+  async chmod(mode: number): Promise<void> {
+    await fsp.chmod(this._path, mode)
   }
 
   /**
@@ -493,15 +495,15 @@ export class Path {
    * @param atime - Access time
    * @param mtime - Modification time
    */
-  touch(atime?: Date, mtime?: Date): void {
+  async touch(atime?: Date, mtime?: Date): Promise<void> {
     const now = new Date()
     const accessTime = atime ?? now
     const modTime = mtime ?? now
 
-    if (!this.exists()) {
-      fs.writeFileSync(this._path, "")
+    if (!(await this.exists())) {
+      await fsp.writeFile(this._path, "")
     }
-    fs.utimesSync(this._path, accessTime, modTime)
+    await fsp.utimes(this._path, accessTime, modTime)
   }
 
   /**

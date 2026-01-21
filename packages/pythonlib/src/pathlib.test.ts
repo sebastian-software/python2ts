@@ -105,51 +105,51 @@ describe("pathlib module", () => {
   })
 
   describe("filesystem operations", () => {
-    it("exists() should detect existing paths", () => {
-      expect(new Path(testDir).exists()).toBe(true)
-      expect(new Path(testDir + "/nonexistent").exists()).toBe(false)
+    it("exists() should detect existing paths", async () => {
+      expect(await new Path(testDir).exists()).toBe(true)
+      expect(await new Path(testDir + "/nonexistent").exists()).toBe(false)
     })
 
-    it("isDir() should detect directories", () => {
-      expect(new Path(testDir).isDir()).toBe(true)
+    it("isDir() should detect directories", async () => {
+      expect(await new Path(testDir).isDir()).toBe(true)
     })
 
-    it("mkdir() should create directories", () => {
+    it("mkdir() should create directories", async () => {
       const p = new Path(testDir, "subdir")
-      p.mkdir()
-      expect(p.isDir()).toBe(true)
+      await p.mkdir()
+      expect(await p.isDir()).toBe(true)
     })
 
-    it("writeText() and readText() should work", () => {
+    it("writeText() and readText() should work", async () => {
       const p = new Path(testDir, "test.txt")
-      p.writeText("hello world")
-      expect(p.readText()).toBe("hello world")
+      await p.writeText("hello world")
+      expect(await p.readText()).toBe("hello world")
     })
 
-    it("writeBytes() and readBytes() should work", () => {
+    it("writeBytes() and readBytes() should work", async () => {
       const p = new Path(testDir, "test.bin")
       const data = new Uint8Array([1, 2, 3, 4, 5])
-      p.writeBytes(data)
-      expect(p.readBytes()).toEqual(data)
+      await p.writeBytes(data)
+      expect(await p.readBytes()).toEqual(data)
     })
 
-    it("isFile() should detect files", () => {
+    it("isFile() should detect files", async () => {
       const p = new Path(testDir, "test.txt")
-      expect(p.isFile()).toBe(true)
+      expect(await p.isFile()).toBe(true)
     })
 
-    it("iterdir() should list directory contents", () => {
+    it("iterdir() should list directory contents", async () => {
       const p = new Path(testDir)
-      const contents = p.iterdir().map((c: Path) => c.name)
+      const contents = (await p.iterdir()).map((c: Path) => c.name)
       expect(contents).toContain("test.txt")
     })
 
-    it("rename() should rename files", () => {
+    it("rename() should rename files", async () => {
       const src = new Path(testDir, "rename-test.txt")
-      src.writeText("test")
-      const dst = src.rename(testDir + "/renamed.txt")
-      expect(dst.exists()).toBe(true)
-      expect(src.exists()).toBe(false)
+      await src.writeText("test")
+      const dst = await src.rename(testDir + "/renamed.txt")
+      expect(await dst.exists()).toBe(true)
+      expect(await src.exists()).toBe(false)
     })
 
     it("resolve() should return absolute path", () => {

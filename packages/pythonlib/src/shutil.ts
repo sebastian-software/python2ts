@@ -1,13 +1,14 @@
 /**
  * Python shutil module for TypeScript
  *
- * Provides high-level file operations.
+ * Provides high-level file operations with async API.
  *
  * @see {@link https://docs.python.org/3/library/shutil.html | Python shutil documentation}
  * @module
  */
 
 import * as fs from "node:fs"
+import * as fsp from "node:fs/promises"
 import * as nodePath from "node:path"
 import * as childProcess from "node:child_process"
 
@@ -18,19 +19,19 @@ import * as childProcess from "node:child_process"
  * @param dst - Destination file or directory path
  * @returns The path to the newly created file
  */
-export function copy(src: string, dst: string): string {
+export async function copy(src: string, dst: string): Promise<string> {
   let finalDst = dst
 
   // If dst is a directory, copy into it
   try {
-    if (fs.statSync(dst).isDirectory()) {
+    if ((await fsp.stat(dst)).isDirectory()) {
       finalDst = nodePath.join(dst, nodePath.basename(src))
     }
   } catch {
     // dst doesn't exist, use as-is
   }
 
-  fs.copyFileSync(src, finalDst)
+  await fsp.copyFile(src, finalDst)
   return finalDst
 }
 
@@ -41,12 +42,12 @@ export function copy(src: string, dst: string): string {
  * @param dst - Destination file or directory path
  * @returns The path to the newly created file
  */
-export function copy2(src: string, dst: string): string {
-  const finalDst = copy(src, dst)
+export async function copy2(src: string, dst: string): Promise<string> {
+  const finalDst = await copy(src, dst)
 
   // Copy metadata
-  const stat = fs.statSync(src)
-  fs.utimesSync(finalDst, stat.atime, stat.mtime)
+  const stat = await fsp.stat(src)
+  await fsp.utimes(finalDst, stat.atime, stat.mtime)
 
   return finalDst
 }
@@ -59,23 +60,27 @@ export function copy2(src: string, dst: string): string {
  * @param options - Options object
  * @returns The destination directory path
  */
-export function copytree(
+export async function copytree(
   src: string,
   dst: string,
   options?: {
     symlinkss?: boolean
     ignore?: (dir: string, names: string[]) => string[]
-    copyFunction?: (src: string, dst: string) => void
+    copyFunction?: (src: string, dst: string) => Promise<void>
     dirsExistOk?: boolean
   }
-): string {
-  const copyFunc = options?.copyFunction ?? copy2
+): Promise<string> {
+  const copyFunc =
+    options?.copyFunction ??
+    (async (s: string, d: string) => {
+      await copy2(s, d)
+    })
   const ignoreFunc = options?.ignore
 
   // Create destination directory
-  fs.mkdirSync(dst, { recursive: options?.dirsExistOk })
+  await fsp.mkdir(dst, { recursive: options?.dirsExistOk })
 
-  const entries = fs.readdirSync(src)
+  const entries = await fsp.readdir(src)
   const ignoredNames = ignoreFunc ? ignoreFunc(src, entries) : []
 
   for (const entry of entries) {
@@ -85,15 +90,15 @@ export function copytree(
 
     const srcPath = nodePath.join(src, entry)
     const dstPath = nodePath.join(dst, entry)
-    const stat = fs.lstatSync(srcPath)
+    const stat = await fsp.lstat(srcPath)
 
     if (stat.isDirectory()) {
-      copytree(srcPath, dstPath, options)
+      await copytree(srcPath, dstPath, options)
     } else if (stat.isSymbolicLink() && options?.symlinkss) {
-      const target = fs.readlinkSync(srcPath)
-      fs.symlinkSync(target, dstPath)
+      const target = await fsp.readlink(srcPath)
+      await fsp.symlink(target, dstPath)
     } else {
-      copyFunc(srcPath, dstPath)
+      await copyFunc(srcPath, dstPath)
     }
   }
 
@@ -107,12 +112,12 @@ export function copytree(
  * @param dst - Destination path
  * @returns The destination path
  */
-export function move(src: string, dst: string): string {
+export async function move(src: string, dst: string): Promise<string> {
   let finalDst = dst
 
   // If dst is a directory, move into it
   try {
-    if (fs.statSync(dst).isDirectory()) {
+    if ((await fsp.stat(dst)).isDirectory()) {
       finalDst = nodePath.join(dst, nodePath.basename(src))
     }
   } catch {
@@ -121,16 +126,16 @@ export function move(src: string, dst: string): string {
 
   try {
     // Try atomic rename first
-    fs.renameSync(src, finalDst)
+    await fsp.rename(src, finalDst)
   } catch {
     // If rename fails (cross-device), copy and delete
-    const stat = fs.statSync(src)
+    const stat = await fsp.stat(src)
     if (stat.isDirectory()) {
-      copytree(src, finalDst)
-      rmtree(src)
+      await copytree(src, finalDst)
+      await rmtree(src)
     } else {
-      copy2(src, finalDst)
-      fs.unlinkSync(src)
+      await copy2(src, finalDst)
+      await fsp.unlink(src)
     }
   }
 
@@ -143,14 +148,14 @@ export function move(src: string, dst: string): string {
  * @param path - Directory path to delete
  * @param options - Options object
  */
-export function rmtree(
+export async function rmtree(
   path: string,
   options?: {
     ignoreErrors?: boolean
   }
-): void {
+): Promise<void> {
   try {
-    fs.rmSync(path, { recursive: true, force: options?.ignoreErrors ?? false })
+    await fsp.rm(path, { recursive: true, force: options?.ignoreErrors ?? false })
   } catch (err) {
     if (!options?.ignoreErrors) {
       throw err
@@ -165,7 +170,7 @@ export function rmtree(
  * @param path - Optional PATH string to search (defaults to process.env.PATH)
  * @returns Path to the executable, or null if not found
  */
-export function which(cmd: string, path?: string): string | null {
+export async function which(cmd: string, path?: string): Promise<string | null> {
   const pathDirs = (path ?? process.env.PATH ?? "").split(nodePath.delimiter)
   const extensions = process.platform === "win32" ? [".exe", ".cmd", ".bat", ".com", ""] : [""]
 
@@ -173,7 +178,7 @@ export function which(cmd: string, path?: string): string | null {
     for (const ext of extensions) {
       const fullPath = nodePath.join(dir, cmd + ext)
       try {
-        fs.accessSync(fullPath, fs.constants.X_OK)
+        await fsp.access(fullPath, fs.constants.X_OK)
         return fullPath
       } catch {
         // Not found or not executable
@@ -199,7 +204,7 @@ export interface DiskUsage {
  * @param path - Path to check
  * @returns Object with total, used, and free bytes
  */
-export function diskUsage(path: string): DiskUsage {
+export async function diskUsage(path: string): Promise<DiskUsage> {
   // This is platform-specific and requires native calls
   // For Node.js, we can use df command on Unix or wmic on Windows
   try {
@@ -219,7 +224,7 @@ export function diskUsage(path: string): DiskUsage {
         return { total, used: total - free, free }
       }
     } else {
-      const stat = fs.statfsSync(path)
+      const stat = await fsp.statfs(path)
       const total = stat.blocks * stat.bsize
       const free = stat.bavail * stat.bsize
       return { total, used: total - free, free }
@@ -250,9 +255,9 @@ export function getTerminalSize(): { columns: number; lines: number } {
  * @param src - Source path
  * @param dst - Destination path
  */
-export function copymode(src: string, dst: string): void {
-  const stat = fs.statSync(src)
-  fs.chmodSync(dst, stat.mode)
+export async function copymode(src: string, dst: string): Promise<void> {
+  const stat = await fsp.stat(src)
+  await fsp.chmod(dst, stat.mode)
 }
 
 /**
@@ -261,10 +266,10 @@ export function copymode(src: string, dst: string): void {
  * @param src - Source path
  * @param dst - Destination path
  */
-export function copystat(src: string, dst: string): void {
-  const stat = fs.statSync(src)
-  fs.chmodSync(dst, stat.mode)
-  fs.utimesSync(dst, stat.atime, stat.mtime)
+export async function copystat(src: string, dst: string): Promise<void> {
+  const stat = await fsp.stat(src)
+  await fsp.chmod(dst, stat.mode)
+  await fsp.utimes(dst, stat.atime, stat.mtime)
 }
 
 /**
@@ -273,8 +278,8 @@ export function copystat(src: string, dst: string): void {
  * @param src - Source file path
  * @param dst - Destination file path
  */
-export function copyfile(src: string, dst: string): void {
-  fs.copyFileSync(src, dst)
+export async function copyfile(src: string, dst: string): Promise<void> {
+  await fsp.copyFile(src, dst)
 }
 
 /**

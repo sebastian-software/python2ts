@@ -1,13 +1,13 @@
 /**
  * Python glob module for TypeScript
  *
- * Provides Unix shell-style pathname pattern matching.
+ * Provides Unix shell-style pathname pattern matching with async operations.
  *
  * @see {@link https://docs.python.org/3/library/glob.html | Python glob documentation}
  * @module
  */
 
-import * as fs from "node:fs"
+import * as fsp from "node:fs/promises"
 import * as nodePath from "node:path"
 
 /**
@@ -22,23 +22,23 @@ import * as nodePath from "node:path"
  *
  * @param pattern - The glob pattern
  * @param options - Options object
- * @returns Array of matching paths
+ * @returns Promise of array of matching paths
  *
  * @example
  * ```typescript
- * glob("*.txt")              // All .txt files in current directory
- * glob("**\/*.py")           // All .py files recursively
- * glob("/path/to/*.js")      // All .js files in /path/to
+ * await glob("*.txt")              // All .txt files in current directory
+ * await glob("**\/*.py")           // All .py files recursively
+ * await glob("/path/to/*.js")      // All .js files in /path/to
  * ```
  */
-export function glob(
+export async function glob(
   pattern: string,
   options?: {
     recursive?: boolean
     rootDir?: string
     includeHidden?: boolean
   }
-): string[] {
+): Promise<string[]> {
   const rootDir = options?.rootDir ?? "."
   const recursive = options?.recursive ?? pattern.includes("**")
   const includeHidden = options?.includeHidden ?? false
@@ -75,10 +75,10 @@ export function glob(
       : nodePath.join(rootDir, fixedPrefix)
     : baseDir
 
-  const walk = (dir: string, depth: number): void => {
+  const walk = async (dir: string, depth: number): Promise<void> => {
     let entries: string[]
     try {
-      entries = fs.readdirSync(dir)
+      entries = await fsp.readdir(dir)
     } catch {
       return
     }
@@ -100,8 +100,8 @@ export function glob(
       // Recurse into directories
       if (recursive) {
         try {
-          if (fs.statSync(fullPath).isDirectory()) {
-            walk(fullPath, depth + 1)
+          if ((await fsp.stat(fullPath)).isDirectory()) {
+            await walk(fullPath, depth + 1)
           }
         } catch {
           // Ignore errors accessing directories
@@ -110,28 +110,28 @@ export function glob(
     }
   }
 
-  walk(searchDir, 0)
+  await walk(searchDir, 0)
   return results.sort()
 }
 
 /**
- * Return an iterator of paths matching a pathname pattern.
+ * Return an async iterator of paths matching a pathname pattern.
  *
  * @param pattern - The glob pattern
  * @param options - Options object
- * @returns Generator of matching paths
+ * @returns AsyncGenerator of matching paths
  */
-export function* iglob(
+export async function* iglob(
   pattern: string,
   options?: {
     recursive?: boolean
     rootDir?: string
     includeHidden?: boolean
   }
-): Generator<string> {
+): AsyncGenerator<string> {
   // For simplicity, we use the non-lazy version internally
   // A true lazy implementation would be more complex
-  const results = glob(pattern, options)
+  const results = await glob(pattern, options)
   for (const result of results) {
     yield result
   }
@@ -230,9 +230,9 @@ function patternToRegex(pattern: string): RegExp {
  *
  * @param pattern - The glob pattern (without **)
  * @param rootDir - Root directory to search from
- * @returns Array of matching paths
+ * @returns Promise of array of matching paths
  */
-export function rglob(pattern: string, rootDir = "."): string[] {
+export async function rglob(pattern: string, rootDir = "."): Promise<string[]> {
   // If pattern doesn't start with **, prepend it
   const fullPattern = pattern.startsWith("**") ? pattern : "**/" + pattern
   return glob(fullPattern, { recursive: true, rootDir })

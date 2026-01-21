@@ -97,114 +97,112 @@ describe("os module", () => {
   describe("filesystem operations (Node.js)", () => {
     const testDir = "/tmp/pythonlib-test-" + Date.now()
 
-    it("mkdir should create directory", () => {
-      os.mkdir(testDir)
-      expect(os.path.isDir(testDir)).toBe(true)
+    it("mkdir should create directory", async () => {
+      await os.mkdir(testDir)
+      expect(await os.path.isDir(testDir)).toBe(true)
     })
 
-    it("listDir should list directory contents", () => {
-      const contents = os.listDir(testDir)
+    it("listDir should list directory contents", async () => {
+      const contents = await os.listDir(testDir)
       expect(Array.isArray(contents)).toBe(true)
     })
 
-    it("listDir should return empty array for nonexistent directory", () => {
-      const contents = os.listDir("/nonexistent-path-12345")
+    it("listDir should return empty array for nonexistent directory", async () => {
+      const contents = await os.listDir("/nonexistent-path-12345")
       expect(contents).toEqual([])
     })
 
-    it("makeDirs should create nested directories", () => {
+    it("makeDirs should create nested directories", async () => {
       const nested = testDir + "/a/b/c"
-      os.makeDirs(nested)
-      expect(os.path.isDir(nested)).toBe(true)
+      await os.makeDirs(nested)
+      expect(await os.path.isDir(nested)).toBe(true)
     })
 
-    it("makeDirs with existOk should not throw on existing directory", () => {
-      expect(() => {
-        os.makeDirs(testDir, 0o777, true)
-      }).not.toThrow()
+    it("makeDirs with existOk should not throw on existing directory", async () => {
+      await expect(os.makeDirs(testDir, 0o777, true)).resolves.not.toThrow()
     })
 
-    it("path.exists should detect existing paths", () => {
-      expect(os.path.exists(testDir)).toBe(true)
-      expect(os.path.exists(testDir + "/nonexistent")).toBe(false)
+    it("path.exists should detect existing paths", async () => {
+      expect(await os.path.exists(testDir)).toBe(true)
+      expect(await os.path.exists(testDir + "/nonexistent")).toBe(false)
     })
 
-    it("path.isFile should detect files", () => {
+    it("path.isFile should detect files", async () => {
       const filePath = testDir + "/testfile.txt"
       fs.writeFileSync(filePath, "test content")
-      expect(os.path.isFile(filePath)).toBe(true)
-      expect(os.path.isFile(testDir)).toBe(false)
-      expect(os.path.isFile("/nonexistent-12345")).toBe(false)
+      expect(await os.path.isFile(filePath)).toBe(true)
+      expect(await os.path.isFile(testDir)).toBe(false)
+      expect(await os.path.isFile("/nonexistent-12345")).toBe(false)
     })
 
-    it("path.isLink should detect symbolic links", () => {
+    it("path.isLink should detect symbolic links", async () => {
       const filePath = testDir + "/testfile.txt"
       const linkPath = testDir + "/testlink"
       fs.symlinkSync(filePath, linkPath)
-      expect(os.path.isLink(linkPath)).toBe(true)
-      expect(os.path.isLink(filePath)).toBe(false)
-      expect(os.path.isLink("/nonexistent-12345")).toBe(false)
+      expect(await os.path.isLink(linkPath)).toBe(true)
+      expect(await os.path.isLink(filePath)).toBe(false)
+      expect(await os.path.isLink("/nonexistent-12345")).toBe(false)
       fs.unlinkSync(linkPath)
     })
 
-    it("path.isDir should return false for nonexistent paths", () => {
-      expect(os.path.isDir("/nonexistent-12345")).toBe(false)
+    it("path.isDir should return false for nonexistent paths", async () => {
+      expect(await os.path.isDir("/nonexistent-12345")).toBe(false)
     })
 
-    it("path.getSize should return file size", () => {
+    it("path.getSize should return file size", async () => {
       const filePath = testDir + "/testfile.txt"
-      const size = os.path.getSize(filePath)
+      const size = await os.path.getSize(filePath)
       expect(size).toBe(12) // "test content" = 12 bytes
     })
 
-    it("path.getSize should return 0 for nonexistent file", () => {
-      expect(os.path.getSize("/nonexistent-12345")).toBe(0)
+    it("path.getSize should return 0 for nonexistent file", async () => {
+      expect(await os.path.getSize("/nonexistent-12345")).toBe(0)
     })
 
-    it("path.getMtime should return modification time", () => {
+    it("path.getMtime should return modification time", async () => {
       const filePath = testDir + "/testfile.txt"
-      const mtime = os.path.getMtime(filePath)
+      const mtime = await os.path.getMtime(filePath)
       expect(mtime).toBeGreaterThan(0)
     })
 
-    it("path.getMtime should return 0 for nonexistent file", () => {
-      expect(os.path.getMtime("/nonexistent-12345")).toBe(0)
+    it("path.getMtime should return 0 for nonexistent file", async () => {
+      expect(await os.path.getMtime("/nonexistent-12345")).toBe(0)
     })
 
-    it("path.getAtime should return access time", () => {
+    it("path.getAtime should return access time", async () => {
       const filePath = testDir + "/testfile.txt"
-      const atime = os.path.getAtime(filePath)
+      const atime = await os.path.getAtime(filePath)
       expect(atime).toBeGreaterThan(0)
     })
 
-    it("path.getAtime should return 0 for nonexistent file", () => {
-      expect(os.path.getAtime("/nonexistent-12345")).toBe(0)
+    it("path.getAtime should return 0 for nonexistent file", async () => {
+      expect(await os.path.getAtime("/nonexistent-12345")).toBe(0)
     })
 
-    it("path.getCtime should return creation time", () => {
+    it("path.getCtime should return creation time", async () => {
       const filePath = testDir + "/testfile.txt"
-      const ctime = os.path.getCtime(filePath)
+      const ctime = await os.path.getCtime(filePath)
       expect(ctime).toBeGreaterThan(0)
     })
 
-    it("path.getCtime should return 0 for nonexistent file", () => {
-      expect(os.path.getCtime("/nonexistent-12345")).toBe(0)
+    it("path.getCtime should return 0 for nonexistent file", async () => {
+      expect(await os.path.getCtime("/nonexistent-12345")).toBe(0)
     })
 
-    it("path.realPath should resolve symlinks", () => {
+    it("path.realPath should resolve symlinks", async () => {
       const filePath = testDir + "/testfile.txt"
-      const realPath = os.path.realPath(filePath)
+      const realPath = await os.path.realPath(filePath)
       expect(realPath).toContain("testfile.txt")
     })
 
-    it("path.realPath should fall back to absPath for nonexistent", () => {
-      const result = os.path.realPath("./nonexistent-path")
+    it("path.realPath should fall back to absPath for nonexistent", async () => {
+      const result = await os.path.realPath("./nonexistent-path")
       expect(os.path.isAbs(result)).toBe(true)
     })
 
-    it("stat should return file statistics", () => {
+    it("stat should return file statistics", async () => {
       const filePath = testDir + "/testfile.txt"
-      const s = os.stat(filePath)
+      const s = await os.stat(filePath)
       expect(s.st_size).toBe(12)
       expect(s.st_mtime).toBeGreaterThan(0)
       expect(s.st_atime).toBeGreaterThan(0)
@@ -212,40 +210,40 @@ describe("os module", () => {
       expect(s.st_mode).toBeGreaterThan(0)
     })
 
-    it("stat should return zeros for nonexistent file", () => {
-      const s = os.stat("/nonexistent-12345")
+    it("stat should return zeros for nonexistent file", async () => {
+      const s = await os.stat("/nonexistent-12345")
       expect(s.st_size).toBe(0)
       expect(s.st_mtime).toBe(0)
     })
 
-    it("rename should rename file", () => {
+    it("rename should rename file", async () => {
       const oldPath = testDir + "/testfile.txt"
       const newPath = testDir + "/renamed.txt"
-      os.rename(oldPath, newPath)
-      expect(os.path.exists(oldPath)).toBe(false)
-      expect(os.path.exists(newPath)).toBe(true)
+      await os.rename(oldPath, newPath)
+      expect(await os.path.exists(oldPath)).toBe(false)
+      expect(await os.path.exists(newPath)).toBe(true)
     })
 
-    it("replace should atomically replace file", () => {
+    it("replace should atomically replace file", async () => {
       const src = testDir + "/src.txt"
       const dst = testDir + "/dst.txt"
       fs.writeFileSync(src, "source")
       fs.writeFileSync(dst, "destination")
-      os.replace(src, dst)
-      expect(os.path.exists(src)).toBe(false)
-      expect(os.path.exists(dst)).toBe(true)
+      await os.replace(src, dst)
+      expect(await os.path.exists(src)).toBe(false)
+      expect(await os.path.exists(dst)).toBe(true)
     })
 
-    it("renames should create destination directory", () => {
+    it("renames should create destination directory", async () => {
       const src = testDir + "/renamed.txt"
       const dst = testDir + "/new-dir/new-file.txt"
-      os.renames(src, dst)
-      expect(os.path.exists(dst)).toBe(true)
+      await os.renames(src, dst)
+      expect(await os.path.exists(dst)).toBe(true)
     })
 
-    it("walk should traverse directory tree", () => {
+    it("walk should traverse directory tree", async () => {
       const results: [string, string[], string[]][] = []
-      for (const entry of os.walk(testDir)) {
+      for await (const entry of os.walk(testDir)) {
         results.push(entry)
       }
       expect(results.length).toBeGreaterThan(0)
@@ -254,9 +252,9 @@ describe("os module", () => {
       expect(firstResult?.[0]).toBe(testDir)
     })
 
-    it("walk with topdown=false should yield bottom-up", () => {
+    it("walk with topdown=false should yield bottom-up", async () => {
       const results: [string, string[], string[]][] = []
-      for (const entry of os.walk(testDir, { topdown: false })) {
+      for await (const entry of os.walk(testDir, { topdown: false })) {
         results.push(entry)
       }
       expect(results.length).toBeGreaterThan(0)
@@ -265,23 +263,23 @@ describe("os module", () => {
       expect(lastResult?.[0]).toBe(testDir)
     })
 
-    it("walk should handle nonexistent directory", () => {
+    it("walk should handle nonexistent directory", async () => {
       const results: [string, string[], string[]][] = []
-      for (const entry of os.walk("/nonexistent-path-12345")) {
+      for await (const entry of os.walk("/nonexistent-path-12345")) {
         results.push(entry)
       }
       expect(results).toEqual([])
     })
 
-    it("walk with followlinks=true should follow symlink to directory", () => {
+    it("walk with followlinks=true should follow symlink to directory", async () => {
       // Create a subdirectory and a symlink to it
       const subDir = testDir + "/link-target-dir"
       const linkPath = testDir + "/symlink-to-dir"
-      os.mkdir(subDir)
+      await os.mkdir(subDir)
       fs.symlinkSync(subDir, linkPath)
 
       const results: [string, string[], string[]][] = []
-      for (const entry of os.walk(testDir, { followlinks: true })) {
+      for await (const entry of os.walk(testDir, { followlinks: true })) {
         results.push(entry)
       }
 
@@ -296,7 +294,7 @@ describe("os module", () => {
       fs.rmdirSync(subDir)
     })
 
-    it("walk with followlinks=true should follow symlink to file", () => {
+    it("walk with followlinks=true should follow symlink to file", async () => {
       // Create a file and a symlink to it
       const filePath = testDir + "/link-target-file.txt"
       const linkPath = testDir + "/symlink-to-file"
@@ -304,7 +302,7 @@ describe("os module", () => {
       fs.symlinkSync(filePath, linkPath)
 
       const results: [string, string[], string[]][] = []
-      for (const entry of os.walk(testDir, { followlinks: true })) {
+      for await (const entry of os.walk(testDir, { followlinks: true })) {
         results.push(entry)
       }
 
@@ -319,13 +317,13 @@ describe("os module", () => {
       fs.unlinkSync(filePath)
     })
 
-    it("walk with followlinks=true should handle broken symlink", () => {
+    it("walk with followlinks=true should handle broken symlink", async () => {
       // Create a symlink to a nonexistent target
       const linkPath = testDir + "/broken-symlink"
       fs.symlinkSync("/nonexistent-target-12345", linkPath)
 
       const results: [string, string[], string[]][] = []
-      for (const entry of os.walk(testDir, { followlinks: true })) {
+      for await (const entry of os.walk(testDir, { followlinks: true })) {
         results.push(entry)
       }
 
@@ -338,15 +336,15 @@ describe("os module", () => {
       fs.unlinkSync(linkPath)
     })
 
-    it("walk with followlinks=false should treat symlinks as files", () => {
+    it("walk with followlinks=false should treat symlinks as files", async () => {
       // Create a directory and a symlink to it
       const subDir = testDir + "/dir-for-symlink"
       const linkPath = testDir + "/symlink-no-follow"
-      os.mkdir(subDir)
+      await os.mkdir(subDir)
       fs.symlinkSync(subDir, linkPath)
 
       const results: [string, string[], string[]][] = []
-      for (const entry of os.walk(testDir, { followlinks: false })) {
+      for await (const entry of os.walk(testDir, { followlinks: false })) {
         results.push(entry)
       }
 
@@ -362,39 +360,37 @@ describe("os module", () => {
       fs.rmdirSync(subDir)
     })
 
-    it("makeDirs should handle permission errors", () => {
+    it("makeDirs should handle permission errors", async () => {
       // Try to create directory in a location that should fail
       // (Note: mkdirSync with recursive:true doesn't throw EEXIST)
-      expect(() => {
-        os.makeDirs("/root/no-permission-12345")
-      }).toThrow()
+      await expect(os.makeDirs("/root/no-permission-12345")).rejects.toThrow()
     })
 
-    it("remove should delete file (unlink alias)", () => {
+    it("remove should delete file (unlink alias)", async () => {
       const filePath = testDir + "/to-delete.txt"
       fs.writeFileSync(filePath, "delete me")
-      os.unlink(filePath)
-      expect(os.path.exists(filePath)).toBe(false)
+      await os.unlink(filePath)
+      expect(await os.path.exists(filePath)).toBe(false)
     })
 
-    it("rmdir should remove empty directory", () => {
+    it("rmdir should remove empty directory", async () => {
       const emptyDir = testDir + "/empty"
-      os.mkdir(emptyDir)
-      os.rmdir(emptyDir)
-      expect(os.path.exists(emptyDir)).toBe(false)
+      await os.mkdir(emptyDir)
+      await os.rmdir(emptyDir)
+      expect(await os.path.exists(emptyDir)).toBe(false)
     })
 
-    it("removeDirs should remove directory and empty parents", () => {
+    it("removeDirs should remove directory and empty parents", async () => {
       const nested = testDir + "/remove-test/nested"
-      os.makeDirs(nested)
-      os.removeDirs(nested)
-      expect(os.path.exists(nested)).toBe(false)
+      await os.makeDirs(nested)
+      await os.removeDirs(nested)
+      expect(await os.path.exists(nested)).toBe(false)
     })
 
     // Cleanup
-    it("cleanup: remove test directory", () => {
+    it("cleanup: remove test directory", async () => {
       fs.rmSync(testDir, { recursive: true, force: true })
-      expect(os.path.exists(testDir)).toBe(false)
+      expect(await os.path.exists(testDir)).toBe(false)
     })
   })
 

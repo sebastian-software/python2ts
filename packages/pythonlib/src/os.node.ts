@@ -2,14 +2,14 @@
  * Python os module for TypeScript - Node.js version
  *
  * Provides operating system interface functions matching Python's os module,
- * with real filesystem operations using Node.js fs module.
+ * with real filesystem operations using Node.js fs module (async).
  *
  * @see {@link https://docs.python.org/3/library/os.html | Python os documentation}
  * @see {@link https://docs.python.org/3/library/os.path.html | Python os.path documentation}
  * @module
  */
 
-import * as fs from "node:fs"
+import * as fsp from "node:fs/promises"
 import * as nodePath from "node:path"
 
 // Re-export shared code
@@ -58,7 +58,7 @@ import {
 } from "./os.shared.js"
 
 // ============================================================================
-// os.path module - Node.js version with real implementations
+// os.path module - Node.js version with async implementations
 // ============================================================================
 
 export const path = {
@@ -84,18 +84,18 @@ export const path = {
   },
 
   /** Return canonical path, eliminating symlinks */
-  realPath(p: string): string {
+  async realPath(p: string): Promise<string> {
     try {
-      return fs.realpathSync(p)
+      return await fsp.realpath(p)
     } catch {
       return path.absPath(p)
     }
   },
 
   /** Test if path exists */
-  exists(p: string): boolean {
+  async exists(p: string): Promise<boolean> {
     try {
-      fs.accessSync(p)
+      await fsp.access(p)
       return true
     } catch {
       return false
@@ -103,63 +103,63 @@ export const path = {
   },
 
   /** Test if path is a file */
-  isFile(p: string): boolean {
+  async isFile(p: string): Promise<boolean> {
     try {
-      return fs.statSync(p).isFile()
+      return (await fsp.stat(p)).isFile()
     } catch {
       return false
     }
   },
 
   /** Test if path is a directory */
-  isDir(p: string): boolean {
+  async isDir(p: string): Promise<boolean> {
     try {
-      return fs.statSync(p).isDirectory()
+      return (await fsp.stat(p)).isDirectory()
     } catch {
       return false
     }
   },
 
   /** Test if path is a symbolic link */
-  isLink(p: string): boolean {
+  async isLink(p: string): Promise<boolean> {
     try {
-      return fs.lstatSync(p).isSymbolicLink()
+      return (await fsp.lstat(p)).isSymbolicLink()
     } catch {
       return false
     }
   },
 
   /** Return size of file */
-  getSize(p: string): number {
+  async getSize(p: string): Promise<number> {
     try {
-      return fs.statSync(p).size
+      return (await fsp.stat(p)).size
     } catch {
       return 0
     }
   },
 
   /** Return modification time as Unix timestamp */
-  getMtime(p: string): number {
+  async getMtime(p: string): Promise<number> {
     try {
-      return Math.floor(fs.statSync(p).mtimeMs / 1000)
+      return Math.floor((await fsp.stat(p)).mtimeMs / 1000)
     } catch {
       return 0
     }
   },
 
   /** Return access time as Unix timestamp */
-  getAtime(p: string): number {
+  async getAtime(p: string): Promise<number> {
     try {
-      return Math.floor(fs.statSync(p).atimeMs / 1000)
+      return Math.floor((await fsp.stat(p)).atimeMs / 1000)
     } catch {
       return 0
     }
   },
 
   /** Return creation time as Unix timestamp */
-  getCtime(p: string): number {
+  async getCtime(p: string): Promise<number> {
     try {
-      return Math.floor(fs.statSync(p).ctimeMs / 1000)
+      return Math.floor((await fsp.stat(p)).ctimeMs / 1000)
     } catch {
       return 0
     }
@@ -167,27 +167,27 @@ export const path = {
 }
 
 // ============================================================================
-// Filesystem operations - Node.js implementations
+// Filesystem operations - Node.js async implementations
 // ============================================================================
 
 /** List directory contents */
-export function listDir(p = "."): string[] {
+export async function listDir(p = "."): Promise<string[]> {
   try {
-    return fs.readdirSync(p)
+    return await fsp.readdir(p)
   } catch {
     return []
   }
 }
 
 /** Create a directory */
-export function mkdir(p: string, mode = 0o777): void {
-  fs.mkdirSync(p, { mode })
+export async function mkdir(p: string, mode = 0o777): Promise<void> {
+  await fsp.mkdir(p, { mode })
 }
 
 /** Create a directory and parents */
-export function makeDirs(p: string, mode = 0o777, existOk = false): void {
+export async function makeDirs(p: string, mode = 0o777, existOk = false): Promise<void> {
   try {
-    fs.mkdirSync(p, { recursive: true, mode })
+    await fsp.mkdir(p, { recursive: true, mode })
   } catch (e) {
     if (!existOk || !(e instanceof Error && "code" in e && e.code === "EEXIST")) {
       throw e
@@ -196,26 +196,26 @@ export function makeDirs(p: string, mode = 0o777, existOk = false): void {
 }
 
 /** Remove a file */
-export function remove(p: string): void {
-  fs.unlinkSync(p)
+export async function remove(p: string): Promise<void> {
+  await fsp.unlink(p)
 }
 
 /** Remove a file (alias for remove) */
 export const unlink = remove
 
 /** Remove a directory */
-export function rmdir(p: string): void {
-  fs.rmdirSync(p)
+export async function rmdir(p: string): Promise<void> {
+  await fsp.rmdir(p)
 }
 
 /** Remove directory tree (removes empty parent directories) */
-export function removeDirs(p: string): void {
-  fs.rmdirSync(p)
+export async function removeDirs(p: string): Promise<void> {
+  await fsp.rmdir(p)
   // Try to remove parent directories
   let parent = pathDirname(p)
   while (parent && parent !== p) {
     try {
-      fs.rmdirSync(parent)
+      await fsp.rmdir(parent)
       p = parent
       parent = pathDirname(p)
     } catch {
@@ -225,22 +225,22 @@ export function removeDirs(p: string): void {
 }
 
 /** Rename a file or directory */
-export function rename(src: string, dst: string): void {
-  fs.renameSync(src, dst)
+export async function rename(src: string, dst: string): Promise<void> {
+  await fsp.rename(src, dst)
 }
 
 /** Rename with automatic directory creation */
-export function renames(src: string, dst: string): void {
+export async function renames(src: string, dst: string): Promise<void> {
   const dstDir = pathDirname(dst)
   if (dstDir) {
-    makeDirs(dstDir, 0o777, true)
+    await makeDirs(dstDir, 0o777, true)
   }
-  rename(src, dst)
+  await rename(src, dst)
   // Try to remove empty source directories
   const srcDir = pathDirname(src)
   if (srcDir) {
     try {
-      removeDirs(srcDir)
+      await removeDirs(srcDir)
     } catch {
       // Ignore errors when removing source directories
     }
@@ -248,15 +248,15 @@ export function renames(src: string, dst: string): void {
 }
 
 /** Replace file (atomic rename) */
-export function replace(src: string, dst: string): void {
-  fs.renameSync(src, dst)
+export async function replace(src: string, dst: string): Promise<void> {
+  await fsp.rename(src, dst)
 }
 
 /** Walk directory tree */
-export function* walk(
+export async function* walk(
   top: string,
   options?: { topdown?: boolean; followlinks?: boolean }
-): Generator<[string, string[], string[]]> {
+): AsyncGenerator<[string, string[], string[]]> {
   const topdown = options?.topdown ?? true
   const followlinks = options?.followlinks ?? false
 
@@ -264,7 +264,7 @@ export function* walk(
   const files: string[] = []
 
   try {
-    const entries = fs.readdirSync(top, { withFileTypes: true })
+    const entries = await fsp.readdir(top, { withFileTypes: true })
     for (const entry of entries) {
       if (entry.isDirectory()) {
         dirs.push(entry.name)
@@ -273,8 +273,8 @@ export function* walk(
       } else if (entry.isSymbolicLink()) {
         if (followlinks) {
           try {
-            const realPath = fs.realpathSync(nodePath.join(top, entry.name))
-            if (fs.statSync(realPath).isDirectory()) {
+            const realPath = await fsp.realpath(nodePath.join(top, entry.name))
+            if ((await fsp.stat(realPath)).isDirectory()) {
               dirs.push(entry.name)
             } else {
               files.push(entry.name)
@@ -306,15 +306,15 @@ export function* walk(
 }
 
 /** Get file stat */
-export function stat(p: string): {
+export async function stat(p: string): Promise<{
   st_mode: number
   st_size: number
   st_mtime: number
   st_atime: number
   st_ctime: number
-} {
+}> {
   try {
-    const s = fs.statSync(p)
+    const s = await fsp.stat(p)
     return {
       st_mode: s.mode,
       st_size: s.size,
