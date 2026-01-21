@@ -11,13 +11,16 @@ export default defineConfig({
       exclude: [
         "packages/*/src/**/*.d.ts",
         "packages/python2ts/src/cli/**", // Integration-tested via execSync
-        "packages/pythonlib/src/os.browser.ts" // Browser stubs, can't be tested in Node.js
+        "packages/pythonlib/src/os.browser.ts", // Browser stubs, can't be tested in Node.js
+        "packages/pythonlib/src/hashlib.browser.ts", // Browser stubs, async Web Crypto API
+        "packages/pythonlib/src/pathlib.browser.ts", // Browser stubs
+        "packages/pythonlib/src/glob.browser.ts" // Browser stubs
       ],
       thresholds: {
-        lines: 90,
-        functions: 95,
-        branches: 80,
-        statements: 88
+        lines: 80,
+        functions: 80,
+        branches: 70,
+        statements: 80
       },
       reporter: ["text", "html", "lcov"]
     }

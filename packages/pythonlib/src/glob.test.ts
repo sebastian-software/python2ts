@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import * as fs from "node:fs"
-import * as glob from "./glob"
+import * as glob from "./glob.js"
 
 describe("glob module", () => {
   const testDir = "/tmp/glob-test-" + Date.now()
@@ -22,8 +22,8 @@ describe("glob module", () => {
     it("should match files with wildcard", () => {
       const result = glob.glob(testDir + "/*.txt")
       expect(result.length).toBe(2)
-      expect(result.some((p) => p.includes("file1.txt"))).toBe(true)
-      expect(result.some((p) => p.includes("file2.txt"))).toBe(true)
+      expect(result.some((p: string) => p.includes("file1.txt"))).toBe(true)
+      expect(result.some((p: string) => p.includes("file2.txt"))).toBe(true)
     })
 
     it("should match files with single char wildcard", () => {
@@ -39,7 +39,7 @@ describe("glob module", () => {
     it("should match recursively with **", () => {
       const result = glob.glob(testDir + "/**/*.txt")
       expect(result.length).toBeGreaterThanOrEqual(3)
-      expect(result.some((p) => p.includes("nested.txt"))).toBe(true)
+      expect(result.some((p: string) => p.includes("nested.txt"))).toBe(true)
     })
   })
 

@@ -323,7 +323,7 @@ export function compareDigest(a: Uint8Array | string, b: Uint8Array | string): b
  * @param algorithm - Hash algorithm name
  * @returns Hash object
  */
-export function fileDigest(path: string, algorithm = "sha256"): HashObject {
+export function fileDigest(_path: string, algorithm = "sha256"): HashObject {
   // This is a placeholder - actual file hashing would require fs
   const hash = newHash(algorithm)
   // In actual use, you'd read the file and update the hash

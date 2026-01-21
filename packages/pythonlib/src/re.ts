@@ -43,13 +43,7 @@ export class Match {
   private _pos: number
   private _endpos: number
 
-  constructor(
-    match: RegExpExecArray,
-    string: string,
-    pattern: Pattern,
-    pos: number = 0,
-    endpos?: number
-  ) {
+  constructor(match: RegExpExecArray, string: string, pattern: Pattern, pos = 0, endpos?: number) {
     this._match = match
     this._string = string
     this._pattern = pattern
@@ -87,7 +81,7 @@ export class Match {
   }
 
   /** Return the start index of the match */
-  start(groupNum: number = 0): number {
+  start(groupNum = 0): number {
     if (groupNum === 0) {
       return this._match.index
     }
@@ -100,7 +94,7 @@ export class Match {
   }
 
   /** Return the end index of the match */
-  end(groupNum: number = 0): number {
+  end(groupNum = 0): number {
     const s = this.start(groupNum)
     const g = this.group(groupNum)
     if (s < 0 || g === undefined) return -1
@@ -108,7 +102,7 @@ export class Match {
   }
 
   /** Return a tuple (start, end) */
-  span(groupNum: number = 0): [number, number] {
+  span(groupNum = 0): [number, number] {
     return [this.start(groupNum), this.end(groupNum)]
   }
 
@@ -166,8 +160,8 @@ export class Match {
 
   /** Return iterator of all groups */
   *[Symbol.iterator](): Generator<string | undefined> {
-    for (let i = 0; i < this._match.length; i++) {
-      yield this._match[i]
+    for (const match of this._match) {
+      yield match
     }
   }
 
@@ -185,7 +179,7 @@ export class Pattern {
   private _pattern: string
   private _flags: number
 
-  constructor(pattern: string, flags: number = 0) {
+  constructor(pattern: string, flags = 0) {
     this._pattern = pattern
     this._flags = flags
     this._regex = this._compileRegex(pattern, flags)
@@ -209,7 +203,7 @@ export class Pattern {
   }
 
   /** Search for pattern in string */
-  search(string: string, pos: number = 0, endpos?: number): Match | null {
+  search(string: string, pos = 0, endpos?: number): Match | null {
     const searchStr = endpos !== undefined ? string.slice(0, endpos) : string
     const searchFrom = searchStr.slice(pos)
 
@@ -224,7 +218,7 @@ export class Pattern {
   }
 
   /** Match pattern at start of string */
-  match(string: string, pos: number = 0, endpos?: number): Match | null {
+  match(string: string, pos = 0, endpos?: number): Match | null {
     const searchStr = endpos !== undefined ? string.slice(0, endpos) : string
     const searchFrom = searchStr.slice(pos)
 
@@ -240,7 +234,7 @@ export class Pattern {
   }
 
   /** Match pattern against entire string */
-  fullMatch(string: string, pos: number = 0, endpos?: number): Match | null {
+  fullMatch(string: string, pos = 0, endpos?: number): Match | null {
     const searchStr = endpos !== undefined ? string.slice(0, endpos) : string
     const searchFrom = searchStr.slice(pos)
 
@@ -256,7 +250,7 @@ export class Pattern {
   }
 
   /** Split string by pattern */
-  split(string: string, maxsplit: number = 0): string[] {
+  split(string: string, maxsplit = 0): string[] {
     if (maxsplit === 0) {
       return string.split(this._regex)
     }
@@ -284,7 +278,7 @@ export class Pattern {
   }
 
   /** Find all matches */
-  findAll(string: string, pos: number = 0, endpos?: number): (string | string[])[] {
+  findAll(string: string, pos = 0, endpos?: number): (string | string[])[] {
     const searchStr = endpos !== undefined ? string.slice(0, endpos) : string
     const searchFrom = searchStr.slice(pos)
 
@@ -305,7 +299,7 @@ export class Pattern {
   }
 
   /** Find all matches as iterator */
-  *findIter(string: string, pos: number = 0, endpos?: number): Generator<Match> {
+  *findIter(string: string, pos = 0, endpos?: number): Generator<Match> {
     const searchStr = endpos !== undefined ? string.slice(0, endpos) : string
     const searchFrom = searchStr.slice(pos)
 
@@ -319,7 +313,7 @@ export class Pattern {
   }
 
   /** Replace pattern in string */
-  sub(repl: string | ((match: Match) => string), string: string, count: number = 0): string {
+  sub(repl: string | ((match: Match) => string), string: string, count = 0): string {
     if (typeof repl === "function") {
       let n = 0
       const regex = new RegExp(this._regex.source, this._regex.flags + "g")
@@ -355,11 +349,7 @@ export class Pattern {
   }
 
   /** Replace pattern and return (newstring, count) */
-  subn(
-    repl: string | ((match: Match) => string),
-    string: string,
-    count: number = 0
-  ): [string, number] {
+  subn(repl: string | ((match: Match) => string), string: string, count = 0): [string, number] {
     let n = 0
     const result = this.sub(
       typeof repl === "function"
@@ -439,28 +429,24 @@ export class Pattern {
 // ============================================================================
 
 /** Compile a regular expression pattern */
-export function compile(pattern: string, flags: number = 0): Pattern {
+export function compile(pattern: string, flags = 0): Pattern {
   return new Pattern(pattern, flags)
 }
 
 /** Search for pattern in string */
-export function search(pattern: string | Pattern, string: string, flags: number = 0): Match | null {
+export function search(pattern: string | Pattern, string: string, flags = 0): Match | null {
   const p = pattern instanceof Pattern ? pattern : compile(pattern, flags)
   return p.search(string)
 }
 
 /** Match pattern at start of string */
-export function match(pattern: string | Pattern, string: string, flags: number = 0): Match | null {
+export function match(pattern: string | Pattern, string: string, flags = 0): Match | null {
   const p = pattern instanceof Pattern ? pattern : compile(pattern, flags)
   return p.match(string)
 }
 
 /** Match pattern against entire string */
-export function fullMatch(
-  pattern: string | Pattern,
-  string: string,
-  flags: number = 0
-): Match | null {
+export function fullMatch(pattern: string | Pattern, string: string, flags = 0): Match | null {
   const p = pattern instanceof Pattern ? pattern : compile(pattern, flags)
   return p.fullMatch(string)
 }
@@ -469,8 +455,8 @@ export function fullMatch(
 export function split(
   pattern: string | Pattern,
   string: string,
-  maxsplit: number = 0,
-  flags: number = 0
+  maxsplit = 0,
+  flags = 0
 ): string[] {
   const p = pattern instanceof Pattern ? pattern : compile(pattern, flags)
   return p.split(string, maxsplit)
@@ -480,18 +466,14 @@ export function split(
 export function findAll(
   pattern: string | Pattern,
   string: string,
-  flags: number = 0
+  flags = 0
 ): (string | string[])[] {
   const p = pattern instanceof Pattern ? pattern : compile(pattern, flags)
   return p.findAll(string)
 }
 
 /** Find all matches as iterator */
-export function findIter(
-  pattern: string | Pattern,
-  string: string,
-  flags: number = 0
-): Generator<Match> {
+export function findIter(pattern: string | Pattern, string: string, flags = 0): Generator<Match> {
   const p = pattern instanceof Pattern ? pattern : compile(pattern, flags)
   return p.findIter(string)
 }
@@ -501,8 +483,8 @@ export function sub(
   pattern: string | Pattern,
   repl: string | ((match: Match) => string),
   string: string,
-  count: number = 0,
-  flags: number = 0
+  count = 0,
+  flags = 0
 ): string {
   const p = pattern instanceof Pattern ? pattern : compile(pattern, flags)
   return p.sub(repl, string, count)
@@ -513,8 +495,8 @@ export function subn(
   pattern: string | Pattern,
   repl: string | ((match: Match) => string),
   string: string,
-  count: number = 0,
-  flags: number = 0
+  count = 0,
+  flags = 0
 ): [string, number] {
   const p = pattern instanceof Pattern ? pattern : compile(pattern, flags)
   return p.subn(repl, string, count)

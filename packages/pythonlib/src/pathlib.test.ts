@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import * as fs from "node:fs"
-import { Path } from "./pathlib"
+import { Path } from "./pathlib.js"
 
 describe("pathlib module", () => {
   const testDir = "/tmp/pathlib-test-" + Date.now()
@@ -69,7 +69,7 @@ describe("pathlib module", () => {
   describe("parents", () => {
     it("should return all ancestors", () => {
       const p = new Path("/a/b/c")
-      const parents = p.parents.map((pp) => pp.toString())
+      const parents = p.parents.map((pp: Path) => pp.toString())
       expect(parents).toContain("/a/b")
       expect(parents).toContain("/a")
     })
@@ -140,7 +140,7 @@ describe("pathlib module", () => {
 
     it("iterdir() should list directory contents", () => {
       const p = new Path(testDir)
-      const contents = p.iterdir().map((c) => c.name)
+      const contents = p.iterdir().map((c: Path) => c.name)
       expect(contents).toContain("test.txt")
     })
 

@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { describe, it, expect } from "vitest"
-import * as re from "./re"
+import * as re from "./re.js"
 
 describe("re module", () => {
   describe("search()", () => {
@@ -89,7 +88,11 @@ describe("re module", () => {
     })
 
     it("should support function replacement", () => {
-      const result = re.sub("\\d", (m) => String(parseInt(m.group(0)) * 2), "a1b2c3")
+      const result = re.sub(
+        "\\d",
+        (m: re.Match) => String(parseInt(m.group(0) ?? "0") * 2),
+        "a1b2c3"
+      )
       expect(result).toBe("a2b4c6")
     })
   })
@@ -118,7 +121,9 @@ describe("re module", () => {
 
   describe("purge()", () => {
     it("should be callable (no-op)", () => {
-      expect(() => re.purge()).not.toThrow()
+      expect(() => {
+        re.purge()
+      }).not.toThrow()
     })
   })
 
@@ -346,7 +351,10 @@ describe("re module", () => {
 
     it("should support subn with function", () => {
       const p = re.compile("\\d")
-      const [result, count] = p.subn((m) => String(parseInt(m.group(0) ?? "0") * 2), "a1b2")
+      const [result, count] = p.subn(
+        (m: re.Match) => String(parseInt(m.group(0) ?? "0") * 2),
+        "a1b2"
+      )
       expect(result).toBe("a2b4")
       expect(count).toBe(2)
     })

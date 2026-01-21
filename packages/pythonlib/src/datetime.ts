@@ -147,7 +147,7 @@ export class date {
 
   static fromIsoFormat(dateString: string): date {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString)
-    if (!match || !match[1] || !match[2] || !match[3]) {
+    if (!match?.[1] || !match[2] || !match[3]) {
       throw new Error(`Invalid isoFormat string: '${dateString}'`)
     }
     return new date(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]))
@@ -275,7 +275,7 @@ export class time {
   readonly microsecond: number
   readonly tzinfo: null
 
-  constructor(hour: number = 0, minute: number = 0, second: number = 0, microsecond: number = 0) {
+  constructor(hour = 0, minute = 0, second = 0, microsecond = 0) {
     if (hour < 0 || hour > 23) throw new Error("hour must be in 0..23")
     if (minute < 0 || minute > 59) throw new Error("minute must be in 0..59")
     if (second < 0 || second > 59) throw new Error("second must be in 0..59")
@@ -290,7 +290,7 @@ export class time {
 
   static fromIsoFormat(timeString: string): time {
     const match = /^(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?$/.exec(timeString)
-    if (!match || !match[1] || !match[2] || !match[3]) {
+    if (!match?.[1] || !match[2] || !match[3]) {
       throw new Error(`Invalid isoFormat string: '${timeString}'`)
     }
     const microsecond = match[4] ? parseInt(match[4].padEnd(6, "0").slice(0, 6)) : 0
@@ -369,10 +369,10 @@ export class datetime extends date {
     year: number,
     month: number,
     day: number,
-    hour: number = 0,
-    minute: number = 0,
-    second: number = 0,
-    microsecond: number = 0
+    hour = 0,
+    minute = 0,
+    second = 0,
+    microsecond = 0
   ) {
     super(year, month, day)
     if (hour < 0 || hour > 23) throw new Error("hour must be in 0..23")
@@ -446,10 +446,10 @@ export class datetime extends date {
   static override fromIsoFormat(s: string): datetime {
     // Parse ISO format: YYYY-MM-DD[T]HH:MM:SS[.ffffff]
     const match = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?$/.exec(s)
-    if (!match || !match[1] || !match[2] || !match[3] || !match[4] || !match[5] || !match[6]) {
+    if (!match?.[1] || !match[2] || !match[3] || !match[4] || !match[5] || !match[6]) {
       // Try date-only format
       const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s)
-      if (dateMatch && dateMatch[1] && dateMatch[2] && dateMatch[3]) {
+      if (dateMatch?.[1] && dateMatch[2] && dateMatch[3]) {
         return new datetime(parseInt(dateMatch[1]), parseInt(dateMatch[2]), parseInt(dateMatch[3]))
       }
       throw new Error(`Invalid isoFormat string: '${s}'`)
@@ -516,7 +516,7 @@ export class datetime extends date {
   }
 
   override isoFormat(
-    sep: string = "T",
+    sep = "T",
     timespec: "auto" | "hours" | "minutes" | "seconds" | "milliseconds" | "microseconds" = "auto"
   ): string {
     const dateStr = super.isoFormat()
@@ -620,7 +620,7 @@ const MONTH_ABBR = [
 ]
 
 export function strftime(format: string, dt: datetime): string {
-  const pad = (n: number, width: number = 2) => String(n).padStart(width, "0")
+  const pad = (n: number, width = 2) => String(n).padStart(width, "0")
 
   return format.replace(/%([aAbBcdHIjmMpSUwWxXyYzZ%])/g, (_, code: string) => {
     switch (code) {

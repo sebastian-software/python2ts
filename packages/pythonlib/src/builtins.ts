@@ -217,7 +217,7 @@ export function map<T, U>(fn: (x: T) => U, iterable: Iterable<T>): Iterable<U> {
  */
 export function filter<T>(fn: ((x: T) => boolean) | null, iterable: Iterable<T>): Iterable<T> {
   // Python's filter(None, iterable) filters by truthiness
-  const predicate = fn === null ? (x: T) => bool(x) : fn
+  const predicate = fn ?? ((x: T) => bool(x))
   return getIterator(iterable).filter(predicate)
 }
 
@@ -759,7 +759,7 @@ function formatNumber(
     const sep = grouping === "_" ? "_" : ","
     const parts = result.split(".")
     const intPart = parts[0] as string
-    const signChar = intPart[0] === "-" ? "-" : ""
+    const signChar = intPart.startsWith("-") ? "-" : ""
     const digits = signChar ? intPart.slice(1) : intPart
     const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, sep)
     parts[0] = signChar + grouped
@@ -792,9 +792,8 @@ export function format(value: unknown, spec: string): string {
     return str(value)
   }
 
-  const match = spec.match(
-    /^(.?[<>=^])?([+\- ])?([#])?(0)?(\d+)?([,_])?(?:\.(\d+))?([bcdeEfFgGnosxX%])?$/
-  )
+  const match =
+    /^(.?[<>=^])?([+\- ])?([#])?(0)?(\d+)?([,_])?(?:\.(\d+))?([bcdeEfFgGnosxX%])?$/.exec(spec)
 
   if (!match) {
     return str(value)
@@ -906,7 +905,7 @@ export function format(value: unknown, spec: string): string {
       const rightPad = width - result.length - leftPad
       result = fill.repeat(leftPad) + result + fill.repeat(rightPad)
     } else if (align === "=") {
-      const signMatch = result.match(/^([+\- ]|0[xXoObB])?(.*)$/)
+      const signMatch = /^([+\- ]|0[xXoObB])?(.*)$/.exec(result)
       if (signMatch) {
         const signPart = signMatch[1] ?? ""
         const numPart = signMatch[2] ?? ""

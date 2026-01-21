@@ -392,11 +392,11 @@ export function strptime(timeString: string, format: string): StructTime {
   pattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 
   // Map of format codes to regex patterns and handlers
-  const formatMap: Array<{
+  const formatMap: {
     code: string
     regex: string
     handler: (match: string) => void
-  }> = [
+  }[] = [
     { code: "%Y", regex: "(\\d{4})", handler: (m) => (result.tm_year = parseInt(m, 10)) },
     {
       code: "%y",
@@ -441,10 +441,10 @@ export function strptime(timeString: string, format: string): StructTime {
     },
     { code: "%j", regex: "(\\d{1,3})", handler: (m) => (result.tm_yday = parseInt(m, 10)) },
     { code: "%w", regex: "(\\d)", handler: (m) => (result.tm_wday = (parseInt(m, 10) + 6) % 7) },
-    { code: "%%", regex: "%", handler: () => {} }
+    { code: "%%", regex: "%", handler: () => undefined }
   ]
 
-  const handlers: Array<(match: string) => void> = []
+  const handlers: ((match: string) => void)[] = []
 
   // Replace format codes with regex patterns
   for (const { code, regex, handler } of formatMap) {
@@ -529,7 +529,7 @@ export const tzname: [string, string] = (() => {
 /**
  * True if DST is defined for the local timezone.
  */
-export const daylight: number = 0
+export const daylight = 0
 
 /**
  * Return the process time as a float (CPU time used by the process).

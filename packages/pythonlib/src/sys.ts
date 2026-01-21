@@ -35,7 +35,7 @@ export const platform: string = typeof process !== "undefined" ? process.platfor
  * A string containing the version number of the Python interpreter (emulated).
  * Returns a custom version string for pythonlib.
  */
-export const version: string = "3.11.0 (pythonlib TypeScript implementation)"
+export const version = "3.11.0 (pythonlib TypeScript implementation)"
 
 /**
  * Version information as a named tuple-like object.
@@ -142,9 +142,9 @@ export function getRecursionLimit(): number {
  *
  * @param limit - The new recursion limit
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function setRecursionLimit(limit: number): void {
   // No-op in JavaScript - recursion is limited by stack size
+  void limit
 }
 
 /**
@@ -211,9 +211,9 @@ export function getSizeOf(obj: unknown): number {
  * @param _obj - Object to check
  * @returns Always returns 1 (reference counting not available in JS)
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getRefCount(obj: unknown): number {
   // JavaScript uses garbage collection, not reference counting
+  void obj
   return 1
 }
 
@@ -234,7 +234,7 @@ export function getFilesystemEncoding(): string {
 /**
  * Integer specifying the API version, in Node.js context returns 0.
  */
-export const apiVersion: number = 0
+export const apiVersion = 0
 
 /**
  * A string giving the site-specific directory prefix.

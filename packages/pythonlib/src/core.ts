@@ -61,7 +61,7 @@ export function sprintf(template: string, args: unknown): string {
         case "i":
           return String(Math.floor(Number(value)))
         case "f":
-          if (flags && flags.includes(".")) {
+          if (flags.includes(".")) {
             const precision = parseInt(flags.split(".")[1] ?? "6", 10)
             return Number(value).toFixed(precision)
           }

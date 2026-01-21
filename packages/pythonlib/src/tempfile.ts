@@ -113,6 +113,9 @@ export class NamedTemporaryFile {
    * Write data to the file.
    */
   write(data: string | Uint8Array): number {
+    if (typeof data === "string") {
+      return fs.writeSync(this.fd, data)
+    }
     return fs.writeSync(this.fd, data)
   }
 

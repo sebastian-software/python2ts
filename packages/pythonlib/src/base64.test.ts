@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { describe, it, expect } from "vitest"
-import * as base64 from "./base64"
+import * as base64 from "./base64.js"
 
 describe("base64 module", () => {
   const encoder = new TextEncoder()

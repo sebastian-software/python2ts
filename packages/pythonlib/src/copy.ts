@@ -95,8 +95,9 @@ export function copy<T>(x: T): T {
       return { ...x }
     }
     // For custom class instances, create new object with same prototype
-    const result = Object.create(proto) as T
-    return Object.assign(result, x)
+    const result = Object.create(proto) as object
+    Object.assign(result, x as object)
+    return result as T
   }
 
   // For functions and other types, return as-is
@@ -152,9 +153,7 @@ export function deepcopy<T>(x: T, memo?: Map<unknown, unknown>): T {
   }
 
   // Initialize memo for circular reference handling
-  if (!memo) {
-    memo = new Map()
-  }
+  memo ??= new Map()
 
   // Check if we've already copied this object (circular reference)
   if (memo.has(x)) {
@@ -236,7 +235,7 @@ export function deepcopy<T>(x: T, memo?: Map<unknown, unknown>): T {
   // Handle plain objects and class instances
   if (type === "object") {
     const proto = Object.getPrototypeOf(x) as object | null
-    const result = Object.create(proto) as T & Record<string, unknown>
+    const result = Object.create(proto) as Record<string, unknown>
     memo.set(x, result)
 
     // Copy own enumerable properties
@@ -255,7 +254,7 @@ export function deepcopy<T>(x: T, memo?: Map<unknown, unknown>): T {
       }
     }
 
-    return result
+    return result as T
   }
 
   return x

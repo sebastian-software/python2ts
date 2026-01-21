@@ -171,7 +171,7 @@ export const path = {
 // ============================================================================
 
 /** List directory contents */
-export function listDir(p: string = "."): string[] {
+export function listDir(p = "."): string[] {
   try {
     return fs.readdirSync(p)
   } catch {
@@ -180,12 +180,12 @@ export function listDir(p: string = "."): string[] {
 }
 
 /** Create a directory */
-export function mkdir(p: string, mode: number = 0o777): void {
+export function mkdir(p: string, mode = 0o777): void {
   fs.mkdirSync(p, { mode })
 }
 
 /** Create a directory and parents */
-export function makeDirs(p: string, mode: number = 0o777, existOk: boolean = false): void {
+export function makeDirs(p: string, mode = 0o777, existOk = false): void {
   try {
     fs.mkdirSync(p, { recursive: true, mode })
   } catch (e) {

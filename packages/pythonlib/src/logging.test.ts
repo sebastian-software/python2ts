@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { describe, it, expect, beforeEach } from "vitest"
-import * as logging from "./logging"
+import * as logging from "./logging.js"
 
 describe("logging module", () => {
   beforeEach(() => {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /**
  * Python itertools module for TypeScript
  *
@@ -33,9 +34,9 @@ export function combinations<T>(iterable: Iterable<T>, r: number): T[][] {
     let i = r - 1
     while (i >= 0 && indices[i] === i + n - r) i--
     if (i < 0) break
-    ;(indices[i] as number)++
+    indices[i]!++
     for (let j = i + 1; j < r; j++) {
-      indices[j] = (indices[j - 1] as number) + 1
+      indices[j] = indices[j - 1]! + 1
     }
     result.push(indices.map((idx) => pool[idx] as T))
   }
@@ -50,7 +51,7 @@ export function combinations<T>(iterable: Iterable<T>, r: number): T[][] {
 export function permutations<T>(iterable: Iterable<T>, r?: number): T[][] {
   const pool = [...iterable]
   const n = pool.length
-  const rLen = r === undefined ? n : r
+  const rLen = r ?? n
   if (rLen > n || rLen < 0) return []
 
   const result: T[][] = []
@@ -61,19 +62,19 @@ export function permutations<T>(iterable: Iterable<T>, r?: number): T[][] {
 
   outer: for (;;) {
     for (let i = rLen - 1; i >= 0; i--) {
-      ;(cycles[i] as number)--
+      cycles[i]!--
       if (cycles[i] === 0) {
         // Rotate indices[i:] left by one
-        const temp = indices[i] as number
+        const temp = indices[i]!
         for (let j = i; j < n - 1; j++) {
-          indices[j] = indices[j + 1] as number
+          indices[j] = indices[j + 1]!
         }
         indices[n - 1] = temp
         cycles[i] = n - i
       } else {
-        const j = n - (cycles[i] as number)
-        const swap = indices[j] as number
-        indices[j] = indices[i] as number
+        const j = n - cycles[i]!
+        const swap = indices[j]!
+        indices[j] = indices[i]!
         indices[i] = swap
         result.push(indices.slice(0, rLen).map((idx) => pool[idx] as T))
         continue outer
@@ -99,15 +100,15 @@ export function product<T>(...iterables: Iterable<T>[]): T[][] {
 
   const result: T[][] = []
   const indices: number[] = new Array<number>(pools.length).fill(0)
-  result.push(pools.map((p, i) => p[indices[i] as number] as T))
+  result.push(pools.map((p, i) => p[indices[i]!] as T))
 
   for (;;) {
     let i = pools.length - 1
     while (i >= 0) {
-      ;(indices[i] as number)++
-      const currentPool = pools[i] as T[]
-      if ((indices[i] as number) < currentPool.length) {
-        result.push(pools.map((p, j) => p[indices[j] as number] as T))
+      indices[i]!++
+      const currentPool = pools[i]!
+      if (indices[i]! < currentPool.length) {
+        result.push(pools.map((p, j) => p[indices[j]!] as T))
         break
       }
       indices[i] = 0
@@ -162,12 +163,7 @@ export function repeat<T>(obj: T, times?: number): T[] | Generator<T> {
  * islice([1, 2, 3, 4, 5], 1, 4) -> [2, 3, 4]
  * islice([1, 2, 3, 4, 5], 3) -> [1, 2, 3]
  */
-export function islice<T>(
-  iterable: Iterable<T>,
-  start: number,
-  stop?: number,
-  step: number = 1
-): T[] {
+export function islice<T>(iterable: Iterable<T>, start: number, stop?: number, step = 1): T[] {
   // Handle single argument (stop only): islice(it, 5) means islice(it, 0, 5, 1)
   let actualStart = start
   let actualStop = stop
@@ -383,7 +379,7 @@ export function groupby<T, K = T>(iterable: Iterable<T>, key?: (x: T) => K): [K,
  * Make an iterator that returns evenly spaced values starting with n
  * count(10, 2) -> 10, 12, 14, 16, 18, ...  (INFINITE Generator)
  */
-export function* count(start: number = 0, step: number = 1): Generator<number> {
+export function* count(start = 0, step = 1): Generator<number> {
   let n = start
   for (;;) {
     yield n
@@ -395,7 +391,7 @@ export function* count(start: number = 0, step: number = 1): Generator<number> {
  * Return n independent iterators from a single iterable
  * tee([1, 2, 3], 2) -> [[1, 2, 3], [1, 2, 3]]
  */
-export function tee<T>(iterable: Iterable<T>, n: number = 2): T[][] {
+export function tee<T>(iterable: Iterable<T>, n = 2): T[][] {
   const arr = [...iterable]
   return Array.from({ length: n }, () => [...arr])
 }
@@ -417,7 +413,7 @@ export function pairwise<T>(iterable: Iterable<T>): [T, T][] {
  * Cartesian product with repeat (product(range(3), repeat=2) like nested loops)
  * productRepeat([0, 1], 2) -> [[0, 0], [0, 1], [1, 0], [1, 1]]
  */
-export function productRepeat<T>(iterable: Iterable<T>, repeat: number = 1): T[][] {
+export function productRepeat<T>(iterable: Iterable<T>, repeat = 1): T[][] {
   const pool = [...iterable]
   if (repeat < 1 || pool.length === 0) return repeat === 0 ? [[]] : []
 
@@ -442,7 +438,7 @@ export function combinationsWithReplacement<T>(iterable: Iterable<T>, r: number)
     let i = r - 1
     while (i >= 0 && indices[i] === n - 1) i--
     if (i < 0) break
-    const newVal = (indices[i] as number) + 1
+    const newVal = indices[i]! + 1
     for (let j = i; j < r; j++) {
       indices[j] = newVal
     }

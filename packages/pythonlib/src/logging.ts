@@ -117,7 +117,8 @@ export class StreamHandler extends Handler {
  */
 export class FileHandler extends Handler {
   private readonly filename: string
-  private readonly mode: string
+  // Note: mode is stored for future use when proper file writing is implemented
+  readonly mode: string
 
   constructor(filename: string, mode = "a") {
     super()
@@ -304,7 +305,7 @@ export class Logger {
 }
 
 // Logger registry
-const loggers: Map<string, Logger> = new Map()
+const loggers = new Map<string, Logger>()
 const rootLogger = new Logger("root")
 rootLogger.setLevel(WARNING)
 

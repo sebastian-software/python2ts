@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { describe, it, expect } from "vitest"
-import * as copy from "./copy"
+import * as copy from "./copy.js"
 
 describe("copy module", () => {
   describe("copy()", () => {
@@ -9,7 +8,7 @@ describe("copy module", () => {
       expect(copy.copy("hello")).toBe("hello")
       expect(copy.copy(true)).toBe(true)
       expect(copy.copy(null)).toBe(null)
-      expect(copy.copy(undefined)).toBe(undefined)
+      expect(copy.copy(undefined as unknown)).toBe(undefined)
     })
 
     it("should shallow copy arrays", () => {
@@ -67,7 +66,7 @@ describe("copy module", () => {
       expect(copy.deepcopy("hello")).toBe("hello")
       expect(copy.deepcopy(true)).toBe(true)
       expect(copy.deepcopy(null)).toBe(null)
-      expect(copy.deepcopy(undefined)).toBe(undefined)
+      expect(copy.deepcopy(undefined as unknown)).toBe(undefined)
     })
 
     it("should deep copy arrays", () => {

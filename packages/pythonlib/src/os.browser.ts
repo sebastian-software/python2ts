@@ -138,17 +138,17 @@ export const path = {
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 /** List directory contents (stub - returns empty array in browser) */
-export function listDir(_p: string = "."): string[] {
+export function listDir(_p = "."): string[] {
   return []
 }
 
 /** Create a directory (stub in browser) */
-export function mkdir(_p: string, _mode: number = 0o777): void {
+export function mkdir(_p: string, _mode = 0o777): void {
   // No-op in browser
 }
 
 /** Create a directory and parents (stub in browser) */
-export function makeDirs(_p: string, _mode: number = 0o777, _existOk: boolean = false): void {
+export function makeDirs(_p: string, _mode = 0o777, _existOk = false): void {
   // No-op in browser
 }
 

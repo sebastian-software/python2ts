@@ -98,12 +98,7 @@ export function isnan(x: number): boolean {
 }
 
 /** Return True if the values a and b are close to each other */
-export function isclose(
-  a: number,
-  b: number,
-  rel_tol: number = 1e-9,
-  abs_tol: number = 0.0
-): boolean {
+export function isclose(a: number, b: number, rel_tol = 1e-9, abs_tol = 0.0): boolean {
   return Math.abs(a - b) <= Math.max(rel_tol * Math.max(Math.abs(a), Math.abs(b)), abs_tol)
 }
 
@@ -282,7 +277,7 @@ export function fsum(iterable: Iterable<number>): number {
 }
 
 /** Return the product of all elements in the iterable */
-export function prod(iterable: Iterable<number>, start: number = 1): number {
+export function prod(iterable: Iterable<number>, start = 1): number {
   let result = start
   for (const x of iterable) {
     result *= x

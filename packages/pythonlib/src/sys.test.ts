@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { describe, it, expect } from "vitest"
-import * as sys from "./sys"
+import * as sys from "./sys.js"
 
 describe("sys module", () => {
   describe("argv", () => {
@@ -85,7 +84,9 @@ describe("sys module", () => {
 
   describe("setRecursionLimit()", () => {
     it("should not throw", () => {
-      expect(() => sys.setRecursionLimit(2000)).not.toThrow()
+      expect(() => {
+        sys.setRecursionLimit(2000)
+      }).not.toThrow()
     })
   })
 

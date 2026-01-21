@@ -92,7 +92,7 @@ export class Template {
     const regex = /\$(\w+)|\$\{(\w+)\}/g
     let match: RegExpExecArray | null
     while ((match = regex.exec(this.template)) !== null) {
-      const name = match[1] || match[2]
+      const name = match[1] ?? match[2]
       if (name && !identifiers.includes(name)) {
         identifiers.push(name)
       }
@@ -340,7 +340,7 @@ export const string = {
    */
   zFill(s: string, width: number): string {
     if (s.length >= width) return s
-    const sign = s[0] === "-" || s[0] === "+" ? s[0] : ""
+    const sign = s.startsWith("-") || s.startsWith("+") ? (s[0] as string) : ""
     const digits = sign ? s.slice(1) : s
     return sign + digits.padStart(width - sign.length, "0")
   },

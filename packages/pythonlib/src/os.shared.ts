@@ -172,7 +172,7 @@ export function pathNormPath(p: string): string {
 }
 
 /** Return relative path from start to path */
-export function pathRelPath(p: string, start: string = "."): string {
+export function pathRelPath(p: string, start = "."): string {
   const pParts = pathNormPath(p).split(/[/\\]/).filter(Boolean)
   const startParts = pathNormPath(start).split(/[/\\]/).filter(Boolean)
 
@@ -200,11 +200,13 @@ export function pathCommonPath(paths: string[]): string {
   }
 
   const splitPaths = paths.map((p) => pathNormPath(p).split(/[/\\]/))
-  const first = splitPaths[0] as string[]
+  const first = splitPaths[0]
+  if (!first) {
+    throw new Error("commonPath() arg is an empty sequence")
+  }
   let commonLen = first.length
 
-  for (let i = 1; i < splitPaths.length; i++) {
-    const parts = splitPaths[i] as string[]
+  for (const parts of splitPaths.slice(1)) {
     commonLen = Math.min(commonLen, parts.length)
     for (let j = 0; j < commonLen; j++) {
       if (parts[j] !== first[j]) {

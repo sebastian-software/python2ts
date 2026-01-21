@@ -72,7 +72,7 @@ export const set = {
    * Uses ES2024 Set.prototype.union()
    */
   union<T>(a: Set<T>, ...others: Iterable<T>[]): Set<T> {
-    let result: Set<T> = new Set(a)
+    let result = new Set<T>(a)
     for (const other of others) {
       result = result.union(other instanceof Set ? other : new Set(other)) as Set<T>
     }

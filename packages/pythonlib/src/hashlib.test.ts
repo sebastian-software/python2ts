@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { describe, it, expect } from "vitest"
-import * as hashlib from "./hashlib"
+import * as hashlib from "./hashlib.js"
 
 describe("hashlib module", () => {
   describe("md5()", () => {

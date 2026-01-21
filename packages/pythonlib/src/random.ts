@@ -30,7 +30,7 @@ export function randInt(a: number, b: number): number {
 }
 
 /** Return a randomly selected element from range(start, stop, step) */
-export function randRange(start: number, stop?: number, step: number = 1): number {
+export function randRange(start: number, stop?: number, step = 1): number {
   if (stop === undefined) {
     stop = start
     start = 0
@@ -91,7 +91,8 @@ export function choices<T>(population: T[], options?: { weights?: number[]; k?: 
       let hi = cumWeights.length
       while (lo < hi) {
         const mid = Math.floor((lo + hi) / 2)
-        if (r > (cumWeights[mid] as number)) {
+        const midWeight = cumWeights[mid]
+        if (midWeight !== undefined && r > midWeight) {
           lo = mid + 1
         } else {
           hi = mid
@@ -145,7 +146,7 @@ export function shuffle(x: unknown[]): void {
 // ============================================================================
 
 /** Gaussian distribution with mean mu and standard deviation sigma */
-export function gauss(mu: number = 0, sigma: number = 1): number {
+export function gauss(mu = 0, sigma = 1): number {
   // Box-Muller transform
   let u1: number
   let u2: number
@@ -162,10 +163,8 @@ export function gauss(mu: number = 0, sigma: number = 1): number {
 export const normalVariate = gauss
 
 /** Triangular distribution with low, high, and mode */
-export function triangular(low: number = 0, high: number = 1, mode?: number): number {
-  if (mode === undefined) {
-    mode = (low + high) / 2
-  }
+export function triangular(low = 0, high = 1, mode?: number): number {
+  mode ??= (low + high) / 2
 
   const u = Math.random()
   const c = (mode - low) / (high - low)

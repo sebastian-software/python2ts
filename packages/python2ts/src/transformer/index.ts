@@ -292,7 +292,7 @@ function extractTypeAnnotation(
   typeDef: SyntaxNode | undefined,
   ctx: TransformContext
 ): string | null {
-  if (!typeDef || typeDef.name !== "TypeDef") return null
+  if (typeDef?.name !== "TypeDef") return null
   const children = getChildren(typeDef)
   const typeNode = children.find((c) => c.name !== ":" && c.name !== "->")
   if (typeNode) {
@@ -315,7 +315,7 @@ function extractTypeModifiers(
   ctx: TransformContext
 ): TypeModifiers {
   const result: TypeModifiers = { isFinal: false, isClassVar: false }
-  if (!typeDef || typeDef.name !== "TypeDef") return result
+  if (typeDef?.name !== "TypeDef") return result
 
   const children = getChildren(typeDef)
   const typeNode = children.find((c) => c.name !== ":" && c.name !== "->")
@@ -397,9 +397,9 @@ function transformCallableType(rawTypeArgNodes: SyntaxNode[], ctx: TransformCont
 
 interface ParsedDocstring {
   description: string
-  params: Array<{ name: string; description: string }>
+  params: { name: string; description: string }[]
   returns: string | null
-  throws: Array<{ type: string; description: string }>
+  throws: { type: string; description: string }[]
 }
 
 /**
@@ -409,7 +409,7 @@ function isDocstringNode(node: SyntaxNode, ctx: TransformContext): boolean {
   if (node.name !== "ExpressionStatement") return false
   const children = getChildren(node)
   const firstChild = children[0]
-  if (!firstChild || firstChild.name !== "String") return false
+  if (firstChild?.name !== "String") return false
 
   const text = getNodeText(firstChild, ctx.source)
   // Must be a triple-quoted string
@@ -532,7 +532,7 @@ function parseDocstring(content: string): ParsedDocstring {
       case "params": {
         // Google-style: "name (type): description" or "name: description"
         // NumPy-style: "name : type" (description on following indented lines)
-        const googleMatch = trimmed.match(/^(\w+)\s*(?:\([^)]*\))?\s*:\s*(.*)$/)
+        const googleMatch = /^(\w+)\s*(?:\([^)]*\))?\s*:\s*(.*)$/.exec(trimmed)
         if (googleMatch) {
           flushParam()
           currentParamName = googleMatch[1] ?? ""
@@ -570,7 +570,7 @@ function parseDocstring(content: string): ParsedDocstring {
 
       case "throws": {
         // Google-style: "ValueError: description"
-        const throwsMatch = trimmed.match(/^(\w+)\s*:\s*(.*)$/)
+        const throwsMatch = /^(\w+)\s*:\s*(.*)$/.exec(trimmed)
         if (throwsMatch) {
           flushThrows()
           currentThrowsType = throwsMatch[1] ?? "Error"
@@ -1188,7 +1188,7 @@ function isChainedComparison(node: SyntaxNode): boolean {
   if (node.name !== "BinaryExpression") return false
   const children = getChildren(node)
   const op = children[1]
-  if (!op || op.name !== "CompareOp") return false
+  if (op?.name !== "CompareOp") return false
   return true
 }
 
@@ -2053,7 +2053,7 @@ function transformArgList(node: SyntaxNode, ctx: TransformContext): string {
     // Check for keyword argument: VariableName AssignOp Value
     if (item.name === "VariableName") {
       const nextItem = items[i + 1]
-      if (nextItem && nextItem.name === "AssignOp") {
+      if (nextItem?.name === "AssignOp") {
         const valueItem = items[i + 2]
         if (valueItem) {
           const name = getNodeText(item, ctx.source)
@@ -2416,8 +2416,8 @@ function transformMatchStatement(node: SyntaxNode, ctx: TransformContext): strin
     if (child.name === "match" || child.name === ":") continue
     if (child.name === "MatchBody") {
       matchBody = child
-    } else if (!subject) {
-      subject = child
+    } else {
+      subject ??= child
     }
   }
 
@@ -2498,8 +2498,8 @@ function transformMatchAsIfElse(
         body = child
       } else if (child.name === "Guard") {
         guard = child
-      } else if (!pattern) {
-        pattern = child
+      } else {
+        pattern ??= child
       }
     }
 
@@ -2813,8 +2813,8 @@ function transformMatchClause(node: SyntaxNode, ctx: TransformContext, indent: s
     if (child.name === "case" || child.name === ":") continue
     if (child.name === "Body") {
       body = child
-    } else if (!pattern) {
-      pattern = child
+    } else {
+      pattern ??= child
     }
   }
 
@@ -2976,7 +2976,7 @@ function transformTryStatement(node: SyntaxNode, ctx: TransformContext): string 
     if (child.name === "try") {
       // Next Body is the try block
       const nextBody = children[i + 1]
-      if (nextBody && nextBody.name === "Body") {
+      if (nextBody?.name === "Body") {
         tryBody = nextBody
         i += 2
         continue
@@ -3022,7 +3022,7 @@ function transformTryStatement(node: SyntaxNode, ctx: TransformContext): string 
     if (child.name === "finally") {
       // Next Body is the finally block
       const nextBody = children[i + 1]
-      if (nextBody && nextBody.name === "Body") {
+      if (nextBody?.name === "Body") {
         finallyBody = nextBody
         i += 2
         continue
@@ -3044,7 +3044,7 @@ function transformTryStatement(node: SyntaxNode, ctx: TransformContext): string 
   if (exceptBodies.length > 0) {
     const firstExcept = exceptBodies[0]
     if (firstExcept) {
-      const catchVar = firstExcept.varName || "e"
+      const catchVar = firstExcept.varName ?? "e"
       let catchBody = transformBody(firstExcept.body, ctx)
       const isEmpty = !catchBody.trim()
 
@@ -3072,7 +3072,7 @@ function transformTryStatement(node: SyntaxNode, ctx: TransformContext): string 
           const exc = exceptBodies[idx]
           if (!exc) continue
           const excBodyCode = transformBody(exc.body, ctx)
-          const excVar = exc.varName || catchVar
+          const excVar = exc.varName ?? catchVar
 
           if (exc.type) {
             const condition = idx === 0 ? "if" : "} else if"
@@ -3134,7 +3134,7 @@ function mapExceptionType(pythonType: string): string {
     NameError: "ReferenceError",
     SyntaxError: "SyntaxError"
   }
-  return mapping[pythonType] || "Error"
+  return mapping[pythonType] ?? "Error"
 }
 
 function transformRaiseStatement(node: SyntaxNode, ctx: TransformContext): string {
@@ -3254,9 +3254,9 @@ function transformSimpleImport(children: SyntaxNode[], ctx: TransformContext): s
 
       // Check for "as" alias
       const nextChild = children[i + 1]
-      if (nextChild && nextChild.name === "as") {
+      if (nextChild?.name === "as") {
         const aliasChild = children[i + 2]
-        if (aliasChild && aliasChild.name === "VariableName") {
+        if (aliasChild?.name === "VariableName") {
           alias = getNodeText(aliasChild, ctx.source)
           i += 3
           names.push({ module: moduleName, alias })
@@ -3284,7 +3284,7 @@ function transformSimpleImport(children: SyntaxNode[], ctx: TransformContext): s
   // Generate import statements
   return filteredNames
     .map(({ module, alias }) => {
-      const importName = alias || module
+      const importName = alias ?? module
       return `import * as ${importName} from "${module}"`
     })
     .join("\n")
@@ -3392,9 +3392,9 @@ function transformFromImport(children: SyntaxNode[], ctx: TransformContext): str
 
         // Check for "as" alias
         const nextChild = children[i + 1]
-        if (nextChild && nextChild.name === "as") {
+        if (nextChild?.name === "as") {
           const aliasChild = children[i + 2]
-          if (aliasChild && aliasChild.name === "VariableName") {
+          if (aliasChild?.name === "VariableName") {
             imports.push({ name, alias: getNodeText(aliasChild, ctx.source) })
             i += 2
             continue
@@ -3424,7 +3424,7 @@ function transformFromImport(children: SyntaxNode[], ctx: TransformContext): str
       modulePath += moduleName
     } else if (imports.length > 0) {
       // from . import utils -> import from "./utils"
-      modulePath += imports[0]?.name || ""
+      modulePath += imports[0]?.name ?? ""
     }
   } else {
     modulePath = moduleName
@@ -3439,7 +3439,7 @@ function transformFromImport(children: SyntaxNode[], ctx: TransformContext): str
     // from . import utils -> import * as utils from "./utils"
     const imp = imports[0]
     if (imp) {
-      const importName = imp.alias || imp.name
+      const importName = imp.alias ?? imp.name
       return `import * as ${importName} from "${modulePath}"`
     }
   }
@@ -3501,9 +3501,9 @@ function transformWithStatement(node: SyntaxNode, ctx: TransformContext): string
 
       // Check if next is 'as' followed by variable name
       const nextChild = children[i + 1]
-      if (nextChild && nextChild.name === "as") {
+      if (nextChild?.name === "as") {
         const varChild = children[i + 2]
-        if (varChild && varChild.name === "VariableName") {
+        if (varChild?.name === "VariableName") {
           varName = getNodeText(varChild, ctx.source)
           i += 3
         } else {
@@ -3595,7 +3595,7 @@ function extractParamNames(node: SyntaxNode, source: string): string[] {
     // Handle *args
     if (child.name === "*" || getNodeText(child, source) === "*") {
       const nextChild = children[i + 1]
-      if (nextChild && nextChild.name === "VariableName") {
+      if (nextChild?.name === "VariableName") {
         names.push(getNodeText(nextChild, source))
         i += 2
         continue
@@ -3607,7 +3607,7 @@ function extractParamNames(node: SyntaxNode, source: string): string[] {
     // Handle **kwargs
     if (child.name === "**" || getNodeText(child, source) === "**") {
       const nextChild = children[i + 1]
-      if (nextChild && nextChild.name === "VariableName") {
+      if (nextChild?.name === "VariableName") {
         names.push(getNodeText(nextChild, source))
         i += 2
         continue
@@ -3643,7 +3643,7 @@ function extractParamNames(node: SyntaxNode, source: string): string[] {
 function transformBody(
   node: SyntaxNode,
   ctx: TransformContext,
-  skipFirst: boolean = false,
+  skipFirst = false,
   predeclaredVars: string[] = []
 ): string {
   ctx.indentLevel++
@@ -3850,11 +3850,7 @@ function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): stri
   return jsdoc ? `${jsdoc}\n${classDecl}` : classDecl
 }
 
-function transformClassBody(
-  node: SyntaxNode,
-  ctx: TransformContext,
-  skipFirst: boolean = false
-): string {
+function transformClassBody(node: SyntaxNode, ctx: TransformContext, skipFirst = false): string {
   ctx.indentLevel++
   const children = getChildren(node)
   const indent = "  ".repeat(ctx.indentLevel)
@@ -4147,7 +4143,7 @@ function transformMethodParamListImpl(
     // Check for *args (rest parameter)
     if (child.name === "*" || getNodeText(child, ctx.source) === "*") {
       const nextChild = children[i + 1]
-      if (nextChild && nextChild.name === "VariableName") {
+      if (nextChild?.name === "VariableName") {
         const name = getNodeText(nextChild, ctx.source)
         params.push(`...${name}`)
         i += 2
@@ -4160,7 +4156,7 @@ function transformMethodParamListImpl(
     // Check for **kwargs
     if (child.name === "**" || getNodeText(child, ctx.source) === "**") {
       const nextChild = children[i + 1]
-      if (nextChild && nextChild.name === "VariableName") {
+      if (nextChild?.name === "VariableName") {
         const name = getNodeText(nextChild, ctx.source)
         params.push(name)
         i += 2
@@ -4215,7 +4211,7 @@ function transformMethodParamListImpl(
 function transformClassMethodBody(
   node: SyntaxNode,
   ctx: TransformContext,
-  skipFirst: boolean = false,
+  skipFirst = false,
   predeclaredVars: string[] = []
 ): string {
   ctx.indentLevel++
@@ -4469,7 +4465,7 @@ interface DataclassOptions {
  */
 function transformDecoratedClass(
   classDef: SyntaxNode,
-  decorators: Array<{ name: string; args: string | null }>,
+  decorators: { name: string; args: string | null }[],
   ctx: TransformContext
 ): string {
   // Check for @dataclass decorator
@@ -4519,7 +4515,7 @@ function transformDecoratedClass(
  */
 function transformGenericDecoratedClass(
   classDef: SyntaxNode,
-  decorators: Array<{ name: string; args: string | null }>,
+  decorators: { name: string; args: string | null }[],
   ctx: TransformContext
 ): string {
   const children = getChildren(classDef)
@@ -4696,7 +4692,7 @@ function parseFieldDefaultFactory(callNode: SyntaxNode, ctx: TransformContext): 
   const text = getNodeText(callNode, ctx.source)
 
   // Extract the factory from field(default_factory=X)
-  const factoryMatch = text.match(/default_factory\s*=\s*(\w+)/)
+  const factoryMatch = /default_factory\s*=\s*(\w+)/.exec(text)
   if (factoryMatch) {
     const factory = factoryMatch[1]
     if (factory === "list") return "[]"
@@ -4707,7 +4703,7 @@ function parseFieldDefaultFactory(callNode: SyntaxNode, ctx: TransformContext): 
   }
 
   // Check for default= pattern
-  const defaultMatch = text.match(/default\s*=\s*([^,)]+)/)
+  const defaultMatch = /default\s*=\s*([^,)]+)/.exec(text)
   if (defaultMatch) {
     return defaultMatch[1]?.trim() ?? "undefined"
   }
@@ -5065,7 +5061,7 @@ function checkSequentialEnum(members: EnumMember[]): boolean {
   const numericMembers = members.filter((m) => m.numericValue !== null)
   if (numericMembers.length !== members.length) return false
 
-  // Check for sequential pattern
+  // Check for sequential pattern (we filtered for non-null above)
   const values = numericMembers.map((m) => m.numericValue as number)
   const firstValue = values[0]
   if (firstValue === undefined) return false
@@ -5222,7 +5218,7 @@ function transformProtocol(
       // Handle typed fields
       else if (child.name === "ExpressionStatement" || child.name === "AssignStatement") {
         const field =
-          parseDataclassFieldFromExpression(child, ctx) ||
+          parseDataclassFieldFromExpression(child, ctx) ??
           parseDataclassFieldFromAssignment(child, ctx)
         if (field) {
           members.push(`${memberIndent}${field.name}: ${field.tsType}`)
@@ -5378,7 +5374,7 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
   // Helper to parse a single parameter
   const parseParam = (startIndex: number): { param: ParsedParam; consumed: number } | null => {
     const child = children[startIndex]
-    if (!child || child.name !== "VariableName") return null
+    if (child?.name !== "VariableName") return null
 
     const nameCode = getNodeText(child, ctx.source)
     let tsType: string | null = null
@@ -5387,14 +5383,14 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
 
     // Check for type annotation
     const nextChild = children[startIndex + 1]
-    if (nextChild && nextChild.name === "TypeDef") {
+    if (nextChild?.name === "TypeDef") {
       tsType = extractTypeAnnotation(nextChild, ctx)
       offset = 2
     }
 
     // Check for default value
     const afterType = children[startIndex + offset]
-    if (afterType && afterType.name === "AssignOp") {
+    if (afterType?.name === "AssignOp") {
       const defaultValChild = children[startIndex + offset + 1]
       if (defaultValChild) {
         defaultValue = transformNode(defaultValChild, ctx)
@@ -5433,11 +5429,11 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
     // Check for * (either *args or keyword-only marker)
     if (child.name === "*" || getNodeText(child, ctx.source) === "*") {
       const nextChild = children[i + 1]
-      if (nextChild && nextChild.name === "VariableName") {
+      if (nextChild?.name === "VariableName") {
         // This is *args (rest parameter)
         const name = getNodeText(nextChild, ctx.source)
         const typeChild = children[i + 2]
-        if (typeChild && typeChild.name === "TypeDef") {
+        if (typeChild?.name === "TypeDef") {
           const tsType = extractTypeAnnotation(typeChild, ctx)
           restParam = tsType ? `...${name}: ${tsType}[]` : `...${name}`
           i += 3
@@ -5458,7 +5454,7 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
     // Check for **kwargs
     if (child.name === "**" || getNodeText(child, ctx.source) === "**") {
       const nextChild = children[i + 1]
-      if (nextChild && nextChild.name === "VariableName") {
+      if (nextChild?.name === "VariableName") {
         kwargsParam = getNodeText(nextChild, ctx.source)
         i += 2
         continue

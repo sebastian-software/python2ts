@@ -1,12 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { describe, it, expect } from "vitest"
-import * as functools from "./functools"
+import * as functools from "./functools.js"
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyFunc = (...args: any[]) => any
 
 describe("functools module", () => {
   describe("partial()", () => {
     it("should partially apply arguments", () => {
       const add = (a: number, b: number) => a + b
-      const add5 = functools.partial(add, 5)
+      const add5 = functools.partial(add as AnyFunc, 5)
       expect(add5(3)).toBe(8)
     })
   })
@@ -30,17 +32,17 @@ describe("functools module", () => {
   describe("lruCache()", () => {
     it("should cache function results", () => {
       let callCount = 0
-      const fn = functools.lruCache((n: number) => {
+      const fn = functools.lruCache(((n: number) => {
         callCount++
         return n * 2
-      })
+      }) as AnyFunc)
       expect(fn(5)).toBe(10)
       expect(fn(5)).toBe(10)
       expect(callCount).toBe(1) // Only called once due to cache
     })
 
     it("should provide cacheInfo", () => {
-      const fn = functools.lruCache((n: number) => n * 2)
+      const fn = functools.lruCache(((n: number) => n * 2) as AnyFunc)
       fn(1)
       fn(1)
       fn(2)
@@ -50,7 +52,7 @@ describe("functools module", () => {
     })
 
     it("should provide cacheClear", () => {
-      const fn = functools.lruCache((n: number) => n * 2)
+      const fn = functools.lruCache(((n: number) => n * 2) as AnyFunc)
       fn(1)
       fn.cacheClear()
       const info = fn.cacheInfo()
@@ -127,10 +129,10 @@ describe("functools module", () => {
   describe("cache()", () => {
     it("should cache function results", () => {
       let callCount = 0
-      const fn = functools.cache((n: number) => {
+      const fn = functools.cache(((n: number) => {
         callCount++
         return n * 2
-      })
+      }) as AnyFunc)
       expect(fn(5)).toBe(10)
       expect(fn(5)).toBe(10)
       expect(callCount).toBe(1)
@@ -194,7 +196,7 @@ describe("functools module", () => {
 
   describe("lruCache eviction", () => {
     it("should evict oldest entries when maxsize reached", () => {
-      const fn = functools.lruCache((n: number) => n * 2, 2)
+      const fn = functools.lruCache(((n: number) => n * 2) as AnyFunc, 2)
       fn(1)
       fn(2)
       fn(3) // Should evict 1

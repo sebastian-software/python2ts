@@ -175,7 +175,7 @@ export function urljoin(base: string, url: string, allowFragments = true): strin
  * @returns URL-encoded query string
  */
 export function urlencode(
-  query: Record<string, string | string[]> | Array<[string, string]>,
+  query: Record<string, string | string[]> | [string, string][],
   doseq = false
 ): string {
   const params = new URLSearchParams()
@@ -232,8 +232,8 @@ export function parseQs(qs: string, keepBlankValues = false): Record<string, str
  * @param keepBlankValues - Whether to keep blank values
  * @returns Object mapping keys to single values
  */
-export function parseQsl(qs: string, keepBlankValues = false): Array<[string, string]> {
-  const result: Array<[string, string]> = []
+export function parseQsl(qs: string, keepBlankValues = false): [string, string][] {
+  const result: [string, string][] = []
   const params = new URLSearchParams(qs)
 
   for (const [key, value] of params) {
@@ -362,7 +362,7 @@ export function splitport(host: string): [string, string | null] {
   if (host.startsWith("[")) {
     const match = /^\[([^\]]+)\]:?(\d*)$/.exec(host)
     if (match) {
-      return [match[1] ?? "", match[2] || null]
+      return [match[1] ?? "", match[2] ?? null]
     }
     return [host, null]
   }

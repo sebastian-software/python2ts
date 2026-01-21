@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { describe, it, expect } from "vitest"
-import * as itertools from "./itertools"
+import * as itertools from "./itertools.js"
 
 describe("itertools module", () => {
   describe("chain()", () => {
@@ -49,7 +48,7 @@ describe("itertools module", () => {
 
   describe("product()", () => {
     it("should return cartesian product", () => {
-      expect(itertools.product([1, 2], ["a", "b"])).toEqual([
+      expect(itertools.product<number | string>([1, 2], ["a", "b"])).toEqual([
         [1, "a"],
         [1, "b"],
         [2, "a"],
@@ -129,7 +128,9 @@ describe("itertools module", () => {
 
   describe("zipLongest()", () => {
     it("should zip with fill value", () => {
-      expect(itertools.zipLongest([1, 2, 3], ["a", "b"], { fillvalue: "-" })).toEqual([
+      expect(
+        itertools.zipLongest<number | string>([1, 2, 3], ["a", "b"], { fillvalue: "-" })
+      ).toEqual([
         [1, "a"],
         [2, "b"],
         [3, "-"]
@@ -137,7 +138,7 @@ describe("itertools module", () => {
     })
 
     it("should work without options", () => {
-      expect(itertools.zipLongest([1, 2], ["a"])).toEqual([
+      expect(itertools.zipLongest<number | string>([1, 2], ["a"])).toEqual([
         [1, "a"],
         [2, undefined]
       ])
@@ -166,11 +167,15 @@ describe("itertools module", () => {
     })
 
     it("should accumulate with custom function", () => {
-      expect(itertools.accumulate([1, 2, 3, 4, 5], (x, y) => x * y)).toEqual([1, 2, 6, 24, 120])
+      expect(itertools.accumulate([1, 2, 3, 4, 5], (x: number, y: number) => x * y)).toEqual([
+        1, 2, 6, 24, 120
+      ])
     })
 
     it("should support initial value", () => {
-      expect(itertools.accumulate([1, 2, 3], (x, y) => x + y, 10)).toEqual([10, 11, 13, 16])
+      expect(itertools.accumulate([1, 2, 3], (x: number, y: number) => x + y, 10)).toEqual([
+        10, 11, 13, 16
+      ])
     })
 
     it("should handle empty iterable", () => {
@@ -194,7 +199,7 @@ describe("itertools module", () => {
     })
 
     it("should support key function", () => {
-      const result = itertools.groupby([1, 2, 3, 4, 5], (x) => x % 2)
+      const result = itertools.groupby([1, 2, 3, 4, 5], (x: number) => x % 2)
       expect(result.length).toBe(5)
     })
   })
@@ -286,7 +291,7 @@ describe("itertools module", () => {
 
   describe("partition()", () => {
     it("should partition by predicate", () => {
-      expect(itertools.partition([1, 2, 3, 4], (x) => x % 2 === 0)).toEqual([
+      expect(itertools.partition([1, 2, 3, 4], (x: number) => x % 2 === 0)).toEqual([
         [2, 4],
         [1, 3]
       ])

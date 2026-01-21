@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { describe, it, expect } from "vitest"
-import * as json from "./json"
+import * as json from "./json.js"
 
 describe("json module", () => {
   describe("dumps()", () => {
@@ -78,7 +77,7 @@ describe("json module", () => {
         date: { toJSON: () => "2024-01-15" }
       }
       const result = json.dumps(obj, {
-        default: (o) => {
+        default: (o: unknown) => {
           if (typeof (o as { toJSON?: () => string }).toJSON === "function") {
             return (o as { toJSON: () => string }).toJSON()
           }

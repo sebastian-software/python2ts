@@ -101,17 +101,11 @@ export const logging = loggingModule
 // Core built-in types with methods (list, dict, set)
 // =============================================================================
 
-type ListConstructor = {
-  <T>(iterable?: Iterable<T>): T[]
-} & typeof listMethods
+type ListConstructor = (<T>(iterable?: Iterable<T>) => T[]) & typeof listMethods
 
-type DictConstructor = {
-  <K, V>(entries?: Iterable<[K, V]>): Map<K, V>
-} & typeof dictMethods
+type DictConstructor = (<K, V>(entries?: Iterable<[K, V]>) => Map<K, V>) & typeof dictMethods
 
-type SetConstructor = {
-  <T>(iterable?: Iterable<T>): Set<T>
-} & typeof setMethods
+type SetConstructor = (<T>(iterable?: Iterable<T>) => Set<T>) & typeof setMethods
 
 export const list: ListConstructor = Object.assign(
   <T>(iterable?: Iterable<T>): T[] => builtins.list(iterable),

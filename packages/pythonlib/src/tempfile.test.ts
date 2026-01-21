@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { describe, it, expect } from "vitest"
 import * as fs from "node:fs"
-import * as tempfile from "./tempfile"
+import * as tempfile from "./tempfile.js"
 
 describe("tempfile module", () => {
   describe("gettempdir()", () => {

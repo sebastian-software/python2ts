@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { describe, it, expect } from "vitest"
-import * as datetime from "./datetime"
+import * as datetime from "./datetime.js"
 
 describe("datetime module", () => {
   describe("date class", () => {

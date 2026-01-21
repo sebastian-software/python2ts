@@ -8,6 +8,7 @@
 import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from "bun:test"
 
 // Make these available globally for test files that expect vitest globals
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 Object.assign(globalThis, {
   describe,
   it,
@@ -18,3 +19,4 @@ Object.assign(globalThis, {
   beforeAll,
   afterAll
 })
+/* eslint-enable @typescript-eslint/no-unsafe-assignment */

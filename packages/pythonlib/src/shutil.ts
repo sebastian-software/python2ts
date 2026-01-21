@@ -290,11 +290,11 @@ export function copyfileobj(
   length?: number
 ): void {
   if (length === undefined) {
-    fsrc.pipe(fdst as NodeJS.WritableStream)
+    ;(fsrc as NodeJS.ReadableStream).pipe(fdst as NodeJS.WritableStream)
   } else {
     // Read specified number of bytes
     let remaining = length
-    fsrc.on("data", (chunk: Buffer) => {
+    ;(fsrc as NodeJS.ReadableStream).on("data", (chunk: Buffer) => {
       if (remaining <= 0) return
       const toWrite = chunk.subarray(0, Math.min(chunk.length, remaining))
       ;(fdst as NodeJS.WritableStream).write(toWrite)

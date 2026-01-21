@@ -27,7 +27,7 @@ export class Counter<T> extends Map<T, number> {
   /**
    * Increment the count for a key
    */
-  increment(key: T, n: number = 1): void {
+  increment(key: T, n = 1): void {
     this.set(key, (super.get(key) ?? 0) + n)
   }
 
@@ -200,7 +200,7 @@ export class deque<T> {
   /**
    * Rotate the deque n steps to the right (negative n rotates left)
    */
-  rotate(n: number = 1): void {
+  rotate(n = 1): void {
     const len = this.items.length
     if (len === 0) return
     n = n % len

@@ -72,7 +72,7 @@ export function reduce<T, U = T>(
  */
 export function lruCache<T extends (...args: unknown[]) => unknown>(
   func: T,
-  maxsize: number = 128
+  maxsize = 128
 ): T & {
   cacheInfo: () => { hits: number; misses: number; maxsize: number; currsize: number }
   cacheClear: () => void

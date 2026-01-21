@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import * as fs from "node:fs"
-import * as shutil from "./shutil"
+import * as shutil from "./shutil.js"
 
 describe("shutil module", () => {
   const testDir = "/tmp/shutil-test-" + Date.now()

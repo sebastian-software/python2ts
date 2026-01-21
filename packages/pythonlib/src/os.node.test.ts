@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { describe, it, expect } from "vitest"
 import * as fs from "node:fs"
-import * as os from "./os.node"
+import * as os from "./os.node.js"
 
 describe("os module", () => {
   describe("path functions", () => {
@@ -44,7 +44,7 @@ describe("os module", () => {
       const result = os.path.absPath("a/../b")
       // In Node.js, absPath returns cwd + relative path
       expect(os.path.isAbs(result)).toBe(true)
-      expect(result.endsWith("/b") || result.endsWith("\\b")).toBe(true)
+      expect(/[/\\]b$/.test(result)).toBe(true)
     })
 
     it("relPath should return relative path", () => {
@@ -119,7 +119,9 @@ describe("os module", () => {
     })
 
     it("makeDirs with existOk should not throw on existing directory", () => {
-      expect(() => os.makeDirs(testDir, 0o777, true)).not.toThrow()
+      expect(() => {
+        os.makeDirs(testDir, 0o777, true)
+      }).not.toThrow()
     })
 
     it("path.exists should detect existing paths", () => {
@@ -242,7 +244,7 @@ describe("os module", () => {
     })
 
     it("walk should traverse directory tree", () => {
-      const results: Array<[string, string[], string[]]> = []
+      const results: [string, string[], string[]][] = []
       for (const entry of os.walk(testDir)) {
         results.push(entry)
       }
@@ -253,7 +255,7 @@ describe("os module", () => {
     })
 
     it("walk with topdown=false should yield bottom-up", () => {
-      const results: Array<[string, string[], string[]]> = []
+      const results: [string, string[], string[]][] = []
       for (const entry of os.walk(testDir, { topdown: false })) {
         results.push(entry)
       }
@@ -264,7 +266,7 @@ describe("os module", () => {
     })
 
     it("walk should handle nonexistent directory", () => {
-      const results: Array<[string, string[], string[]]> = []
+      const results: [string, string[], string[]][] = []
       for (const entry of os.walk("/nonexistent-path-12345")) {
         results.push(entry)
       }
@@ -278,7 +280,7 @@ describe("os module", () => {
       os.mkdir(subDir)
       fs.symlinkSync(subDir, linkPath)
 
-      const results: Array<[string, string[], string[]]> = []
+      const results: [string, string[], string[]][] = []
       for (const entry of os.walk(testDir, { followlinks: true })) {
         results.push(entry)
       }
@@ -301,7 +303,7 @@ describe("os module", () => {
       fs.writeFileSync(filePath, "content")
       fs.symlinkSync(filePath, linkPath)
 
-      const results: Array<[string, string[], string[]]> = []
+      const results: [string, string[], string[]][] = []
       for (const entry of os.walk(testDir, { followlinks: true })) {
         results.push(entry)
       }
@@ -322,7 +324,7 @@ describe("os module", () => {
       const linkPath = testDir + "/broken-symlink"
       fs.symlinkSync("/nonexistent-target-12345", linkPath)
 
-      const results: Array<[string, string[], string[]]> = []
+      const results: [string, string[], string[]][] = []
       for (const entry of os.walk(testDir, { followlinks: true })) {
         results.push(entry)
       }
@@ -343,7 +345,7 @@ describe("os module", () => {
       os.mkdir(subDir)
       fs.symlinkSync(subDir, linkPath)
 
-      const results: Array<[string, string[], string[]]> = []
+      const results: [string, string[], string[]][] = []
       for (const entry of os.walk(testDir, { followlinks: false })) {
         results.push(entry)
       }
@@ -363,7 +365,9 @@ describe("os module", () => {
     it("makeDirs should handle permission errors", () => {
       // Try to create directory in a location that should fail
       // (Note: mkdirSync with recursive:true doesn't throw EEXIST)
-      expect(() => os.makeDirs("/root/no-permission-12345")).toThrow()
+      expect(() => {
+        os.makeDirs("/root/no-permission-12345")
+      }).toThrow()
     })
 
     it("remove should delete file (unlink alias)", () => {
