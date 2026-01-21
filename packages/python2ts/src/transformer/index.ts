@@ -1481,9 +1481,28 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
     case "reversed":
       ctx.usesRuntime.add("reversed")
       return `reversed(${args})`
-    case "isinstance":
+    case "isinstance": {
       ctx.usesRuntime.add("isinstance")
+      // Special handling: if second arg is a tuple, convert to array for multiple type check
+      if (argList) {
+        const argChildren = getChildren(argList).filter(
+          (c) => c.name !== "(" && c.name !== ")" && c.name !== ","
+        )
+        if (argChildren.length >= 2) {
+          const firstArg = argChildren[0]
+          const secondArg = argChildren[1]
+          if (firstArg && secondArg?.name === "TupleExpression") {
+            // Convert tuple to array literal
+            const tupleChildren = getChildren(secondArg).filter(
+              (c) => c.name !== "(" && c.name !== ")" && c.name !== ","
+            )
+            const typesCodes = tupleChildren.map((el) => transformNode(el, ctx))
+            return `isinstance(${transformNode(firstArg, ctx)}, [${typesCodes.join(", ")}])`
+          }
+        }
+      }
       return `isinstance(${args})`
+    }
     case "type":
       ctx.usesRuntime.add("type")
       return `type(${args})`

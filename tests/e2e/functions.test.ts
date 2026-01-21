@@ -267,6 +267,14 @@ describe("E2E: Functions", () => {
       `)
     })
 
+    it("should convert isinstance with tuple of types to array", () => {
+      expect(transpile("isinstance(x, (int, float, str))")).toMatchInlineSnapshot(`
+        "import { isinstance, tuple } from "pythonlib"
+
+        isinstance(x, [int, float, str]);"
+      `)
+    })
+
     it("should convert type", () => {
       expect(transpile("type(x)")).toMatchInlineSnapshot(`
         "import { type } from "pythonlib"

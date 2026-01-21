@@ -673,6 +673,10 @@ export function ascii(x: unknown): string {
  * @see {@link https://docs.python.org/3/library/functions.html#isinstance | Python isinstance()}
  */
 export function isinstance(obj: unknown, classInfo: unknown): boolean {
+  // Handle tuple of types (array)
+  if (Array.isArray(classInfo)) {
+    return classInfo.some((cls) => isinstance(obj, cls))
+  }
   if (classInfo === Number || classInfo === "int" || classInfo === "float") {
     return typeof obj === "number"
   }

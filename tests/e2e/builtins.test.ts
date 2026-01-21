@@ -93,6 +93,16 @@ describe("E2E: Built-in Functions Execution", () => {
       expect(isinstance(new Set(), Set)).toBe(true)
       expect(isinstance(new Set(), "set")).toBe(true)
     })
+
+    it("should check multiple types with array (tuple of types)", () => {
+      expect(isinstance(42, [Number, String])).toBe(true)
+      expect(isinstance("hello", [Number, String])).toBe(true)
+      expect(isinstance(true, [Number, String])).toBe(false)
+      expect(isinstance([1, 2], [Array, Map, Set])).toBe(true)
+      expect(isinstance(new Map(), [Array, Map, Set])).toBe(true)
+      expect(isinstance(new Set(), [Array, Map, Set])).toBe(true)
+      expect(isinstance("hello", [Array, Map, Set])).toBe(false)
+    })
   })
 
   describe("repr()", () => {
