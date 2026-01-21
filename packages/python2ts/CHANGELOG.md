@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.3.3...python2ts-v1.4.0) (2026-01-21)
+
+
+### Features
+
+* **transformer:** support implicit string concatenation ([#34](https://github.com/sebastian-software/python2ts/issues/34), [#36](https://github.com/sebastian-software/python2ts/issues/36)) ([d868888](https://github.com/sebastian-software/python2ts/commit/d8688888c54667de5407ea484558f359b7c7b2bb))
+
+
+### Bug Fixes
+
+* **transformer:** handle UpdateStatement and variable context managers ([#35](https://github.com/sebastian-software/python2ts/issues/35), [#37](https://github.com/sebastian-software/python2ts/issues/37)) ([d5c30a4](https://github.com/sebastian-software/python2ts/commit/d5c30a48324098b506e9812328b7ce389bcc6be7))
+
 ## [1.3.3](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.3.2...python2ts-v1.3.3) (2026-01-21)
 
 
