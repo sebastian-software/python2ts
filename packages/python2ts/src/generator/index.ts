@@ -242,10 +242,12 @@ function createEslintConfig(tempDir: string): ESLint.Options {
           }
         },
         rules: {
-          // Additional ESLint core rules (auto-fixable)
+          // ESLint core rules (auto-fixable, not in typescript-eslint presets)
           "prefer-const": "error",
           "prefer-arrow-callback": "error",
           "prefer-template": "error",
+          "prefer-rest-params": "error",
+          "prefer-spread": "error",
           curly: "error",
           "no-lonely-if": "error",
 
