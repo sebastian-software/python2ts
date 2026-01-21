@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.3.0](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.2.0...python2ts-v1.3.0) (2026-01-21)
+
+
+### Features
+
+* **transpiler:** add await for async module functions ([f43b659](https://github.com/sebastian-software/python2ts/commit/f43b65981945916a78100ce8a65f0c0db8994073))
+* **transpiler:** add await to async hashlib calls ([14979bc](https://github.com/sebastian-software/python2ts/commit/14979bc5e803a475c556a464e5be8b5524b7ea70))
+
+
+### Bug Fixes
+
+* address strict eslint rules ([8eaf5aa](https://github.com/sebastian-software/python2ts/commit/8eaf5aa6a48bc244e3f8dba36764449b403d98ec))
+
+
+### Code Refactoring
+
+* remove eslint non-nullable-type-assertion-style override ([3287d2f](https://github.com/sebastian-software/python2ts/commit/3287d2f0b3af9888c907df6bf1b2d6dccd109bef))
+
 ## [1.2.0](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.1.0...python2ts-v1.2.0) (2026-01-21)
 
 

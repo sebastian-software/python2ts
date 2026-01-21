@@ -1,6 +1,6 @@
 {
   "name": "python2ts",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "AST-based Python to TypeScript transpiler. Convert Python code to clean, idiomatic TypeScript with full type preservation.",
   "homepage": "https://sebastian-software.github.io/python2ts/",
   "repository": {

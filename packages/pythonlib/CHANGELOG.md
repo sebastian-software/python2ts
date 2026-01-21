@@ -1,5 +1,37 @@
 # Changelog
 
+## [2.0.0](https://github.com/sebastian-software/python2ts/compare/pythonlib-v1.0.2...pythonlib-v2.0.0) (2026-01-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* **hashlib:** digest(), hexdigest(), pbkdf2Hmac(), scrypt(), compareDigest() now return Promises and must be awaited.
+
+### Features
+
+* **hashlib:** convert to async API with Web Crypto support ([82b0b58](https://github.com/sebastian-software/python2ts/commit/82b0b584fdff449d6c8afc58e4694bf105812d7c))
+* **os:** implement conditional exports for browser/Node.js ([8e52695](https://github.com/sebastian-software/python2ts/commit/8e526958cbc7d41e06355b79fbfa7c325f756b81))
+* **pythonlib:** add 13 Python standard library modules ([c0bf4ad](https://github.com/sebastian-software/python2ts/commit/c0bf4ad57d0d10e011ff196230b5f39241d31a2f))
+* **pythonlib:** add browser entry point for main export ([bdba5c5](https://github.com/sebastian-software/python2ts/commit/bdba5c5ecd4eb6d361eab7f3aeae4cd56bf54c1c))
+* **pythonlib:** add browser/Node.js conditional exports ([dc03d90](https://github.com/sebastian-software/python2ts/commit/dc03d903f86a40818333deafdf139f6c018e8ba5))
+* **transpiler:** add await for async module functions ([f43b659](https://github.com/sebastian-software/python2ts/commit/f43b65981945916a78100ce8a65f0c0db8994073))
+
+
+### Bug Fixes
+
+* address strict eslint rules ([8eaf5aa](https://github.com/sebastian-software/python2ts/commit/8eaf5aa6a48bc244e3f8dba36764449b403d98ec))
+
+
+### Code Refactoring
+
+* **pythonlib:** convert fs operations to async API ([d18d2f4](https://github.com/sebastian-software/python2ts/commit/d18d2f45b295c0a809d8d31a131fbfdbdff05156))
+* remove eslint non-nullable-type-assertion-style override ([3287d2f](https://github.com/sebastian-software/python2ts/commit/3287d2f0b3af9888c907df6bf1b2d6dccd109bef))
+
+
+### Documentation
+
+* add Node.js, Bun, and zero dependencies badges ([a6bdb10](https://github.com/sebastian-software/python2ts/commit/a6bdb10c8b8cac44b3321bf578b330d682551b5d))
+
 ## [1.0.2](https://github.com/sebastian-software/python2ts/compare/pythonlib-v1.0.1...pythonlib-v1.0.2) (2026-01-21)
 
 
