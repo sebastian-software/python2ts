@@ -86,7 +86,7 @@ export const path = {
   },
 
   /* v8 ignore start -- browser stubs @preserve */
-  /* eslint-disable @typescript-eslint/no-unused-vars */
+
   /** Test if path exists (stub - always returns false in browser) */
   exists(_p: string): boolean {
     return false
@@ -126,7 +126,7 @@ export const path = {
   getCtime(_p: string): number {
     return 0
   }
-  /* eslint-enable @typescript-eslint/no-unused-vars */
+
   /* v8 ignore stop */
 }
 
@@ -135,7 +135,6 @@ export const path = {
 // ============================================================================
 
 /* v8 ignore start -- browser stubs for filesystem operations @preserve */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 /** List directory contents (stub - returns empty array in browser) */
 export function listDir(_p = "."): string[] {
@@ -204,5 +203,4 @@ export function stat(_p: string): {
   return { st_mode: 0, st_size: 0, st_mtime: 0, st_atime: 0, st_ctime: 0 }
 }
 
-/* eslint-enable @typescript-eslint/no-unused-vars */
 /* v8 ignore stop */

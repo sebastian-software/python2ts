@@ -306,7 +306,7 @@ export function uuid1(node?: bigint, clockSeq?: number): UUID {
  * @param name - The name string
  * @returns A new name-based UUID using MD5
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 export function uuid3(_namespace: UUID, _name: string): UUID {
   // Note: This requires an MD5 implementation
   // For simplicity, throw an error for now - hashlib module will provide this
@@ -320,7 +320,7 @@ export function uuid3(_namespace: UUID, _name: string): UUID {
  * @param name - The name string
  * @returns A new name-based UUID using SHA-1
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 export function uuid5(_namespace: UUID, _name: string): UUID {
   // Note: This requires a SHA-1 implementation
   // For simplicity, throw an error for now - hashlib module will provide this

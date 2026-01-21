@@ -312,7 +312,6 @@ export function copyfileobj(
  * @param rootDir - Directory to archive
  * @returns Path to the created archive
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function makeArchive(_baseName: string, _format: string, _rootDir: string): string {
   throw new Error("makeArchive is not implemented (requires external tools)")
 }
@@ -325,7 +324,6 @@ export function makeArchive(_baseName: string, _format: string, _rootDir: string
  * @param filename - Path to the archive
  * @param extractDir - Directory to extract to (optional)
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function unpackArchive(_filename: string, _extractDir?: string): void {
   throw new Error("unpackArchive is not implemented (requires external tools)")
 }

@@ -60,7 +60,7 @@ export async function mkstemp(
   suffix = "",
   prefix = "tmp",
   dir?: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   _text = false
 ): Promise<[FileHandle, string]> {
   const tempDir = dir ?? gettempdir()
@@ -163,7 +163,7 @@ export class NamedTemporaryFile {
   /**
    * Seek to a position in the file.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   seek(_offset: number, _whence = 0): void {
     // Node.js doesn't have a direct seek, we track position manually
     // For simplicity, this is a no-op
