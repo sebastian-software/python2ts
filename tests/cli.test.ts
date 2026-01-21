@@ -65,7 +65,7 @@ describe("CLI", () => {
       try {
         const result = runCLI(testFile)
         expect(result.code).toBe(0)
-        expect(result.stdout).toContain("let x = 1 + 2")
+        expect(result.stdout).toContain("const x = 1 + 2")
       } finally {
         unlinkSync(testFile)
       }
@@ -100,7 +100,7 @@ describe("CLI", () => {
         const result = runCLI(`${testFile} -o ${outputFile}`)
         expect(result.code).toBe(0)
         const output = readFileSync(outputFile, "utf-8")
-        expect(output).toContain("let x = 1 + 2")
+        expect(output).toContain("const x = 1 + 2")
       } finally {
         unlinkSync(testFile)
         try {
@@ -148,14 +148,14 @@ describe("CLI", () => {
     it("should read from stdin", () => {
       const result = runCLI("", "x = 1 + 2")
       expect(result.code).toBe(0)
-      expect(result.stdout).toContain("let x = 1 + 2")
+      expect(result.stdout).toContain("const x = 1 + 2")
     })
 
     it("should handle multiline input from stdin", () => {
       const result = runCLI("", "x = 1\ny = 2\nprint(x + y)")
       expect(result.code).toBe(0)
-      expect(result.stdout).toContain("let x = 1")
-      expect(result.stdout).toContain("let y = 2")
+      expect(result.stdout).toContain("const x = 1")
+      expect(result.stdout).toContain("const y = 2")
       expect(result.stdout).toContain("console.log(x + y)")
     })
   })
