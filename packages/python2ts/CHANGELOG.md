@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.4.0...python2ts-v1.4.1) (2026-01-21)
+
+
+### Bug Fixes
+
+* chained assignment and tuple unpacking in generators ([88cb75c](https://github.com/sebastian-software/python2ts/commit/88cb75cbdc3a2b112cd5dcd295bf7d9b75227e18))
+
 ## [1.4.0](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.3.3...python2ts-v1.4.0) (2026-01-21)
 
 
