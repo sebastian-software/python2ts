@@ -3,6 +3,7 @@ import { defineConfig } from "tsup"
 export default defineConfig({
   entry: [
     "src/index.ts",
+    "src/index.browser.ts",
     "src/collections.ts",
     "src/itertools.ts",
     "src/functools.ts",
