@@ -855,6 +855,10 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformAssertStatement(node, ctx)
     case "YieldStatement":
       return transformYieldStatement(node, ctx)
+    case "Ellipsis":
+      // Python's Ellipsis literal (...) - used in NumPy for multi-dimensional slicing
+      ctx.usesRuntime.add("Ellipsis")
+      return "Ellipsis"
     /* v8 ignore next 2 -- fallback for unknown AST nodes @preserve */
     default:
       return getNodeText(node, ctx.source)
@@ -2452,21 +2456,34 @@ function transformMemberExpression(node: SyntaxNode, ctx: TransformContext): str
       return transformSliceFromMember(obj, children, ctx)
     }
 
-    // Simple index access
-    const indexElements = children.filter((c) => c.name !== "[" && c.name !== "]" && c !== obj)
-    const index = indexElements[0]
+    // Simple index access - handle comma-separated indices (NumPy-style multi-dimensional)
+    const indexElements = children.filter(
+      (c) => c.name !== "[" && c.name !== "]" && c.name !== "," && c !== obj
+    )
 
-    if (!index) return `${objCode}[]`
+    if (indexElements.length === 0) return `${objCode}[]`
 
-    const indexCode = transformNode(index, ctx)
+    // Single index
+    if (indexElements.length === 1) {
+      const index = indexElements[0]
+      if (!index) return `${objCode}[]`
 
-    // Check if the index is a negative number literal (for py.at() support)
-    if (isNegativeIndexLiteral(index, ctx)) {
-      ctx.usesRuntime.add("at")
-      return `at(${objCode}, ${indexCode})`
+      const indexCode = transformNode(index, ctx)
+
+      // Check if the index is a negative number literal (for py.at() support)
+      if (isNegativeIndexLiteral(index, ctx)) {
+        ctx.usesRuntime.add("at")
+        return `at(${objCode}, ${indexCode})`
+      }
+
+      return `${objCode}[${indexCode}]`
     }
 
-    return `${objCode}[${indexCode}]`
+    // Multiple indices (NumPy-style): arr[i, j] or arr[..., 0]
+    // Convert to tuple for runtime handling
+    ctx.usesRuntime.add("tuple")
+    const indices = indexElements.map((el) => transformNode(el, ctx))
+    return `${objCode}[tuple(${indices.join(", ")})]`
   } else {
     // Dot access: obj.attr
     const prop = children[children.length - 1]

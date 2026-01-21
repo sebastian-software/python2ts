@@ -190,3 +190,6 @@ export const format = builtins.format
 export const getattr = builtins.getattr
 export const hasattr = builtins.hasattr
 export const setattr = builtins.setattr
+
+// Constants
+export const Ellipsis = builtins.Ellipsis

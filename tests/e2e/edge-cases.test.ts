@@ -505,4 +505,32 @@ void = None`
       `)
     })
   })
+
+  describe("Ellipsis handling", () => {
+    it("should convert simple ellipsis index to Ellipsis constant", () => {
+      const result = transpile("x = arr[...]")
+      expect(result).toContain('import { Ellipsis } from "pythonlib"')
+      expect(result).toContain("arr[Ellipsis]")
+    })
+
+    it("should convert ellipsis with additional index to tuple", () => {
+      const result = transpile("x = arr[..., 0]")
+      expect(result).toContain("Ellipsis")
+      expect(result).toContain("tuple")
+      expect(result).toContain("arr[tuple(Ellipsis, 0)]")
+    })
+
+    it("should handle ellipsis at different positions", () => {
+      const result1 = transpile("x = arr[0, ...]")
+      expect(result1).toContain("arr[tuple(0, Ellipsis)]")
+
+      const result2 = transpile("x = arr[0, ..., 1]")
+      expect(result2).toContain("arr[tuple(0, Ellipsis, 1)]")
+    })
+
+    it("should handle ellipsis in assignment target", () => {
+      const result = transpile("arr[...] = value", { includeRuntime: false })
+      expect(result).toContain("arr[Ellipsis] = value")
+    })
+  })
 })

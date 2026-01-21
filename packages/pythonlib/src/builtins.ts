@@ -984,3 +984,19 @@ export function setattr(obj: unknown, name: string, value: unknown): void {
   }
   ;(obj as Record<string, unknown>)[name] = value
 }
+
+// ============================================================
+// Constants
+// ============================================================
+
+/**
+ * Python Ellipsis literal (...).
+ *
+ * In Python, Ellipsis is a singleton used for various purposes:
+ * - NumPy multi-dimensional array slicing: arr[..., 0]
+ * - Type hints for variable-length tuples: Tuple[int, ...]
+ * - Placeholder for unimplemented code
+ *
+ * @see {@link https://docs.python.org/3/library/constants.html#Ellipsis | Python Ellipsis documentation}
+ */
+export const Ellipsis = Symbol.for("python.Ellipsis")
