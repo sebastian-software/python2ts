@@ -788,6 +788,8 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformExpressionStatement(node, ctx)
     case "AssignStatement":
       return transformAssignStatement(node, ctx)
+    case "UpdateStatement":
+      return transformUpdateStatement(node, ctx)
     case "BinaryExpression":
       return transformBinaryExpression(node, ctx)
     case "UnaryExpression":
@@ -1094,6 +1096,38 @@ function extractVariableNames(nodes: SyntaxNode[], source: string): string[] {
     }
   }
   return names
+}
+
+/**
+ * Transform Python's augmented assignment statement: x += value
+ */
+function transformUpdateStatement(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+
+  // Structure: target UpdateOp value
+  const target = children.find(
+    (c) => c.name === "VariableName" || c.name === "MemberExpression" || c.name === "Subscript"
+  )
+  const op = children.find((c) => c.name === "UpdateOp")
+  const value = children.find(
+    (c) =>
+      c !== target &&
+      c.name !== "UpdateOp" &&
+      c.name !== "(" &&
+      c.name !== ")" &&
+      c.name !== "," &&
+      c.name !== ":"
+  )
+
+  if (!target || !op || !value) {
+    return getNodeText(node, ctx.source)
+  }
+
+  const targetCode = transformNode(target, ctx)
+  const opText = getNodeText(op, ctx.source)
+  const valueCode = transformNode(value, ctx)
+
+  return `${targetCode} ${opText} ${valueCode}`
 }
 
 /**
@@ -3938,7 +3972,22 @@ function transformWithStatement(node: SyntaxNode, ctx: TransformContext): string
     }
 
     // This should be an expression (the context manager)
-    if (child.name !== "as" && child.name !== ":" && child.name !== "VariableName") {
+    // It can be a CallExpression, MemberExpression, or even a simple VariableName
+    // Skip 'as' and ':' tokens, but handle VariableName specially
+    if (child.name === "as" || child.name === ":") {
+      i++
+      continue
+    }
+
+    // Check if this is a context manager expression (not a binding variable after 'as')
+    // A VariableName is a context manager if the next child is 'as' or Body
+    const isContextManagerExpr =
+      child.name !== "VariableName" ||
+      children[i + 1]?.name === "as" ||
+      children[i + 1]?.name === "Body" ||
+      children[i + 1]?.name === ","
+
+    if (isContextManagerExpr) {
       const expr = child
       let varName: string | null = null
 
