@@ -1,6 +1,7 @@
 import { transform, type TransformResult } from "../transformer/index.js"
 import type { ParseResult } from "../parser/index.js"
 import * as prettier from "prettier"
+import { Linter } from "eslint"
 
 export interface GeneratorOptions {
   includeRuntime?: boolean
@@ -214,13 +215,33 @@ export function transpile(python: string, options: GeneratorOptions = {}): strin
   return generate(python, options).code
 }
 
+/** ESLint linter instance for fixing generated code */
+const eslintLinter = new Linter({ configType: "eslintrc" })
+
+/** ESLint configuration for generated TypeScript code */
+const eslintConfig: Linter.LegacyConfig = {
+  parserOptions: { ecmaVersion: 2022 },
+  rules: { "prefer-const": "error" }
+}
+
+/**
+ * Apply ESLint fixes to code (e.g., prefer-const)
+ */
+function applyEslintFixes(code: string): string {
+  const result = eslintLinter.verifyAndFix(code, eslintConfig, { filename: "output.ts" })
+  return result.output
+}
+
 /* v8 ignore start -- async wrappers tested via CLI @preserve */
 /**
- * Format TypeScript code using Prettier
+ * Format TypeScript code using ESLint fixes + Prettier
  */
 export async function formatCode(code: string): Promise<string> {
   try {
-    return await prettier.format(code, prettierOptions)
+    // First apply ESLint fixes (prefer-const)
+    const eslintFixed = applyEslintFixes(code)
+    // Then format with Prettier
+    return await prettier.format(eslintFixed, prettierOptions)
   } catch {
     // If formatting fails (e.g., syntax error in generated code), return unformatted
     return code

@@ -102,12 +102,18 @@ importers:
 
   packages/python2ts:
     dependencies:
+      '@eslint/js':
+        specifier: ^9.39.2
+        version: 9.39.2
       '@lezer/common':
         specifier: ^1.5.0
         version: 1.5.0
       '@lezer/python':
         specifier: ^1.1.18
         version: 1.1.18
+      eslint:
+        specifier: ^9.39.2
+        version: 9.39.2(jiti@1.21.7)
       prettier:
         specifier: ^3.8.0
         version: 3.8.0
