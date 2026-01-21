@@ -21,6 +21,8 @@ context and consequences.
 | [ADR-0008](./0008-itertools-eager-vs-lazy.md)      | itertools: Eager Arrays vs. Lazy   | Accepted   | 2026-01-17 |
 | [ADR-0009](./0009-subpath-exports-architecture.md) | Subpath Exports Architecture       | Accepted   | 2026-01-18 |
 | [ADR-0010](./0010-monorepo-package-structure.md)   | Monorepo Package Structure         | Accepted   | 2026-01-18 |
+| [ADR-0011](./0011-camelcase-api-convention.md)     | camelCase API Convention           | Accepted   | 2026-01-18 |
+| [ADR-0012](./0012-async-filesystem-api.md)         | Async Filesystem API               | Accepted   | 2026-01-21 |
 
 ## Template
 

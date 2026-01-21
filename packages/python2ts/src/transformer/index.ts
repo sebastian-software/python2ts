@@ -1662,6 +1662,56 @@ function transformCallExpression(node: SyntaxNode, ctx: TransformContext): strin
       ctx.usesRuntime.add("string/capWords")
       return `capWords(${args})`
 
+    // glob module - async functions (direct import)
+    case "glob":
+      ctx.usesRuntime.add("glob/glob")
+      return `await glob(${args})`
+    case "iglob":
+      ctx.usesRuntime.add("glob/iglob")
+      return `await iglob(${args})`
+    case "rglob":
+      ctx.usesRuntime.add("glob/rglob")
+      return `await rglob(${args})`
+
+    // shutil module - async functions (direct import)
+    case "copy":
+      ctx.usesRuntime.add("shutil/copy")
+      return `await copy(${args})`
+    case "copy2":
+      ctx.usesRuntime.add("shutil/copy2")
+      return `await copy2(${args})`
+    case "copytree":
+      ctx.usesRuntime.add("shutil/copytree")
+      return `await copytree(${args})`
+    case "move":
+      ctx.usesRuntime.add("shutil/move")
+      return `await move(${args})`
+    case "rmtree":
+      ctx.usesRuntime.add("shutil/rmtree")
+      return `await rmtree(${args})`
+    case "which":
+      ctx.usesRuntime.add("shutil/which")
+      return `await which(${args})`
+
+    // tempfile module - async functions (direct import)
+    case "mkstemp":
+      ctx.usesRuntime.add("tempfile/mkstemp")
+      return `await mkstemp(${args})`
+    case "mkdtemp":
+      ctx.usesRuntime.add("tempfile/mkdtemp")
+      return `await mkdtemp(${args})`
+    case "NamedTemporaryFile":
+      ctx.usesRuntime.add("tempfile/NamedTemporaryFile")
+      return `await NamedTemporaryFile.create(${args})`
+    case "TemporaryDirectory":
+      ctx.usesRuntime.add("tempfile/TemporaryDirectory")
+      return `await TemporaryDirectory.create(${args})`
+
+    // pathlib module
+    case "Path":
+      ctx.usesRuntime.add("pathlib/Path")
+      return `new Path(${args})`
+
     /* v8 ignore next 3 -- pass-through for user-defined functions @preserve */
     default:
       // Regular function call
@@ -1721,16 +1771,50 @@ function transformModuleCall(
 
   // os module
   if (moduleName === "os") {
+    // Async os.path.* functions
+    const asyncPathFuncs = [
+      "exists",
+      "isfile",
+      "isdir",
+      "islink",
+      "realpath",
+      "getsize",
+      "getmtime",
+      "getatime",
+      "getctime"
+    ]
+    // Async os.* functions
+    const asyncOsFuncs = [
+      "listdir",
+      "mkdir",
+      "makedirs",
+      "remove",
+      "unlink",
+      "rmdir",
+      "removedirs",
+      "rename",
+      "renames",
+      "replace",
+      "walk",
+      "stat"
+    ]
+
     // os.path.* functions - keep as namespace since path is a nested module
     if (funcName.startsWith("path.")) {
       const pathFuncName = funcName.slice(5)
       const jsPathFunc = toJsName(pathFuncName)
       ctx.usesRuntime.add("os/path")
+      if (asyncPathFuncs.includes(pathFuncName.toLowerCase())) {
+        return `await path.${jsPathFunc}(${args})`
+      }
       return `path.${jsPathFunc}(${args})`
     }
     // os.* functions
     const jsName = toJsName(funcName)
     ctx.usesRuntime.add(`os/${jsName}`)
+    if (asyncOsFuncs.includes(funcName.toLowerCase())) {
+      return `await ${jsName}(${args})`
+    }
     return `${jsName}(${args})`
   }
 
@@ -1799,6 +1883,68 @@ function transformModuleCall(
     return `${jsName}(${args})`
   }
 
+  // shutil module - all main functions are async
+  if (moduleName === "shutil") {
+    const asyncShutilFuncs = [
+      "copy",
+      "copy2",
+      "copytree",
+      "move",
+      "rmtree",
+      "which",
+      "disk_usage",
+      "copymode",
+      "copystat",
+      "copyfile"
+    ]
+    const jsName = toJsName(funcName)
+    ctx.usesRuntime.add(`shutil/${jsName}`)
+    if (asyncShutilFuncs.includes(funcName.toLowerCase())) {
+      return `await ${jsName}(${args})`
+    }
+    return `${jsName}(${args})`
+  }
+
+  // glob module - all main functions are async
+  if (moduleName === "glob") {
+    const asyncGlobFuncs = ["glob", "iglob", "rglob"]
+    const jsName = toJsName(funcName)
+    ctx.usesRuntime.add(`glob/${jsName}`)
+    if (asyncGlobFuncs.includes(funcName.toLowerCase())) {
+      return `await ${jsName}(${args})`
+    }
+    return `${jsName}(${args})`
+  }
+
+  // tempfile module
+  if (moduleName === "tempfile") {
+    const asyncTempfileFuncs = ["mkstemp", "mkdtemp"]
+    const jsName = toJsName(funcName)
+    ctx.usesRuntime.add(`tempfile/${jsName}`)
+    // Classes use static create() method
+    if (funcName === "NamedTemporaryFile") {
+      return `await NamedTemporaryFile.create(${args})`
+    }
+    if (funcName === "TemporaryDirectory") {
+      return `await TemporaryDirectory.create(${args})`
+    }
+    if (asyncTempfileFuncs.includes(funcName.toLowerCase())) {
+      return `await ${jsName}(${args})`
+    }
+    return `${jsName}(${args})`
+  }
+
+  // pathlib module
+  if (moduleName === "pathlib") {
+    const jsName = toJsName(funcName)
+    ctx.usesRuntime.add(`pathlib/${jsName}`)
+    // Path class instantiation
+    if (funcName === "Path") {
+      return `new Path(${args})`
+    }
+    return `${jsName}(${args})`
+  }
+
   return null
 }
 
@@ -1823,6 +1969,32 @@ function transformMethodCall(
   if (obj.name === "MemberExpression") {
     // Could be module.submodule.method() - don't transform
     return null
+  }
+
+  // Skip transformation for known module names to let transformModuleCall handle them
+  // This prevents e.g. shutil.copy() from being treated as list.copy()
+  if (obj.name === "VariableName") {
+    const objName = getNodeText(obj, ctx.source)
+    const knownModules = [
+      "shutil",
+      "glob",
+      "tempfile",
+      "pathlib",
+      "os",
+      "math",
+      "random",
+      "json",
+      "datetime",
+      "re",
+      "string",
+      "functools",
+      "itertools",
+      "collections",
+      "hashlib"
+    ]
+    if (knownModules.includes(objName)) {
+      return null
+    }
   }
 
   const objCode = transformNode(obj, ctx)
@@ -2005,6 +2177,22 @@ function transformMethodCall(
       return `await ${objCode}.digest()`
     case "hexdigest":
       return `await ${objCode}.hexdigest()`
+
+    // Path object methods (pathlib) - async
+    // Only handle snake_case methods that are unique to Path
+    case "is_file":
+    case "is_dir":
+    case "is_symlink":
+    case "read_text":
+    case "write_text":
+    case "read_bytes":
+    case "write_bytes":
+    case "symlink_to":
+    case "link_to":
+    case "iterdir": {
+      const jsMethod = toJsName(methodName)
+      return `await ${objCode}.${jsMethod}(${args})`
+    }
 
     /* v8 ignore next 2 -- unknown method, let caller handle @preserve */
     default:

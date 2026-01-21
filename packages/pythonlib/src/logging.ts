@@ -128,11 +128,9 @@ export class FileHandler extends Handler {
 
   emit(record: LogRecord): void {
     const msg = this.format(record) + "\n"
-    // Use dynamic import for fs to allow browser compatibility
-    import("node:fs")
-      .then((fs) => {
-        fs.appendFileSync(this.filename, msg)
-      })
+    // Use dynamic import for fs/promises to allow browser compatibility
+    import("node:fs/promises")
+      .then((fs) => fs.appendFile(this.filename, msg))
       .catch(() => {
         // Fallback to console in browser
         console.log(msg)

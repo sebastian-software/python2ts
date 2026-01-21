@@ -178,7 +178,45 @@ export const PYTHON_TO_JS_NAMES: Record<string, string> = {
   pbkdf2_hmac: "pbkdf2Hmac",
   compare_digest: "compareDigest",
   file_digest: "fileDigest",
-  new: "newHash"
+  new: "newHash",
+
+  // ============================================================================
+  // pathlib module (Path methods)
+  // ============================================================================
+  read_text: "readText",
+  write_text: "writeText",
+  read_bytes: "readBytes",
+  write_bytes: "writeBytes",
+  is_file: "isFile",
+  is_dir: "isDir",
+  is_symlink: "isSymlink",
+  symlink_to: "symlinkTo",
+  link_to: "linkTo",
+
+  // ============================================================================
+  // shutil module
+  // ============================================================================
+  copy2: "copy2",
+  copytree: "copytree",
+  rmtree: "rmtree",
+  disk_usage: "diskUsage",
+  copymode: "copyMode",
+  copystat: "copyStat",
+  copyfile: "copyFile",
+  get_terminal_size: "getTerminalSize",
+
+  // ============================================================================
+  // tempfile module
+  // ============================================================================
+  mkstemp: "mkstemp",
+  mkdtemp: "mkdtemp",
+  gettempdir: "getTempDir",
+
+  // ============================================================================
+  // glob module
+  // ============================================================================
+  iglob: "iglob",
+  rglob: "rglob"
 }
 
 /**

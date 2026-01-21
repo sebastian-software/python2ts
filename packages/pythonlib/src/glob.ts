@@ -7,8 +7,8 @@
  * @module
  */
 
-import * as fsp from "node:fs/promises"
-import * as nodePath from "node:path"
+import { readdir, stat } from "node:fs/promises"
+import { isAbsolute, join, relative } from "node:path"
 
 /**
  * Return a list of paths matching a pathname pattern.
@@ -47,8 +47,8 @@ export async function glob(
   const regex = patternToRegex(pattern)
 
   // Check if pattern is absolute
-  const isAbsolute = nodePath.isAbsolute(pattern)
-  const baseDir = isAbsolute ? "/" : rootDir
+  const isAbsolutePath = isAbsolute(pattern)
+  const baseDir = isAbsolutePath ? "/" : rootDir
 
   // Get the non-glob prefix of the pattern
   const parts = pattern.split(/[\\/]/)
@@ -60,8 +60,8 @@ export async function glob(
       break
     }
     if (fixedPrefix) {
-      fixedPrefix = nodePath.join(fixedPrefix, part)
-    } else if (part === "" && i === 0 && isAbsolute) {
+      fixedPrefix = join(fixedPrefix, part)
+    } else if (part === "" && i === 0 && isAbsolutePath) {
       // Handle root "/" in absolute paths
       fixedPrefix = "/"
     } else {
@@ -70,15 +70,15 @@ export async function glob(
   }
 
   const searchDir = fixedPrefix
-    ? isAbsolute
+    ? isAbsolutePath
       ? fixedPrefix
-      : nodePath.join(rootDir, fixedPrefix)
+      : join(rootDir, fixedPrefix)
     : baseDir
 
   const walk = async (dir: string, depth: number): Promise<void> => {
     let entries: string[]
     try {
-      entries = await fsp.readdir(dir)
+      entries = await readdir(dir)
     } catch {
       return
     }
@@ -89,8 +89,8 @@ export async function glob(
         continue
       }
 
-      const fullPath = nodePath.join(dir, entry)
-      const relativePath = isAbsolute ? fullPath : nodePath.relative(rootDir, fullPath)
+      const fullPath = join(dir, entry)
+      const relativePath = isAbsolutePath ? fullPath : relative(rootDir, fullPath)
 
       // Test if path matches pattern
       if (regex.test(relativePath)) {
@@ -100,7 +100,7 @@ export async function glob(
       // Recurse into directories
       if (recursive) {
         try {
-          if ((await fsp.stat(fullPath)).isDirectory()) {
+          if ((await stat(fullPath)).isDirectory()) {
             await walk(fullPath, depth + 1)
           }
         } catch {

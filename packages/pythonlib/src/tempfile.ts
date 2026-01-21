@@ -1,16 +1,18 @@
 /**
  * Python tempfile module for TypeScript
  *
- * Provides functions for creating temporary files and directories.
+ * Provides async functions for creating temporary files and directories.
+ * All filesystem operations use the async fs/promises API.
  *
  * @see {@link https://docs.python.org/3/library/tempfile.html | Python tempfile documentation}
  * @module
  */
 
-import * as fs from "node:fs"
-import * as nodePath from "node:path"
-import * as os from "node:os"
-import * as crypto from "node:crypto"
+import type { FileHandle } from "node:fs/promises"
+import { mkdir, open, rm, unlink } from "node:fs/promises"
+import { join } from "node:path"
+import { tmpdir } from "node:os"
+import { randomBytes } from "node:crypto"
 
 /**
  * Return the default directory for temporary files.
@@ -18,7 +20,7 @@ import * as crypto from "node:crypto"
  * @returns The temporary directory path
  */
 export function gettempdir(): string {
-  return os.tmpdir()
+  return tmpdir()
 }
 
 /**
@@ -34,32 +36,39 @@ export function gettempdir(): string {
  */
 export function mktemp(suffix = "", prefix = "tmp", dir?: string): string {
   const tempDir = dir ?? gettempdir()
-  const randomPart = crypto.randomBytes(8).toString("hex")
-  return nodePath.join(tempDir, `${prefix}${randomPart}${suffix}`)
+  const randomPart = randomBytes(8).toString("hex")
+  return join(tempDir, `${prefix}${randomPart}${suffix}`)
 }
 
 /**
- * Create a temporary file and return a tuple of (fd, path).
+ * Create a temporary file and return a tuple of (handle, path).
  *
  * @param suffix - Optional suffix for the filename
  * @param prefix - Optional prefix for the filename (default: "tmp")
  * @param dir - Optional directory (default: system temp dir)
  * @param text - If true, open in text mode (default: false)
- * @returns Tuple of [file descriptor, path]
+ * @returns Promise of tuple [FileHandle, path]
+ *
+ * @example
+ * ```typescript
+ * const [handle, path] = await mkstemp(".txt", "myapp-")
+ * await handle.write(Buffer.from("data"))
+ * await handle.close()
+ * ```
  */
-export function mkstemp(
+export async function mkstemp(
   suffix = "",
   prefix = "tmp",
   dir?: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _text = false
-): [number, string] {
+): Promise<[FileHandle, string]> {
   const tempDir = dir ?? gettempdir()
-  const randomPart = crypto.randomBytes(8).toString("hex")
-  const path = nodePath.join(tempDir, `${prefix}${randomPart}${suffix}`)
+  const randomPart = randomBytes(8).toString("hex")
+  const path = join(tempDir, `${prefix}${randomPart}${suffix}`)
 
-  const fd = fs.openSync(path, "w+", 0o600)
-  return [fd, path]
+  const handle = await open(path, "w+", 0o600)
+  return [handle, path]
 }
 
 /**
@@ -68,23 +77,39 @@ export function mkstemp(
  * @param suffix - Optional suffix for the directory name
  * @param prefix - Optional prefix for the directory name (default: "tmp")
  * @param dir - Optional parent directory (default: system temp dir)
- * @returns Path to the created directory
+ * @returns Promise of path to the created directory
+ *
+ * @example
+ * ```typescript
+ * const dir = await mkdtemp("", "myapp-")
+ * // Use directory...
+ * await rm(dir, { recursive: true })
+ * ```
  */
-export function mkdtemp(suffix = "", prefix = "tmp", dir?: string): string {
+export async function mkdtemp(suffix = "", prefix = "tmp", dir?: string): Promise<string> {
   const tempDir = dir ?? gettempdir()
-  const randomPart = crypto.randomBytes(8).toString("hex")
-  const path = nodePath.join(tempDir, `${prefix}${randomPart}${suffix}`)
+  const randomPart = randomBytes(8).toString("hex")
+  const path = join(tempDir, `${prefix}${randomPart}${suffix}`)
 
-  fs.mkdirSync(path, { mode: 0o700 })
+  await mkdir(path, { mode: 0o700 })
   return path
 }
 
 /**
- * A named temporary file.
+ * A named temporary file with async operations.
+ *
+ * Use the static `create()` method to instantiate (constructors cannot be async).
+ *
+ * @example
+ * ```typescript
+ * const tmp = await NamedTemporaryFile.create({ suffix: ".txt" })
+ * await tmp.write("hello world")
+ * await tmp.close() // File is deleted if deleteOnClose is true
+ * ```
  */
 export class NamedTemporaryFile {
-  /** The file descriptor */
-  readonly fd: number
+  /** The file handle */
+  readonly handle: FileHandle
   /** The file path */
   readonly name: string
   /** Whether to delete the file on close */
@@ -92,39 +117,46 @@ export class NamedTemporaryFile {
 
   private _closed = false
 
-  constructor(options?: {
+  private constructor(handle: FileHandle, name: string, deleteOnClose: boolean) {
+    this.handle = handle
+    this.name = name
+    this.deleteOnClose = deleteOnClose
+  }
+
+  /**
+   * Create a new NamedTemporaryFile.
+   */
+  static async create(options?: {
     suffix?: string
     prefix?: string
     dir?: string
     delete?: boolean
     mode?: string
-  }) {
+  }): Promise<NamedTemporaryFile> {
     const suffix = options?.suffix ?? ""
     const prefix = options?.prefix ?? "tmp"
     const dir = options?.dir
-    this.deleteOnClose = options?.delete ?? true
+    const deleteOnClose = options?.delete ?? true
 
-    const [fd, path] = mkstemp(suffix, prefix, dir)
-    this.fd = fd
-    this.name = path
+    const [handle, path] = await mkstemp(suffix, prefix, dir)
+    return new NamedTemporaryFile(handle, path, deleteOnClose)
   }
 
   /**
    * Write data to the file.
    */
-  write(data: string | Uint8Array): number {
-    if (typeof data === "string") {
-      return fs.writeSync(this.fd, data)
-    }
-    return fs.writeSync(this.fd, data)
+  async write(data: string | Uint8Array): Promise<number> {
+    const result = await this.handle.write(typeof data === "string" ? Buffer.from(data) : data)
+    return result.bytesWritten
   }
 
   /**
    * Read data from the file.
    */
-  read(size?: number): Buffer {
-    const buffer = Buffer.alloc(size ?? fs.fstatSync(this.fd).size)
-    fs.readSync(this.fd, buffer, 0, buffer.length, 0)
+  async read(size?: number): Promise<Buffer> {
+    const fileSize = size ?? (await this.handle.stat()).size
+    const buffer = Buffer.alloc(fileSize)
+    await this.handle.read(buffer, 0, buffer.length, 0)
     return buffer
   }
 
@@ -140,19 +172,19 @@ export class NamedTemporaryFile {
   /**
    * Flush the file buffer.
    */
-  flush(): void {
-    fs.fsyncSync(this.fd)
+  async flush(): Promise<void> {
+    await this.handle.sync()
   }
 
   /**
    * Close the file.
    */
-  close(): void {
+  async close(): Promise<void> {
     if (!this._closed) {
-      fs.closeSync(this.fd)
+      await this.handle.close()
       if (this.deleteOnClose) {
         try {
-          fs.unlinkSync(this.name)
+          await unlink(this.name)
         } catch {
           // Ignore errors on cleanup
         }
@@ -171,6 +203,15 @@ export class NamedTemporaryFile {
 
 /**
  * A temporary directory that cleans itself up.
+ *
+ * Use the static `create()` method to instantiate (constructors cannot be async).
+ *
+ * @example
+ * ```typescript
+ * const tmp = await TemporaryDirectory.create({ prefix: "myapp-" })
+ * // Use tmp.name as directory path...
+ * await tmp.cleanup() // Removes directory and contents
+ * ```
  */
 export class TemporaryDirectory {
   /** The directory path */
@@ -178,17 +219,29 @@ export class TemporaryDirectory {
 
   private _cleaned = false
 
-  constructor(options?: { suffix?: string; prefix?: string; dir?: string }) {
-    this.name = mkdtemp(options?.suffix, options?.prefix, options?.dir)
+  private constructor(name: string) {
+    this.name = name
+  }
+
+  /**
+   * Create a new TemporaryDirectory.
+   */
+  static async create(options?: {
+    suffix?: string
+    prefix?: string
+    dir?: string
+  }): Promise<TemporaryDirectory> {
+    const name = await mkdtemp(options?.suffix, options?.prefix, options?.dir)
+    return new TemporaryDirectory(name)
   }
 
   /**
    * Remove the temporary directory and its contents.
    */
-  cleanup(): void {
+  async cleanup(): Promise<void> {
     if (!this._cleaned) {
       try {
-        fs.rmSync(this.name, { recursive: true, force: true })
+        await rm(this.name, { recursive: true, force: true })
       } catch {
         // Ignore errors on cleanup
       }
@@ -201,30 +254,30 @@ export class TemporaryDirectory {
  * Create a temporary file that is automatically deleted when closed.
  *
  * @param options - Options for creating the file
- * @returns A NamedTemporaryFile object
+ * @returns Promise of NamedTemporaryFile object
  */
-export function namedTemporaryFile(options?: {
+export async function namedTemporaryFile(options?: {
   suffix?: string
   prefix?: string
   dir?: string
   delete?: boolean
   mode?: string
-}): NamedTemporaryFile {
-  return new NamedTemporaryFile(options)
+}): Promise<NamedTemporaryFile> {
+  return NamedTemporaryFile.create(options)
 }
 
 /**
  * Create a temporary directory that is automatically cleaned up.
  *
  * @param options - Options for creating the directory
- * @returns A TemporaryDirectory object
+ * @returns Promise of TemporaryDirectory object
  */
-export function temporaryDirectory(options?: {
+export async function temporaryDirectory(options?: {
   suffix?: string
   prefix?: string
   dir?: string
-}): TemporaryDirectory {
-  return new TemporaryDirectory(options)
+}): Promise<TemporaryDirectory> {
+  return TemporaryDirectory.create(options)
 }
 
 /**

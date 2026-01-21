@@ -9,8 +9,18 @@
  * @module
  */
 
-import * as fsp from "node:fs/promises"
-import * as nodePath from "node:path"
+import {
+  access,
+  lstat,
+  mkdir as fsMkdir,
+  readdir,
+  realpath,
+  rename as fsRename,
+  rmdir as fsRmdir,
+  stat as fsStat,
+  unlink as fsUnlink
+} from "node:fs/promises"
+import { join } from "node:path"
 
 // Re-export shared code
 export {
@@ -86,7 +96,7 @@ export const path = {
   /** Return canonical path, eliminating symlinks */
   async realPath(p: string): Promise<string> {
     try {
-      return await fsp.realpath(p)
+      return await realpath(p)
     } catch {
       return path.absPath(p)
     }
@@ -95,7 +105,7 @@ export const path = {
   /** Test if path exists */
   async exists(p: string): Promise<boolean> {
     try {
-      await fsp.access(p)
+      await access(p)
       return true
     } catch {
       return false
@@ -105,7 +115,7 @@ export const path = {
   /** Test if path is a file */
   async isFile(p: string): Promise<boolean> {
     try {
-      return (await fsp.stat(p)).isFile()
+      return (await fsStat(p)).isFile()
     } catch {
       return false
     }
@@ -114,7 +124,7 @@ export const path = {
   /** Test if path is a directory */
   async isDir(p: string): Promise<boolean> {
     try {
-      return (await fsp.stat(p)).isDirectory()
+      return (await fsStat(p)).isDirectory()
     } catch {
       return false
     }
@@ -123,7 +133,7 @@ export const path = {
   /** Test if path is a symbolic link */
   async isLink(p: string): Promise<boolean> {
     try {
-      return (await fsp.lstat(p)).isSymbolicLink()
+      return (await lstat(p)).isSymbolicLink()
     } catch {
       return false
     }
@@ -132,7 +142,7 @@ export const path = {
   /** Return size of file */
   async getSize(p: string): Promise<number> {
     try {
-      return (await fsp.stat(p)).size
+      return (await fsStat(p)).size
     } catch {
       return 0
     }
@@ -141,7 +151,7 @@ export const path = {
   /** Return modification time as Unix timestamp */
   async getMtime(p: string): Promise<number> {
     try {
-      return Math.floor((await fsp.stat(p)).mtimeMs / 1000)
+      return Math.floor((await fsStat(p)).mtimeMs / 1000)
     } catch {
       return 0
     }
@@ -150,7 +160,7 @@ export const path = {
   /** Return access time as Unix timestamp */
   async getAtime(p: string): Promise<number> {
     try {
-      return Math.floor((await fsp.stat(p)).atimeMs / 1000)
+      return Math.floor((await fsStat(p)).atimeMs / 1000)
     } catch {
       return 0
     }
@@ -159,7 +169,7 @@ export const path = {
   /** Return creation time as Unix timestamp */
   async getCtime(p: string): Promise<number> {
     try {
-      return Math.floor((await fsp.stat(p)).ctimeMs / 1000)
+      return Math.floor((await fsStat(p)).ctimeMs / 1000)
     } catch {
       return 0
     }
@@ -173,7 +183,7 @@ export const path = {
 /** List directory contents */
 export async function listDir(p = "."): Promise<string[]> {
   try {
-    return await fsp.readdir(p)
+    return await readdir(p)
   } catch {
     return []
   }
@@ -181,13 +191,13 @@ export async function listDir(p = "."): Promise<string[]> {
 
 /** Create a directory */
 export async function mkdir(p: string, mode = 0o777): Promise<void> {
-  await fsp.mkdir(p, { mode })
+  await fsMkdir(p, { mode })
 }
 
 /** Create a directory and parents */
 export async function makeDirs(p: string, mode = 0o777, existOk = false): Promise<void> {
   try {
-    await fsp.mkdir(p, { recursive: true, mode })
+    await fsMkdir(p, { recursive: true, mode })
   } catch (e) {
     if (!existOk || !(e instanceof Error && "code" in e && e.code === "EEXIST")) {
       throw e
@@ -197,7 +207,7 @@ export async function makeDirs(p: string, mode = 0o777, existOk = false): Promis
 
 /** Remove a file */
 export async function remove(p: string): Promise<void> {
-  await fsp.unlink(p)
+  await fsUnlink(p)
 }
 
 /** Remove a file (alias for remove) */
@@ -205,17 +215,17 @@ export const unlink = remove
 
 /** Remove a directory */
 export async function rmdir(p: string): Promise<void> {
-  await fsp.rmdir(p)
+  await fsRmdir(p)
 }
 
 /** Remove directory tree (removes empty parent directories) */
 export async function removeDirs(p: string): Promise<void> {
-  await fsp.rmdir(p)
+  await fsRmdir(p)
   // Try to remove parent directories
   let parent = pathDirname(p)
   while (parent && parent !== p) {
     try {
-      await fsp.rmdir(parent)
+      await fsRmdir(parent)
       p = parent
       parent = pathDirname(p)
     } catch {
@@ -226,7 +236,7 @@ export async function removeDirs(p: string): Promise<void> {
 
 /** Rename a file or directory */
 export async function rename(src: string, dst: string): Promise<void> {
-  await fsp.rename(src, dst)
+  await fsRename(src, dst)
 }
 
 /** Rename with automatic directory creation */
@@ -249,7 +259,7 @@ export async function renames(src: string, dst: string): Promise<void> {
 
 /** Replace file (atomic rename) */
 export async function replace(src: string, dst: string): Promise<void> {
-  await fsp.rename(src, dst)
+  await fsRename(src, dst)
 }
 
 /** Walk directory tree */
@@ -264,7 +274,7 @@ export async function* walk(
   const files: string[] = []
 
   try {
-    const entries = await fsp.readdir(top, { withFileTypes: true })
+    const entries = await readdir(top, { withFileTypes: true })
     for (const entry of entries) {
       if (entry.isDirectory()) {
         dirs.push(entry.name)
@@ -273,8 +283,8 @@ export async function* walk(
       } else if (entry.isSymbolicLink()) {
         if (followlinks) {
           try {
-            const realPath = await fsp.realpath(nodePath.join(top, entry.name))
-            if ((await fsp.stat(realPath)).isDirectory()) {
+            const realPath = await realpath(join(top, entry.name))
+            if ((await fsStat(realPath)).isDirectory()) {
               dirs.push(entry.name)
             } else {
               files.push(entry.name)
@@ -296,7 +306,7 @@ export async function* walk(
   }
 
   for (const dir of dirs) {
-    const dirPath = nodePath.join(top, dir)
+    const dirPath = join(top, dir)
     yield* walk(dirPath, options)
   }
 
@@ -314,7 +324,7 @@ export async function stat(p: string): Promise<{
   st_ctime: number
 }> {
   try {
-    const s = await fsp.stat(p)
+    const s = await fsStat(p)
     return {
       st_mode: s.mode,
       st_size: s.size,

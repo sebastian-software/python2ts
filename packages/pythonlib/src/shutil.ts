@@ -7,10 +7,25 @@
  * @module
  */
 
-import * as fs from "node:fs"
-import * as fsp from "node:fs/promises"
-import * as nodePath from "node:path"
-import * as childProcess from "node:child_process"
+import type { ReadStream, WriteStream } from "node:fs"
+import { constants } from "node:fs"
+import {
+  access,
+  chmod,
+  copyFile,
+  lstat,
+  mkdir,
+  readdir,
+  readlink,
+  rename as fsRename,
+  rm,
+  stat,
+  statfs,
+  symlink,
+  unlink,
+  utimes
+} from "node:fs/promises"
+import { basename, delimiter, join } from "node:path"
 
 /**
  * Copy the file src to the file or directory dst.
@@ -24,14 +39,14 @@ export async function copy(src: string, dst: string): Promise<string> {
 
   // If dst is a directory, copy into it
   try {
-    if ((await fsp.stat(dst)).isDirectory()) {
-      finalDst = nodePath.join(dst, nodePath.basename(src))
+    if ((await stat(dst)).isDirectory()) {
+      finalDst = join(dst, basename(src))
     }
   } catch {
     // dst doesn't exist, use as-is
   }
 
-  await fsp.copyFile(src, finalDst)
+  await copyFile(src, finalDst)
   return finalDst
 }
 
@@ -46,8 +61,8 @@ export async function copy2(src: string, dst: string): Promise<string> {
   const finalDst = await copy(src, dst)
 
   // Copy metadata
-  const stat = await fsp.stat(src)
-  await fsp.utimes(finalDst, stat.atime, stat.mtime)
+  const srcStat = await stat(src)
+  await utimes(finalDst, srcStat.atime, srcStat.mtime)
 
   return finalDst
 }
@@ -78,9 +93,9 @@ export async function copytree(
   const ignoreFunc = options?.ignore
 
   // Create destination directory
-  await fsp.mkdir(dst, { recursive: options?.dirsExistOk })
+  await mkdir(dst, { recursive: options?.dirsExistOk })
 
-  const entries = await fsp.readdir(src)
+  const entries = await readdir(src)
   const ignoredNames = ignoreFunc ? ignoreFunc(src, entries) : []
 
   for (const entry of entries) {
@@ -88,15 +103,15 @@ export async function copytree(
       continue
     }
 
-    const srcPath = nodePath.join(src, entry)
-    const dstPath = nodePath.join(dst, entry)
-    const stat = await fsp.lstat(srcPath)
+    const srcPath = join(src, entry)
+    const dstPath = join(dst, entry)
+    const entryStat = await lstat(srcPath)
 
-    if (stat.isDirectory()) {
+    if (entryStat.isDirectory()) {
       await copytree(srcPath, dstPath, options)
-    } else if (stat.isSymbolicLink() && options?.symlinkss) {
-      const target = await fsp.readlink(srcPath)
-      await fsp.symlink(target, dstPath)
+    } else if (entryStat.isSymbolicLink() && options?.symlinkss) {
+      const target = await readlink(srcPath)
+      await symlink(target, dstPath)
     } else {
       await copyFunc(srcPath, dstPath)
     }
@@ -117,8 +132,8 @@ export async function move(src: string, dst: string): Promise<string> {
 
   // If dst is a directory, move into it
   try {
-    if ((await fsp.stat(dst)).isDirectory()) {
-      finalDst = nodePath.join(dst, nodePath.basename(src))
+    if ((await stat(dst)).isDirectory()) {
+      finalDst = join(dst, basename(src))
     }
   } catch {
     // dst doesn't exist, use as-is
@@ -126,16 +141,16 @@ export async function move(src: string, dst: string): Promise<string> {
 
   try {
     // Try atomic rename first
-    await fsp.rename(src, finalDst)
+    await fsRename(src, finalDst)
   } catch {
     // If rename fails (cross-device), copy and delete
-    const stat = await fsp.stat(src)
-    if (stat.isDirectory()) {
+    const srcStat = await stat(src)
+    if (srcStat.isDirectory()) {
       await copytree(src, finalDst)
       await rmtree(src)
     } else {
       await copy2(src, finalDst)
-      await fsp.unlink(src)
+      await unlink(src)
     }
   }
 
@@ -155,7 +170,7 @@ export async function rmtree(
   }
 ): Promise<void> {
   try {
-    await fsp.rm(path, { recursive: true, force: options?.ignoreErrors ?? false })
+    await rm(path, { recursive: true, force: options?.ignoreErrors ?? false })
   } catch (err) {
     if (!options?.ignoreErrors) {
       throw err
@@ -171,14 +186,14 @@ export async function rmtree(
  * @returns Path to the executable, or null if not found
  */
 export async function which(cmd: string, path?: string): Promise<string | null> {
-  const pathDirs = (path ?? process.env.PATH ?? "").split(nodePath.delimiter)
+  const pathDirs = (path ?? process.env.PATH ?? "").split(delimiter)
   const extensions = process.platform === "win32" ? [".exe", ".cmd", ".bat", ".com", ""] : [""]
 
   for (const dir of pathDirs) {
     for (const ext of extensions) {
-      const fullPath = nodePath.join(dir, cmd + ext)
+      const fullPath = join(dir, cmd + ext)
       try {
-        await fsp.access(fullPath, fs.constants.X_OK)
+        await access(fullPath, constants.X_OK)
         return fullPath
       } catch {
         // Not found or not executable
@@ -205,35 +220,14 @@ export interface DiskUsage {
  * @returns Object with total, used, and free bytes
  */
 export async function diskUsage(path: string): Promise<DiskUsage> {
-  // This is platform-specific and requires native calls
-  // For Node.js, we can use df command on Unix or wmic on Windows
-  try {
-    if (process.platform === "win32") {
-      const driveLetter = path[0] ?? "C"
-      const result = childProcess.execSync(
-        `wmic logicaldisk where "DeviceID='${driveLetter}:'" get Size,FreeSpace`,
-        {
-          encoding: "utf8"
-        }
-      )
-      const lines = result.trim().split("\n")
-      if (lines.length >= 2) {
-        const values = (lines[1] ?? "").trim().split(/\s+/)
-        const free = parseInt(values[0] ?? "0", 10)
-        const total = parseInt(values[1] ?? "0", 10)
-        return { total, used: total - free, free }
-      }
-    } else {
-      const stat = await fsp.statfs(path)
-      const total = stat.blocks * stat.bsize
-      const free = stat.bavail * stat.bsize
-      return { total, used: total - free, free }
-    }
-  } catch {
-    // Fallback
+  if (process.platform === "win32") {
+    throw new Error("diskUsage is not implemented on Windows")
   }
 
-  return { total: 0, used: 0, free: 0 }
+  const fsStat = await statfs(path)
+  const total = fsStat.blocks * fsStat.bsize
+  const free = fsStat.bavail * fsStat.bsize
+  return { total, used: total - free, free }
 }
 
 /**
@@ -256,8 +250,8 @@ export function getTerminalSize(): { columns: number; lines: number } {
  * @param dst - Destination path
  */
 export async function copymode(src: string, dst: string): Promise<void> {
-  const stat = await fsp.stat(src)
-  await fsp.chmod(dst, stat.mode)
+  const srcStat = await stat(src)
+  await chmod(dst, srcStat.mode)
 }
 
 /**
@@ -267,9 +261,9 @@ export async function copymode(src: string, dst: string): Promise<void> {
  * @param dst - Destination path
  */
 export async function copystat(src: string, dst: string): Promise<void> {
-  const stat = await fsp.stat(src)
-  await fsp.chmod(dst, stat.mode)
-  await fsp.utimes(dst, stat.atime, stat.mtime)
+  const srcStat = await stat(src)
+  await chmod(dst, srcStat.mode)
+  await utimes(dst, srcStat.atime, srcStat.mtime)
 }
 
 /**
@@ -279,7 +273,7 @@ export async function copystat(src: string, dst: string): Promise<void> {
  * @param dst - Destination file path
  */
 export async function copyfile(src: string, dst: string): Promise<void> {
-  await fsp.copyFile(src, dst)
+  await copyFile(src, dst)
 }
 
 /**
@@ -290,8 +284,8 @@ export async function copyfile(src: string, dst: string): Promise<void> {
  * @param length - Number of bytes to copy (optional, copies all if not specified)
  */
 export function copyfileobj(
-  fsrc: fs.ReadStream | NodeJS.ReadableStream,
-  fdst: fs.WriteStream | NodeJS.WritableStream,
+  fsrc: ReadStream | NodeJS.ReadableStream,
+  fdst: WriteStream | NodeJS.WritableStream,
   length?: number
 ): void {
   if (length === undefined) {
@@ -311,48 +305,27 @@ export function copyfileobj(
 /**
  * Create an archive file from a directory.
  *
+ * Not implemented - requires external tools (tar, zip).
+ *
  * @param baseName - Name of the archive file (without extension)
  * @param format - Archive format ('zip', 'tar', 'gztar', 'bztar', 'xztar')
  * @param rootDir - Directory to archive
  * @returns Path to the created archive
  */
-export function makeArchive(baseName: string, format: string, rootDir: string): string {
-  const archiveName = `${baseName}.${format === "gztar" ? "tar.gz" : format}`
-
-  // Use tar command for tar formats
-  if (format === "tar" || format === "gztar" || format === "bztar" || format === "xztar") {
-    const compression =
-      format === "gztar" ? "z" : format === "bztar" ? "j" : format === "xztar" ? "J" : ""
-    childProcess.execSync(
-      `tar -c${compression}f "${archiveName}" -C "${nodePath.dirname(rootDir)}" "${nodePath.basename(rootDir)}"`
-    )
-  } else if (format === "zip") {
-    childProcess.execSync(`zip -r "${archiveName}" "${nodePath.basename(rootDir)}"`, {
-      cwd: nodePath.dirname(rootDir)
-    })
-  }
-
-  return archiveName
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function makeArchive(_baseName: string, _format: string, _rootDir: string): string {
+  throw new Error("makeArchive is not implemented (requires external tools)")
 }
 
 /**
  * Unpack an archive file.
  *
+ * Not implemented - requires external tools (tar, unzip).
+ *
  * @param filename - Path to the archive
  * @param extractDir - Directory to extract to (optional)
  */
-export function unpackArchive(filename: string, extractDir?: string): void {
-  const dst = extractDir ?? "."
-
-  if (filename.endsWith(".tar.gz") || filename.endsWith(".tgz")) {
-    childProcess.execSync(`tar -xzf "${filename}" -C "${dst}"`)
-  } else if (filename.endsWith(".tar.bz2")) {
-    childProcess.execSync(`tar -xjf "${filename}" -C "${dst}"`)
-  } else if (filename.endsWith(".tar.xz")) {
-    childProcess.execSync(`tar -xJf "${filename}" -C "${dst}"`)
-  } else if (filename.endsWith(".tar")) {
-    childProcess.execSync(`tar -xf "${filename}" -C "${dst}"`)
-  } else if (filename.endsWith(".zip")) {
-    childProcess.execSync(`unzip -o "${filename}" -d "${dst}"`)
-  }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function unpackArchive(_filename: string, _extractDir?: string): void {
+  throw new Error("unpackArchive is not implemented (requires external tools)")
 }

@@ -7,9 +7,35 @@
  * @module
  */
 
-import * as fs from "node:fs"
-import * as fsp from "node:fs/promises"
-import * as nodePath from "node:path"
+import type { Stats } from "node:fs"
+import {
+  access,
+  chmod,
+  link,
+  lstat,
+  mkdir,
+  readdir,
+  readFile,
+  readlink,
+  rename,
+  rmdir,
+  stat,
+  symlink,
+  unlink,
+  utimes,
+  writeFile
+} from "node:fs/promises"
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  parse,
+  relative,
+  resolve,
+  sep
+} from "node:path"
 
 /**
  * Path class representing a filesystem path.
@@ -27,7 +53,7 @@ export class Path {
     if (pathSegments.length === 0) {
       this._path = "."
     } else {
-      this._path = nodePath.join(...pathSegments)
+      this._path = join(...pathSegments)
     }
   }
 
@@ -42,15 +68,15 @@ export class Path {
    * The final component of the path.
    */
   get name(): string {
-    return nodePath.basename(this._path)
+    return basename(this._path)
   }
 
   /**
    * The final component without its suffix.
    */
   get stem(): string {
-    const base = nodePath.basename(this._path)
-    const ext = nodePath.extname(base)
+    const base = basename(this._path)
+    const ext = extname(base)
     return ext ? base.slice(0, -ext.length) : base
   }
 
@@ -58,7 +84,7 @@ export class Path {
    * The file extension of the final component.
    */
   get suffix(): string {
-    return nodePath.extname(this._path)
+    return extname(this._path)
   }
 
   /**
@@ -68,11 +94,11 @@ export class Path {
     const name = this.name
     const suffixes: string[] = []
     let remaining = name
-    let ext = nodePath.extname(remaining)
+    let ext = extname(remaining)
     while (ext) {
       suffixes.unshift(ext)
       remaining = remaining.slice(0, -ext.length)
-      ext = nodePath.extname(remaining)
+      ext = extname(remaining)
     }
     return suffixes
   }
@@ -81,7 +107,7 @@ export class Path {
    * The logical parent of the path.
    */
   get parent(): Path {
-    const parent = nodePath.dirname(this._path)
+    const parent = dirname(this._path)
     return new Path(parent)
   }
 
@@ -91,11 +117,11 @@ export class Path {
   get parents(): Path[] {
     const parents: Path[] = []
     let current = this._path
-    let parent = nodePath.dirname(current)
+    let parent = dirname(current)
     while (parent !== current) {
       parents.push(new Path(parent))
       current = parent
-      parent = nodePath.dirname(current)
+      parent = dirname(current)
     }
     return parents
   }
@@ -104,13 +130,13 @@ export class Path {
    * The individual components of the path.
    */
   get parts(): string[] {
-    const parsed = nodePath.parse(this._path)
+    const parsed = parse(this._path)
     const parts: string[] = []
     if (parsed.root) {
       parts.push(parsed.root)
     }
     if (parsed.dir) {
-      const dirParts = parsed.dir.replace(parsed.root, "").split(nodePath.sep).filter(Boolean)
+      const dirParts = parsed.dir.replace(parsed.root, "").split(sep).filter(Boolean)
       parts.push(...dirParts)
     }
     if (parsed.base) {
@@ -123,7 +149,7 @@ export class Path {
    * The drive or root (on Windows, the drive letter; on Unix, empty or /).
    */
   get anchor(): string {
-    const parsed = nodePath.parse(this._path)
+    const parsed = parse(this._path)
     return parsed.root
   }
 
@@ -142,7 +168,7 @@ export class Path {
    * The root of the path (/ on Unix, \\ or drive:\\ on Windows).
    */
   get root(): string {
-    const parsed = nodePath.parse(this._path)
+    const parsed = parse(this._path)
     return parsed.root
   }
 
@@ -150,7 +176,7 @@ export class Path {
    * Whether the path is absolute.
    */
   isAbsolute(): boolean {
-    return nodePath.isAbsolute(this._path)
+    return isAbsolute(this._path)
   }
 
   /**
@@ -185,14 +211,14 @@ export class Path {
    * Return the path as a POSIX path string.
    */
   asPosix(): string {
-    return this._path.split(nodePath.sep).join("/")
+    return this._path.split(sep).join("/")
   }
 
   /**
    * Return the path as a URI.
    */
   asUri(): string {
-    const absolute = nodePath.resolve(this._path)
+    const absolute = resolve(this._path)
     return `file://${absolute}`
   }
 
@@ -203,7 +229,7 @@ export class Path {
    */
   async exists(): Promise<boolean> {
     try {
-      await fsp.access(this._path)
+      await access(this._path)
       return true
     } catch {
       return false
@@ -215,7 +241,7 @@ export class Path {
    */
   async isFile(): Promise<boolean> {
     try {
-      return (await fsp.stat(this._path)).isFile()
+      return (await stat(this._path)).isFile()
     } catch {
       return false
     }
@@ -226,7 +252,7 @@ export class Path {
    */
   async isDir(): Promise<boolean> {
     try {
-      return (await fsp.stat(this._path)).isDirectory()
+      return (await stat(this._path)).isDirectory()
     } catch {
       return false
     }
@@ -237,7 +263,7 @@ export class Path {
    */
   async isSymlink(): Promise<boolean> {
     try {
-      return (await fsp.lstat(this._path)).isSymbolicLink()
+      return (await lstat(this._path)).isSymbolicLink()
     } catch {
       return false
     }
@@ -250,7 +276,7 @@ export class Path {
    * @returns File contents as string
    */
   async readText(encoding: BufferEncoding = "utf-8"): Promise<string> {
-    return fsp.readFile(this._path, { encoding })
+    return readFile(this._path, { encoding })
   }
 
   /**
@@ -260,7 +286,7 @@ export class Path {
    * @param encoding - Text encoding (default: utf-8)
    */
   async writeText(data: string, encoding: BufferEncoding = "utf-8"): Promise<void> {
-    await fsp.writeFile(this._path, data, { encoding })
+    await writeFile(this._path, data, { encoding })
   }
 
   /**
@@ -269,7 +295,7 @@ export class Path {
    * @returns File contents as Uint8Array
    */
   async readBytes(): Promise<Uint8Array> {
-    return new Uint8Array(await fsp.readFile(this._path))
+    return new Uint8Array(await readFile(this._path))
   }
 
   /**
@@ -278,7 +304,7 @@ export class Path {
    * @param data - Bytes to write
    */
   async writeBytes(data: Uint8Array): Promise<void> {
-    await fsp.writeFile(this._path, data)
+    await writeFile(this._path, data)
   }
 
   /**
@@ -288,7 +314,7 @@ export class Path {
    */
   async mkdir(options?: { parents?: boolean; existOk?: boolean }): Promise<void> {
     try {
-      await fsp.mkdir(this._path, { recursive: options?.parents ?? false })
+      await mkdir(this._path, { recursive: options?.parents ?? false })
     } catch (err) {
       if (!(options?.existOk && (err as NodeJS.ErrnoException).code === "EEXIST")) {
         throw err
@@ -300,14 +326,14 @@ export class Path {
    * Remove the directory.
    */
   async rmdir(): Promise<void> {
-    await fsp.rmdir(this._path)
+    await rmdir(this._path)
   }
 
   /**
    * Remove the file or symbolic link.
    */
   async unlink(): Promise<void> {
-    await fsp.unlink(this._path)
+    await unlink(this._path)
   }
 
   /**
@@ -318,7 +344,7 @@ export class Path {
    */
   async rename(target: string | Path): Promise<Path> {
     const targetPath = target instanceof Path ? target.toString() : target
-    await fsp.rename(this._path, targetPath)
+    await rename(this._path, targetPath)
     return new Path(targetPath)
   }
 
@@ -338,7 +364,7 @@ export class Path {
    * @returns Absolute path
    */
   resolve(): Path {
-    return new Path(nodePath.resolve(this._path))
+    return new Path(resolve(this._path))
   }
 
   /**
@@ -356,7 +382,7 @@ export class Path {
    * @returns Real path
    */
   async readlink(): Promise<Path> {
-    return new Path(await fsp.readlink(this._path))
+    return new Path(await readlink(this._path))
   }
 
   /**
@@ -364,8 +390,8 @@ export class Path {
    *
    * @returns File stat object
    */
-  async stat(): Promise<fs.Stats> {
-    return fsp.stat(this._path)
+  async stat(): Promise<Stats> {
+    return stat(this._path)
   }
 
   /**
@@ -373,8 +399,8 @@ export class Path {
    *
    * @returns Stat object for the symlink itself
    */
-  async lstat(): Promise<fs.Stats> {
-    return fsp.lstat(this._path)
+  async lstat(): Promise<Stats> {
+    return lstat(this._path)
   }
 
   /**
@@ -383,7 +409,7 @@ export class Path {
    * @returns Array of Path objects
    */
   async iterdir(): Promise<Path[]> {
-    const entries = await fsp.readdir(this._path)
+    const entries = await readdir(this._path)
     return entries.map((name) => new Path(this._path, name))
   }
 
@@ -417,14 +443,14 @@ export class Path {
     const walk = async (dir: string): Promise<void> => {
       let entries: string[]
       try {
-        entries = await fsp.readdir(dir)
+        entries = await readdir(dir)
       } catch {
         return
       }
 
       for (const entry of entries) {
-        const fullPath = nodePath.join(dir, entry)
-        const relativePath = nodePath.relative(this._path, fullPath)
+        const fullPath = join(dir, entry)
+        const relativePath = relative(this._path, fullPath)
 
         if (regex.test(relativePath) || regex.test(entry)) {
           results.push(new Path(fullPath))
@@ -432,7 +458,7 @@ export class Path {
 
         if (recursive) {
           try {
-            if ((await fsp.stat(fullPath)).isDirectory()) {
+            if ((await stat(fullPath)).isDirectory()) {
               await walk(fullPath)
             }
           } catch {
@@ -467,7 +493,7 @@ export class Path {
    */
   async symlinkTo(target: string | Path): Promise<void> {
     const targetPath = target instanceof Path ? target.toString() : target
-    await fsp.symlink(targetPath, this._path)
+    await symlink(targetPath, this._path)
   }
 
   /**
@@ -477,7 +503,7 @@ export class Path {
    */
   async linkTo(target: string | Path): Promise<void> {
     const targetPath = target instanceof Path ? target.toString() : target
-    await fsp.link(targetPath, this._path)
+    await link(targetPath, this._path)
   }
 
   /**
@@ -486,7 +512,7 @@ export class Path {
    * @param mode - Permission mode
    */
   async chmod(mode: number): Promise<void> {
-    await fsp.chmod(this._path, mode)
+    await chmod(this._path, mode)
   }
 
   /**
@@ -501,9 +527,9 @@ export class Path {
     const modTime = mtime ?? now
 
     if (!(await this.exists())) {
-      await fsp.writeFile(this._path, "")
+      await writeFile(this._path, "")
     }
-    await fsp.utimes(this._path, accessTime, modTime)
+    await utimes(this._path, accessTime, modTime)
   }
 
   /**
@@ -525,7 +551,7 @@ export class Path {
    */
   relativeTo(other: string | Path): Path {
     const otherPath = other instanceof Path ? other.toString() : other
-    return new Path(nodePath.relative(otherPath, this._path))
+    return new Path(relative(otherPath, this._path))
   }
 
   /**
@@ -535,8 +561,8 @@ export class Path {
    * @returns New Path
    */
   withSuffix(suffix: string): Path {
-    const parsed = nodePath.parse(this._path)
-    return new Path(nodePath.join(parsed.dir, parsed.name + suffix))
+    const parsed = parse(this._path)
+    return new Path(join(parsed.dir, parsed.name + suffix))
   }
 
   /**
@@ -546,7 +572,7 @@ export class Path {
    * @returns New Path
    */
   withName(name: string): Path {
-    const parent = nodePath.dirname(this._path)
+    const parent = dirname(this._path)
     return new Path(parent, name)
   }
 

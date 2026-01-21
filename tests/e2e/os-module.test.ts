@@ -33,6 +33,31 @@ describe("E2E: os module", () => {
       expect(result).toContain('from "pythonlib/os"')
       expect(result).toContain("sep")
     })
+
+    it("should add await to async os.listdir", () => {
+      const result = transpile("x = os.listdir('.')")
+      expect(result).toContain("await listDir(")
+    })
+
+    it("should add await to async os.path.exists", () => {
+      const result = transpile("x = os.path.exists('/tmp')")
+      expect(result).toContain("await path.exists(")
+    })
+
+    it("should add await to async os.path.isfile", () => {
+      const result = transpile("x = os.path.isfile('/tmp/test.txt')")
+      expect(result).toContain("await path.isFile(")
+    })
+
+    it("should add await to async os.mkdir", () => {
+      const result = transpile("os.mkdir('/tmp/test')")
+      expect(result).toContain("await mkdir(")
+    })
+
+    it("should not add await to sync os.path.join", () => {
+      const result = transpile("x = os.path.join('a', 'b')")
+      expect(result).not.toContain("await path.join(")
+    })
   })
 
   describe("Runtime: os.path", () => {

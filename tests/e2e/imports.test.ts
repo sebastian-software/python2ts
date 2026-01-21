@@ -105,7 +105,7 @@ x = sys.path[0]`
 result = Path("/home")`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "import { Path } from "pathlib"
-        let result = Path("/home");"
+        let result = new Path("/home");"
       `)
     })
 
@@ -142,7 +142,7 @@ def get_path(data):
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "import { Path, PurePath } from "pathlib"
         function get_path(data) {
-          return Path(data);
+          return new Path(data);
         }"
       `)
     })
