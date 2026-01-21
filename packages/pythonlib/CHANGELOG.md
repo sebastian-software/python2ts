@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.2](https://github.com/sebastian-software/python2ts/compare/pythonlib-v2.0.1...pythonlib-v2.0.2) (2026-01-21)
+
+
+### Bug Fixes
+
+* isinstance with tuple of types now transpiles to array ([284d802](https://github.com/sebastian-software/python2ts/commit/284d802c81e5d10769325dbc16be402b635707a7)), closes [#26](https://github.com/sebastian-software/python2ts/issues/26)
+
 ## [2.0.1](https://github.com/sebastian-software/python2ts/compare/pythonlib-v2.0.0...pythonlib-v2.0.1) (2026-01-21)
 
 

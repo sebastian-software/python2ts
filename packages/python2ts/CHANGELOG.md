@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.2](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.3.1...python2ts-v1.3.2) (2026-01-21)
+
+
+### Bug Fixes
+
+* **docstrings:** handle module-level and decorated function docstrings ([f8f53f0](https://github.com/sebastian-software/python2ts/commit/f8f53f0ac7f3d171f25e72eaf718e7e8b76126d0))
+* isinstance with tuple of types now transpiles to array ([284d802](https://github.com/sebastian-software/python2ts/commit/284d802c81e5d10769325dbc16be402b635707a7)), closes [#26](https://github.com/sebastian-software/python2ts/issues/26)
+
 ## [1.3.1](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.3.0...python2ts-v1.3.1) (2026-01-21)
 
 
