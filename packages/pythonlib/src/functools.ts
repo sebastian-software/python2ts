@@ -77,7 +77,8 @@ export function lruCache<T extends (...args: unknown[]) => unknown>(
   cacheInfo: () => { hits: number; misses: number; maxsize: number; currsize: number }
   cacheClear: () => void
 } {
-  const cache = new Map<string, ReturnType<T>>()
+  // Use wrapper object to distinguish "not cached" from "cached undefined"
+  const cache = new Map<string, { value: ReturnType<T> }>()
   const order: string[] = []
   let hits = 0
   let misses = 0
@@ -85,7 +86,8 @@ export function lruCache<T extends (...args: unknown[]) => unknown>(
   const cached = ((...args: unknown[]): ReturnType<T> => {
     const key = JSON.stringify(args)
 
-    if (cache.has(key)) {
+    const entry = cache.get(key)
+    if (entry !== undefined) {
       hits++
       // Move to end (most recently used)
       const idx = order.indexOf(key)
@@ -93,7 +95,7 @@ export function lruCache<T extends (...args: unknown[]) => unknown>(
         order.splice(idx, 1)
         order.push(key)
       }
-      return cache.get(key) as ReturnType<T>
+      return entry.value
     }
 
     misses++
@@ -107,7 +109,7 @@ export function lruCache<T extends (...args: unknown[]) => unknown>(
       }
     }
 
-    cache.set(key, result)
+    cache.set(key, { value: result })
     order.push(key)
 
     return result
@@ -138,15 +140,17 @@ export function lruCache<T extends (...args: unknown[]) => unknown>(
  * Equivalent to lru_cache(maxsize=None)
  */
 export function cache<T extends (...args: unknown[]) => unknown>(func: T): T {
-  const cacheMap = new Map<string, ReturnType<T>>()
+  // Use wrapper object to distinguish "not cached" from "cached undefined"
+  const cacheMap = new Map<string, { value: ReturnType<T> }>()
 
   return ((...args: unknown[]): ReturnType<T> => {
     const key = JSON.stringify(args)
-    if (cacheMap.has(key)) {
-      return cacheMap.get(key) as ReturnType<T>
+    const entry = cacheMap.get(key)
+    if (entry !== undefined) {
+      return entry.value
     }
     const result = func(...args) as ReturnType<T>
-    cacheMap.set(key, result)
+    cacheMap.set(key, { value: result })
     return result
   }) as T
 }
@@ -218,8 +222,9 @@ export function wraps<T extends (...args: unknown[]) => unknown>(
  * attrGetter('name') returns a function that gets the 'name' attribute
  */
 export function attrGetter<T>(...attrs: string[]): (obj: unknown) => T | T[] {
-  if (attrs.length === 1) {
-    const attr = attrs[0] as string
+  const [firstAttr] = attrs
+  if (attrs.length === 1 && firstAttr !== undefined) {
+    const attr = firstAttr
     const parts = attr.split(".")
     return (obj: unknown): T => {
       let result: unknown = obj
@@ -248,8 +253,9 @@ export function attrGetter<T>(...attrs: string[]): (obj: unknown) => T | T[] {
  * itemGetter('key') returns a function that gets the 'key' property
  */
 export function itemGetter<T>(...items: (string | number)[]): (obj: unknown) => T | T[] {
-  if (items.length === 1) {
-    const item = items[0] as string | number
+  const [firstItem] = items
+  if (items.length === 1 && firstItem !== undefined) {
+    const item = firstItem
     return (obj: unknown): T => {
       if (Array.isArray(obj) && typeof item === "number") {
         return obj[item] as T

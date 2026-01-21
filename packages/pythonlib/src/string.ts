@@ -340,7 +340,7 @@ export const string = {
    */
   zFill(s: string, width: number): string {
     if (s.length >= width) return s
-    const sign = s.startsWith("-") || s.startsWith("+") ? (s[0] as string) : ""
+    const sign = s.startsWith("-") || s.startsWith("+") ? s.charAt(0) : ""
     const digits = sign ? s.slice(1) : s
     return sign + digits.padStart(width - sign.length, "0")
   },

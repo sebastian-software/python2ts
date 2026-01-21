@@ -50,10 +50,10 @@ export const dict = {
    */
   popItem<K extends string | number | symbol, V>(obj: Record<K, V>): [K, V] {
     const keys = Object.keys(obj) as K[]
-    if (keys.length === 0) {
+    const key = keys.pop()
+    if (key === undefined) {
       throw new Error("dictionary is empty")
     }
-    const key = keys[keys.length - 1] as K
     const value = obj[key]
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete obj[key]

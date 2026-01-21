@@ -758,7 +758,7 @@ function formatNumber(
   if (grouping) {
     const sep = grouping === "_" ? "_" : ","
     const parts = result.split(".")
-    const intPart = parts[0] as string
+    const [intPart = ""] = parts
     const signChar = intPart.startsWith("-") ? "-" : ""
     const digits = signChar ? intPart.slice(1) : intPart
     const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, sep)
@@ -805,8 +805,8 @@ export function format(value: unknown, spec: string): string {
   let align = ""
   if (alignPart) {
     if (alignPart.length === 2) {
-      fill = alignPart[0] as string
-      align = alignPart[1] as string
+      fill = alignPart.charAt(0)
+      align = alignPart.charAt(1)
     } else {
       align = alignPart
     }

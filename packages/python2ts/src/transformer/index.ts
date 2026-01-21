@@ -1695,9 +1695,10 @@ function transformModuleCall(
       inf: "inf",
       nan: "nan"
     }
-    if (funcName in mathConstants) {
+    const mathConstant = mathConstants[funcName]
+    if (mathConstant !== undefined) {
       ctx.usesRuntime.add(`math/${funcName}`)
-      return mathConstants[funcName] as string
+      return mathConstant
     }
 
     // Functions
@@ -5058,11 +5059,10 @@ function checkSequentialEnum(members: EnumMember[]): boolean {
   if (members.some((m) => m.value === "auto")) return true
 
   // Check if all values are numeric and sequential
-  const numericMembers = members.filter((m) => m.numericValue !== null)
-  if (numericMembers.length !== members.length) return false
+  const values = members.map((m) => m.numericValue).filter((v): v is number => v !== null)
+  if (values.length !== members.length) return false
 
-  // Check for sequential pattern (we filtered for non-null above)
-  const values = numericMembers.map((m) => m.numericValue as number)
+  // Check for sequential pattern
   const firstValue = values[0]
   if (firstValue === undefined) return false
 

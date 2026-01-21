@@ -11,10 +11,6 @@ export default tseslint.config(
         project: "./tsconfig.lint.json",
         tsconfigRootDir: import.meta.dirname
       }
-    },
-    rules: {
-      // Conflicts with no-non-null-assertion - prefer as T over !
-      "@typescript-eslint/non-nullable-type-assertion-style": "off"
     }
   },
   {
