@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/sebastian-software/python2ts/compare/pythonlib-v2.0.0...pythonlib-v2.0.1) (2026-01-21)
+
+
+### Documentation
+
+* improve README files with marketing focus ([9db2108](https://github.com/sebastian-software/python2ts/commit/9db210874d52fe45e25a896a06ab4e53392d27ef))
+
 ## [2.0.0](https://github.com/sebastian-software/python2ts/compare/pythonlib-v1.0.2...pythonlib-v2.0.0) (2026-01-21)
 
 
