@@ -2199,7 +2199,12 @@ function transformMethodCall(
       return `${objCode}.padStart(${args})`
 
     // String split/join - join is special: "sep".join(arr) -> arr.join("sep")
+    // If the argument is a generator expression, convert to array with spread
     case "join":
+      // Check if args contains a generator IIFE pattern
+      if (args.includes("function*")) {
+        return `[...${args}].join(${objCode})`
+      }
       return `(${args}).join(${objCode})`
     case "split":
       return args ? `${objCode}.split(${args})` : `${objCode}.split(/\\s+/)`

@@ -282,5 +282,26 @@ describe("E2E: Comprehensions", () => {
         min((function*() { for (const x of numbers) if ((x > 0)) yield x; })());"
       `)
     })
+
+    it("should transform generator expression in string join method", () => {
+      const result = transpile('result = ",".join(str(x) for x in items)', {
+        includeRuntime: false
+      })
+      // Generator is spread into array before .join()
+      expect(result).toContain("[...")
+      expect(result).toContain("function*")
+      expect(result).toContain(".join")
+      expect(result).toContain('","')
+    })
+
+    it("should transform generator expression in variable join method", () => {
+      const result = transpile("result = sep.join(name for name in names)", {
+        includeRuntime: false
+      })
+      // Generator is spread into array before .join()
+      expect(result).toContain("[...")
+      expect(result).toContain("function*")
+      expect(result).toContain(".join(sep)")
+    })
   })
 })
