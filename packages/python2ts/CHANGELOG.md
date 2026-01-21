@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.3](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.3.2...python2ts-v1.3.3) (2026-01-21)
+
+
+### Bug Fixes
+
+* **transformer:** convert ellipsis to Ellipsis constant ([#30](https://github.com/sebastian-software/python2ts/issues/30)) ([834d122](https://github.com/sebastian-software/python2ts/commit/834d12251550978555570b0695b2bb125a85741a))
+* **transformer:** convert raw docstrings (r""") to JSDoc ([#33](https://github.com/sebastian-software/python2ts/issues/33)) ([6d7e300](https://github.com/sebastian-software/python2ts/commit/6d7e3002d2e64603f11dcadce52e38b258334bec))
+* **transformer:** escape JS reserved keywords as variable names ([#29](https://github.com/sebastian-software/python2ts/issues/29)) ([2d2d7a4](https://github.com/sebastian-software/python2ts/commit/2d2d7a43774584b9f3e88cc0cbca94616f0a09fb))
+* **transformer:** spread generator to array in join method calls ([#28](https://github.com/sebastian-software/python2ts/issues/28)) ([ff08efa](https://github.com/sebastian-software/python2ts/commit/ff08efa1697fe799c7cae7711b4b19bed2f29689))
+
 ## [1.3.2](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.3.1...python2ts-v1.3.2) (2026-01-21)
 
 
