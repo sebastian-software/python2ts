@@ -37,6 +37,19 @@ import * as osModule from "./os.node.js"
 import * as datetimeModule from "./datetime.js"
 import * as reModule from "./re.js"
 import * as stringModule from "./string.js"
+import * as sysModule from "./sys.js"
+import * as timeModule from "./time.js"
+import * as copyModule from "./copy.js"
+import * as base64Module from "./base64.js"
+import * as uuidModule from "./uuid.js"
+import * as hashlibModule from "./hashlib.js"
+import * as pathlibModule from "./pathlib.js"
+import * as globModule from "./glob.js"
+import * as shutilModule from "./shutil.js"
+import * as tempfileModule from "./tempfile.js"
+import * as subprocessModule from "./subprocess.js"
+import * as urllibModule from "./urllib.js"
+import * as loggingModule from "./logging.js"
 import * as core from "./core.js"
 import * as builtins from "./builtins.js"
 import { list as listMethods } from "./list.js"
@@ -70,6 +83,19 @@ export const string = {
   capWords: stringModule.capWords,
   Template: stringModule.Template
 }
+export const sys = sysModule
+export const time = timeModule
+export const copy = copyModule
+export const base64 = base64Module
+export const uuid = uuidModule
+export const hashlib = hashlibModule
+export const pathlib = pathlibModule
+export const glob = globModule
+export const shutil = shutilModule
+export const tempfile = tempfileModule
+export const subprocess = subprocessModule
+export const urllib = urllibModule
+export const logging = loggingModule
 
 // =============================================================================
 // Core built-in types with methods (list, dict, set)

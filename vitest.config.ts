@@ -4,14 +4,14 @@ import { resolve } from "node:path"
 export default defineConfig({
   test: {
     globals: true,
-    include: ["tests/**/*.test.ts"],
+    include: ["tests/**/*.test.ts", "packages/*/src/**/*.test.ts"],
     coverage: {
       provider: "v8",
       include: ["packages/*/src/**/*.ts"],
       exclude: [
         "packages/*/src/**/*.d.ts",
         "packages/python2ts/src/cli/**", // Integration-tested via execSync
-        "packages/pythonlib/src/os.ts" // Trivial wrappers + browser stubs
+        "packages/pythonlib/src/os.browser.ts" // Browser stubs, can't be tested in Node.js
       ],
       thresholds: {
         lines: 90,
@@ -31,7 +31,7 @@ export default defineConfig({
       "pythonlib/json": resolve(__dirname, "packages/pythonlib/src/json.ts"),
       "pythonlib/re": resolve(__dirname, "packages/pythonlib/src/re.ts"),
       "pythonlib/functools": resolve(__dirname, "packages/pythonlib/src/functools.ts"),
-      "pythonlib/os": resolve(__dirname, "packages/pythonlib/src/os.ts"),
+      "pythonlib/os": resolve(__dirname, "packages/pythonlib/src/os.node.ts"),
       "pythonlib/itertools": resolve(__dirname, "packages/pythonlib/src/itertools.ts"),
       "pythonlib/collections": resolve(__dirname, "packages/pythonlib/src/collections.ts"),
       "pythonlib/string": resolve(__dirname, "packages/pythonlib/src/string.ts"),

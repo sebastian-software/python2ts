@@ -1,0 +1,601 @@
+/**
+ * Python pathlib module for TypeScript
+ *
+ * Provides object-oriented filesystem paths.
+ *
+ * @see {@link https://docs.python.org/3/library/pathlib.html | Python pathlib documentation}
+ * @module
+ */
+
+import * as fs from "node:fs"
+import * as nodePath from "node:path"
+
+/**
+ * Path class representing a filesystem path.
+ * Provides both path manipulation (pure) and filesystem operations.
+ */
+export class Path {
+  private readonly _path: string
+
+  /**
+   * Create a new Path instance.
+   *
+   * @param pathSegments - Path segments to join
+   */
+  constructor(...pathSegments: string[]) {
+    if (pathSegments.length === 0) {
+      this._path = "."
+    } else {
+      this._path = nodePath.join(...pathSegments)
+    }
+  }
+
+  /**
+   * Static factory method to create a Path.
+   */
+  static of(...pathSegments: string[]): Path {
+    return new Path(...pathSegments)
+  }
+
+  /**
+   * The final component of the path.
+   */
+  get name(): string {
+    return nodePath.basename(this._path)
+  }
+
+  /**
+   * The final component without its suffix.
+   */
+  get stem(): string {
+    const base = nodePath.basename(this._path)
+    const ext = nodePath.extname(base)
+    return ext ? base.slice(0, -ext.length) : base
+  }
+
+  /**
+   * The file extension of the final component.
+   */
+  get suffix(): string {
+    return nodePath.extname(this._path)
+  }
+
+  /**
+   * A list of the path's file extensions.
+   */
+  get suffixes(): string[] {
+    const name = this.name
+    const suffixes: string[] = []
+    let remaining = name
+    let ext = nodePath.extname(remaining)
+    while (ext) {
+      suffixes.unshift(ext)
+      remaining = remaining.slice(0, -ext.length)
+      ext = nodePath.extname(remaining)
+    }
+    return suffixes
+  }
+
+  /**
+   * The logical parent of the path.
+   */
+  get parent(): Path {
+    const parent = nodePath.dirname(this._path)
+    return new Path(parent)
+  }
+
+  /**
+   * An immutable sequence of the path's ancestors.
+   */
+  get parents(): Path[] {
+    const parents: Path[] = []
+    let current = this._path
+    let parent = nodePath.dirname(current)
+    while (parent !== current) {
+      parents.push(new Path(parent))
+      current = parent
+      parent = nodePath.dirname(current)
+    }
+    return parents
+  }
+
+  /**
+   * The individual components of the path.
+   */
+  get parts(): string[] {
+    const parsed = nodePath.parse(this._path)
+    const parts: string[] = []
+    if (parsed.root) {
+      parts.push(parsed.root)
+    }
+    if (parsed.dir) {
+      const dirParts = parsed.dir.replace(parsed.root, "").split(nodePath.sep).filter(Boolean)
+      parts.push(...dirParts)
+    }
+    if (parsed.base) {
+      parts.push(parsed.base)
+    }
+    return parts
+  }
+
+  /**
+   * The drive or root (on Windows, the drive letter; on Unix, empty or /).
+   */
+  get anchor(): string {
+    const parsed = nodePath.parse(this._path)
+    return parsed.root
+  }
+
+  /**
+   * The drive letter (Windows only, empty on Unix).
+   */
+  get drive(): string {
+    if (process.platform === "win32") {
+      const match = /^([A-Za-z]:)/.exec(this._path)
+      return match ? (match[1] ?? "") : ""
+    }
+    return ""
+  }
+
+  /**
+   * The root of the path (/ on Unix, \\ or drive:\\ on Windows).
+   */
+  get root(): string {
+    const parsed = nodePath.parse(this._path)
+    return parsed.root
+  }
+
+  /**
+   * Whether the path is absolute.
+   */
+  isAbsolute(): boolean {
+    return nodePath.isAbsolute(this._path)
+  }
+
+  /**
+   * Combine this path with additional segments.
+   *
+   * @param pathSegments - Path segments to join
+   * @returns A new Path
+   */
+  joinpath(...pathSegments: string[]): Path {
+    return new Path(this._path, ...pathSegments)
+  }
+
+  /**
+   * Division operator alternative: join paths.
+   *
+   * @param other - Path segment to join
+   * @returns A new Path
+   */
+  div(other: string | Path): Path {
+    const otherPath = other instanceof Path ? other.toString() : other
+    return new Path(this._path, otherPath)
+  }
+
+  /**
+   * Return a string representation of the path.
+   */
+  toString(): string {
+    return this._path
+  }
+
+  /**
+   * Return the path as a POSIX path string.
+   */
+  asPosix(): string {
+    return this._path.split(nodePath.sep).join("/")
+  }
+
+  /**
+   * Return the path as a URI.
+   */
+  asUri(): string {
+    const absolute = nodePath.resolve(this._path)
+    return `file://${absolute}`
+  }
+
+  // Filesystem operations
+
+  /**
+   * Whether the path exists.
+   */
+  exists(): boolean {
+    try {
+      fs.accessSync(this._path)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * Whether the path is a file.
+   */
+  isFile(): boolean {
+    try {
+      return fs.statSync(this._path).isFile()
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * Whether the path is a directory.
+   */
+  isDir(): boolean {
+    try {
+      return fs.statSync(this._path).isDirectory()
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * Whether the path is a symbolic link.
+   */
+  isSymlink(): boolean {
+    try {
+      return fs.lstatSync(this._path).isSymbolicLink()
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * Read the file contents as text.
+   *
+   * @param encoding - Text encoding (default: utf-8)
+   * @returns File contents as string
+   */
+  readText(encoding: BufferEncoding = "utf-8"): string {
+    return fs.readFileSync(this._path, { encoding })
+  }
+
+  /**
+   * Write text to the file.
+   *
+   * @param data - Text to write
+   * @param encoding - Text encoding (default: utf-8)
+   */
+  writeText(data: string, encoding: BufferEncoding = "utf-8"): void {
+    fs.writeFileSync(this._path, data, { encoding })
+  }
+
+  /**
+   * Read the file contents as bytes.
+   *
+   * @returns File contents as Uint8Array
+   */
+  readBytes(): Uint8Array {
+    return new Uint8Array(fs.readFileSync(this._path))
+  }
+
+  /**
+   * Write bytes to the file.
+   *
+   * @param data - Bytes to write
+   */
+  writeBytes(data: Uint8Array): void {
+    fs.writeFileSync(this._path, data)
+  }
+
+  /**
+   * Create the directory (and parents if necessary).
+   *
+   * @param options - Options object
+   */
+  mkdir(options?: { parents?: boolean; existOk?: boolean }): void {
+    try {
+      fs.mkdirSync(this._path, { recursive: options?.parents ?? false })
+    } catch (err) {
+      if (!(options?.existOk && (err as NodeJS.ErrnoException).code === "EEXIST")) {
+        throw err
+      }
+    }
+  }
+
+  /**
+   * Remove the directory.
+   */
+  rmdir(): void {
+    fs.rmdirSync(this._path)
+  }
+
+  /**
+   * Remove the file or symbolic link.
+   */
+  unlink(): void {
+    fs.unlinkSync(this._path)
+  }
+
+  /**
+   * Rename the path to target.
+   *
+   * @param target - New path
+   * @returns The new Path
+   */
+  rename(target: string | Path): Path {
+    const targetPath = target instanceof Path ? target.toString() : target
+    fs.renameSync(this._path, targetPath)
+    return new Path(targetPath)
+  }
+
+  /**
+   * Replace target with this file.
+   *
+   * @param target - Target path to replace
+   * @returns The new Path
+   */
+  replace(target: string | Path): Path {
+    return this.rename(target)
+  }
+
+  /**
+   * Make the path absolute.
+   *
+   * @returns Absolute path
+   */
+  resolve(): Path {
+    return new Path(nodePath.resolve(this._path))
+  }
+
+  /**
+   * Return the absolute path.
+   *
+   * @returns Absolute path
+   */
+  absolute(): Path {
+    return this.resolve()
+  }
+
+  /**
+   * Return the real path (resolving symlinks).
+   *
+   * @returns Real path
+   */
+  readlink(): Path {
+    return new Path(fs.readlinkSync(this._path))
+  }
+
+  /**
+   * Get file statistics.
+   *
+   * @returns File stat object
+   */
+  stat(): fs.Stats {
+    return fs.statSync(this._path)
+  }
+
+  /**
+   * Get symbolic link statistics.
+   *
+   * @returns Stat object for the symlink itself
+   */
+  lstat(): fs.Stats {
+    return fs.lstatSync(this._path)
+  }
+
+  /**
+   * Iterate over directory contents.
+   *
+   * @returns Array of Path objects
+   */
+  iterdir(): Path[] {
+    return fs.readdirSync(this._path).map((name) => new Path(this._path, name))
+  }
+
+  /**
+   * Glob pattern matching.
+   *
+   * @param pattern - Glob pattern
+   * @returns Array of matching Path objects
+   */
+  glob(pattern: string): Path[] {
+    return this.matchGlob(pattern, false)
+  }
+
+  /**
+   * Recursive glob pattern matching.
+   *
+   * @param pattern - Glob pattern
+   * @returns Array of matching Path objects
+   */
+  rglob(pattern: string): Path[] {
+    return this.matchGlob(pattern, true)
+  }
+
+  /**
+   * Internal glob matching implementation.
+   */
+  private matchGlob(pattern: string, recursive: boolean): Path[] {
+    const results: Path[] = []
+    const regex = this.globToRegex(pattern)
+
+    const walk = (dir: string): void => {
+      let entries: string[]
+      try {
+        entries = fs.readdirSync(dir)
+      } catch {
+        return
+      }
+
+      for (const entry of entries) {
+        const fullPath = nodePath.join(dir, entry)
+        const relativePath = nodePath.relative(this._path, fullPath)
+
+        if (regex.test(relativePath) || regex.test(entry)) {
+          results.push(new Path(fullPath))
+        }
+
+        if (recursive) {
+          try {
+            if (fs.statSync(fullPath).isDirectory()) {
+              walk(fullPath)
+            }
+          } catch {
+            // Ignore errors accessing directories
+          }
+        }
+      }
+    }
+
+    walk(this._path)
+    return results
+  }
+
+  /**
+   * Convert glob pattern to regex.
+   */
+  private globToRegex(pattern: string): RegExp {
+    const regex = pattern
+      .replace(/[.+^${}()|[\]\\]/g, "\\$&") // Escape special regex chars
+      .replace(/\*\*/g, "<<<GLOBSTAR>>>") // Temporarily replace **
+      .replace(/\*/g, "[^/]*") // * matches any except /
+      .replace(/\?/g, "[^/]") // ? matches single char except /
+      .replace(/<<<GLOBSTAR>>>/g, ".*") // ** matches anything
+
+    return new RegExp(`^${regex}$`)
+  }
+
+  /**
+   * Create a symbolic link.
+   *
+   * @param target - Target of the symlink
+   */
+  symlinkTo(target: string | Path): void {
+    const targetPath = target instanceof Path ? target.toString() : target
+    fs.symlinkSync(targetPath, this._path)
+  }
+
+  /**
+   * Create a hard link.
+   *
+   * @param target - Target of the link
+   */
+  linkTo(target: string | Path): void {
+    const targetPath = target instanceof Path ? target.toString() : target
+    fs.linkSync(targetPath, this._path)
+  }
+
+  /**
+   * Change file permissions.
+   *
+   * @param mode - Permission mode
+   */
+  chmod(mode: number): void {
+    fs.chmodSync(this._path, mode)
+  }
+
+  /**
+   * Update access and modification times.
+   *
+   * @param atime - Access time
+   * @param mtime - Modification time
+   */
+  touch(atime?: Date, mtime?: Date): void {
+    const now = new Date()
+    const accessTime = atime ?? now
+    const modTime = mtime ?? now
+
+    if (!this.exists()) {
+      fs.writeFileSync(this._path, "")
+    }
+    fs.utimesSync(this._path, accessTime, modTime)
+  }
+
+  /**
+   * Check if path matches a pattern.
+   *
+   * @param pattern - Glob pattern
+   * @returns True if matches
+   */
+  match(pattern: string): boolean {
+    const regex = this.globToRegex(pattern)
+    return regex.test(this.name) || regex.test(this._path)
+  }
+
+  /**
+   * Return path relative to another path.
+   *
+   * @param other - Base path
+   * @returns Relative path
+   */
+  relativeTo(other: string | Path): Path {
+    const otherPath = other instanceof Path ? other.toString() : other
+    return new Path(nodePath.relative(otherPath, this._path))
+  }
+
+  /**
+   * Return a new path with a different suffix.
+   *
+   * @param suffix - New suffix
+   * @returns New Path
+   */
+  withSuffix(suffix: string): Path {
+    const parsed = nodePath.parse(this._path)
+    return new Path(nodePath.join(parsed.dir, parsed.name + suffix))
+  }
+
+  /**
+   * Return a new path with a different name.
+   *
+   * @param name - New name
+   * @returns New Path
+   */
+  withName(name: string): Path {
+    const parent = nodePath.dirname(this._path)
+    return new Path(parent, name)
+  }
+
+  /**
+   * Return a new path with a different stem.
+   *
+   * @param stem - New stem
+   * @returns New Path
+   */
+  withStem(stem: string): Path {
+    const suffix = this.suffix
+    return this.withName(stem + suffix)
+  }
+
+  /**
+   * Get the current working directory as a Path.
+   */
+  static cwd(): Path {
+    return new Path(process.cwd())
+  }
+
+  /**
+   * Get the home directory as a Path.
+   */
+  static home(): Path {
+    return new Path(process.env.HOME ?? process.env.USERPROFILE ?? "")
+  }
+}
+
+/**
+ * PurePath class for path manipulation without filesystem access.
+ * This is an alias for Path that only uses the pure path operations.
+ */
+export const PurePath = Path
+
+/**
+ * PurePosixPath for POSIX-style paths.
+ */
+export const PurePosixPath = Path
+
+/**
+ * PureWindowsPath for Windows-style paths.
+ */
+export const PureWindowsPath = Path
+
+/**
+ * PosixPath for POSIX filesystem operations.
+ */
+export const PosixPath = Path
+
+/**
+ * WindowsPath for Windows filesystem operations.
+ */
+export const WindowsPath = Path

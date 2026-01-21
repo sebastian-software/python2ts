@@ -4,6 +4,7 @@ import tseslint from "typescript-eslint"
 export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
   {
     languageOptions: {
       parserOptions: {
@@ -13,7 +14,7 @@ export default tseslint.config(
     }
   },
   {
-    files: ["tests/**/*.ts"],
+    files: ["**/*.test.ts"],
     rules: {
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",

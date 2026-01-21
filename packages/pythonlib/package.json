@@ -72,6 +72,58 @@
     "./string": {
       "import": "./dist/string.js",
       "types": "./dist/string.d.ts"
+    },
+    "./sys": {
+      "import": "./dist/sys.js",
+      "types": "./dist/sys.d.ts"
+    },
+    "./time": {
+      "import": "./dist/time.js",
+      "types": "./dist/time.d.ts"
+    },
+    "./copy": {
+      "import": "./dist/copy.js",
+      "types": "./dist/copy.d.ts"
+    },
+    "./base64": {
+      "import": "./dist/base64.js",
+      "types": "./dist/base64.d.ts"
+    },
+    "./uuid": {
+      "import": "./dist/uuid.js",
+      "types": "./dist/uuid.d.ts"
+    },
+    "./hashlib": {
+      "import": "./dist/hashlib.js",
+      "types": "./dist/hashlib.d.ts"
+    },
+    "./pathlib": {
+      "import": "./dist/pathlib.js",
+      "types": "./dist/pathlib.d.ts"
+    },
+    "./glob": {
+      "import": "./dist/glob.js",
+      "types": "./dist/glob.d.ts"
+    },
+    "./shutil": {
+      "import": "./dist/shutil.js",
+      "types": "./dist/shutil.d.ts"
+    },
+    "./tempfile": {
+      "import": "./dist/tempfile.js",
+      "types": "./dist/tempfile.d.ts"
+    },
+    "./subprocess": {
+      "import": "./dist/subprocess.js",
+      "types": "./dist/subprocess.d.ts"
+    },
+    "./urllib": {
+      "import": "./dist/urllib.js",
+      "types": "./dist/urllib.d.ts"
+    },
+    "./logging": {
+      "import": "./dist/logging.js",
+      "types": "./dist/logging.d.ts"
     }
   },
   "files": [
