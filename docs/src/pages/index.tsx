@@ -48,7 +48,7 @@ function HeroSection() {
           <p className={styles.heroSubtitle}>
             The AST-based transpiler that converts Python to clean, idiomatic TypeScript.
             <br />
-            Full type preservation. Python standard library included.
+            Full type preservation. 20+ Python standard library modules included. Zero dependencies.
           </p>
           <div className={styles.heroButtons}>
             <Link className={clsx("button button--lg", styles.primaryButton)} to="/docs">
@@ -199,9 +199,9 @@ const whyFeatures = [
   },
   {
     icon: Package,
-    title: "Python Standard Library",
+    title: "20+ Python Modules",
     description:
-      "itertools, functools, collections, datetime, re, math, random—use familiar Python APIs in your TypeScript code."
+      "itertools, functools, collections, datetime, re, os, pathlib, hashlib, uuid, base64, glob, shutil, tempfile, and more."
   },
   {
     icon: Globe,
@@ -211,15 +211,15 @@ const whyFeatures = [
   },
   {
     icon: Sparkles,
-    title: "Clean Output",
+    title: "2000+ Tests",
     description:
-      "Generates idiomatic TypeScript, not a mess of runtime hacks. Code that's readable, maintainable, and fast."
+      "Battle-tested with comprehensive test coverage. Runs on every commit across Node.js, Bun, Deno, and browsers."
   },
   {
     icon: Rocket,
-    title: "Zero Config",
+    title: "Zero Dependencies",
     description:
-      "Works out of the box. npx python2ts input.py and you're done. No complex setup required."
+      "pythonlib has zero runtime dependencies. No bloat, no supply chain risks, minimal bundle size."
   }
 ]
 
@@ -345,58 +345,91 @@ const modules = [
   {
     name: "itertools",
     path: "pythonlib/itertools",
-    functions: ["chain", "combinations", "permutations", "product", "zipLongest", "groupby"],
-    example: `import { combinations } from "pythonlib/itertools"
+    functions: ["chain", "combinations", "permutations", "product", "cycle", "groupby"],
+    example: `import { combinations, product } from "pythonlib/itertools"
 
-for (const combo of combinations([1, 2, 3], 2)) {
-  console.log(combo) // [1,2], [1,3], [2,3]
-}`
+// All 2-combinations
+[...combinations([1, 2, 3], 2)]
+// [[1,2], [1,3], [2,3]]
+
+// Cartesian product
+[...product(["a", "b"], [1, 2])]`
   },
   {
     name: "functools",
     path: "pythonlib/functools",
-    functions: ["partial", "reduce", "lruCache", "pipe", "cache"],
-    example: `import { lruCache } from "pythonlib/functools"
+    functions: ["lruCache", "partial", "reduce", "pipe", "compose"],
+    example: `import { lruCache, pipe } from "pythonlib/functools"
 
+// Memoization
 const fib = lruCache((n: number): number =>
   n <= 1 ? n : fib(n - 1) + fib(n - 2)
-)`
+)
+fib(100) // Instant!`
   },
   {
     name: "collections",
     path: "pythonlib/collections",
-    functions: ["Counter", "defaultdict", "deque"],
-    example: `import { Counter } from "pythonlib/collections"
+    functions: ["Counter", "defaultdict", "deque", "OrderedDict"],
+    example: `import { Counter, deque } from "pythonlib/collections"
 
-const counter = new Counter("mississippi")
-counter.mostCommon(2) // [["i", 4], ["s", 4]]`
+new Counter("mississippi").mostCommon(2)
+// [["i", 4], ["s", 4]]
+
+const dq = new deque([1, 2, 3])
+dq.appendLeft(0) // O(1) prepend`
+  },
+  {
+    name: "pathlib",
+    path: "pythonlib/pathlib",
+    functions: ["Path", "exists", "readText", "writeText", "glob"],
+    example: `import { Path } from "pythonlib/pathlib"
+
+const p = new Path("/home/user/file.txt")
+p.stem      // "file"
+p.suffix    // ".txt"
+await p.readText()`
+  },
+  {
+    name: "hashlib",
+    path: "pythonlib/hashlib",
+    functions: ["md5", "sha256", "sha512", "newHash"],
+    example: `import { sha256 } from "pythonlib/hashlib"
+
+const hash = sha256()
+hash.update("Hello World")
+hash.hexdigest()
+// "a591a6d40bf420404a011733cfb7b190..."`
   },
   {
     name: "datetime",
     path: "pythonlib/datetime",
     functions: ["datetime", "date", "time", "timedelta"],
-    example: `import { datetime } from "pythonlib/datetime"
+    example: `import { datetime, timedelta } from "pythonlib/datetime"
 
 const now = datetime.now()
-now.strftime("%Y-%m-%d %H:%M:%S")`
+const future = now.add(timedelta({ days: 7 }))
+future.strftime("%Y-%m-%d")`
+  },
+  {
+    name: "os",
+    path: "pythonlib/os",
+    functions: ["path.join", "environ", "getcwd", "listdir", "walk"],
+    example: `import { os } from "pythonlib"
+
+os.path.join("/home", "user", "file.txt")
+os.environ.get("PATH")
+os.getcwd()`
   },
   {
     name: "re",
     path: "pythonlib/re",
     functions: ["search", "match", "findAll", "sub", "compile"],
-    example: `import { search } from "pythonlib/re"
+    example: `import { search, findAll } from "pythonlib/re"
 
+// Named groups supported!
 const m = search("(?P<name>\\\\w+)@(?P<domain>\\\\w+)", email)
-m?.group("name") // Named groups supported!`
-  },
-  {
-    name: "random",
-    path: "pythonlib/random",
-    functions: ["randInt", "choice", "shuffle", "sample"],
-    example: `import { randInt, choice } from "pythonlib/random"
-
-randInt(1, 10)        // Random integer 1-10
-choice(["a", "b"])    // Random element`
+m?.group("name")`
   }
 ]
 
@@ -405,10 +438,10 @@ function RuntimeSection() {
     <section className={styles.runtimeSection}>
       <div className="container">
         <div className={styles.sectionHeader}>
-          <Heading as="h2">Python Standard Library for TypeScript</Heading>
+          <Heading as="h2">20+ Python Standard Library Modules</Heading>
           <p>
-            <code>pythonlib</code> brings Python's powerful APIs to TypeScript—with camelCase naming
-            that feels native.
+            <code>pythonlib</code> brings Python's most powerful APIs to TypeScript—zero
+            dependencies, tree-shakeable, with camelCase naming that feels native.
           </p>
         </div>
         <div className={styles.moduleGrid}>
@@ -433,11 +466,13 @@ function RuntimeSection() {
         </div>
         <div className={styles.moreModules}>
           <p>
-            Plus: <code>pythonlib/math</code>, <code>pythonlib/json</code>,{" "}
-            <code>pythonlib/string</code>, <code>pythonlib/os</code>, and more.
+            <strong>Plus 12 more modules:</strong> <code>math</code>, <code>random</code>,{" "}
+            <code>json</code>, <code>string</code>, <code>glob</code>, <code>shutil</code>,{" "}
+            <code>tempfile</code>, <code>subprocess</code>, <code>urllib</code>,{" "}
+            <code>base64</code>, <code>uuid</code>, <code>logging</code>
           </p>
           <Link to="/docs/runtime" className={styles.moreLink}>
-            View all modules →
+            View all 20+ modules →
           </Link>
         </div>
       </div>
