@@ -370,6 +370,49 @@ describe("E2E: Functions", () => {
       const result = transpile(code, { includeRuntime: false })
       expect(result).toContain("route")
     })
+
+    it("should convert decorated function docstring to JSDoc above const", () => {
+      const python = `@decorator
+def my_func(x):
+    """This is a docstring for the decorated function."""
+    return x + 1`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "/**
+         * This is a docstring for the decorated function.
+         */
+        const my_func = decorator(function my_func(x) {
+          return (x + 1);
+        })"
+      `)
+    })
+
+    it("should convert decorated function docstring with params to JSDoc", () => {
+      const python = `@cache
+def calculate(a, b):
+    """
+    Calculate something.
+
+    Args:
+        a: First value
+        b: Second value
+
+    Returns:
+        The result
+    """
+    return a + b`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "/**
+         * Calculate something.
+         *
+         * @param a - First value
+         * @param b - Second value
+         * @returns The result
+         */
+        const calculate = cache(function calculate(a, b) {
+          return (a + b);
+        })"
+      `)
+    })
   })
 
   describe("Generator Functions", () => {

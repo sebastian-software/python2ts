@@ -788,8 +788,30 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
 
 function transformScript(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
-  const statements = children
-    .filter((child) => child.name !== "Comment" || getNodeText(child, ctx.source).trim() !== "")
+
+  // Check for module-level docstring (first statement is a docstring)
+  // Only treat as docstring if there's actual code following it
+  let moduleDocstring = ""
+  let startIndex = 0
+  const filteredChildren = children.filter(
+    (child) => child.name !== "Comment" || getNodeText(child, ctx.source).trim() !== ""
+  )
+
+  if (filteredChildren.length > 1) {
+    const firstChild = filteredChildren[0]
+    if (firstChild && isDocstringNode(firstChild, ctx)) {
+      // Extract and convert to JSDoc @module comment
+      const content = extractDocstringContent(firstChild, ctx)
+      const parsed = parseDocstring(content)
+      const jsdoc = toJSDoc(parsed, "")
+      // Add @module tag
+      moduleDocstring = jsdoc.replace(" */", " * @module\n */")
+      startIndex = 1
+    }
+  }
+
+  const statements = filteredChildren
+    .slice(startIndex)
     .map((child) => {
       const transformed = transformNode(child, ctx)
       // Skip empty transformations (e.g., pass, TypeVar declarations)
@@ -811,6 +833,9 @@ function transformScript(node: SyntaxNode, ctx: TransformContext): string {
     })
     .filter((s) => s.trim() !== "")
 
+  if (moduleDocstring) {
+    return moduleDocstring + "\n" + statements.join("\n")
+  }
   return statements.join("\n")
 }
 
@@ -4644,9 +4669,15 @@ function transformDecoratedStatement(node: SyntaxNode, ctx: TransformContext): s
     return `function ${funcName}(${params})${returnTypeStr}`
   }
 
+  // Extract docstring and convert to JSDoc (to be placed above the const declaration)
+  const indent = "  ".repeat(ctx.indentLevel)
+  const { jsdoc, skipFirstStatement } = body
+    ? extractDocstringFromBody(body, ctx, indent)
+    : { jsdoc: null, skipFirstStatement: false }
+
   // Track that we're inside a function body for import hoisting
   ctx.insideFunctionBody++
-  const bodyCode = body ? transformBody(body, ctx, false, paramNames) : ""
+  const bodyCode = body ? transformBody(body, ctx, skipFirstStatement, paramNames) : ""
   ctx.insideFunctionBody--
 
   // Build the decorated function
@@ -4666,7 +4697,9 @@ function transformDecoratedStatement(node: SyntaxNode, ctx: TransformContext): s
     }
   }
 
-  return `const ${funcName} = ${funcExpr}`
+  // Prepend JSDoc if docstring was found
+  const declaration = `const ${funcName} = ${funcExpr}`
+  return jsdoc ? `${jsdoc}\n${declaration}` : declaration
 }
 
 // ============================================================================
