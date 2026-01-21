@@ -105,30 +105,24 @@ export function iter<T>(
 
 /**
  * Python reversed() function
+ * Uses ES2023 Array.prototype.toReversed() for immutable reversal
  */
 export function reversed<T>(iterable: Iterable<T>): Iterable<T> {
-  const arr = Array.from(iterable)
-  return {
-    *[Symbol.iterator]() {
-      for (let i = arr.length - 1; i >= 0; i--) {
-        yield arr[i] as T
-      }
-    }
-  }
+  return Array.from(iterable).toReversed()
 }
 
 /**
  * Python sorted() function
+ * Uses ES2023 Array.prototype.toSorted() for immutable sorting
  */
 export function sorted<T>(
   iterable: Iterable<T>,
   options?: { key?: (x: T) => unknown; reverse?: boolean }
 ): T[] {
-  const arr = Array.from(iterable)
   const key = options?.key ?? ((x: T) => x)
   const reverse = options?.reverse ?? false
 
-  arr.sort((a, b) => {
+  return Array.from(iterable).toSorted((a, b) => {
     const aKey = key(a)
     const bKey = key(b)
 
@@ -141,8 +135,6 @@ export function sorted<T>(
 
     return reverse ? -cmp : cmp
   })
-
-  return arr
 }
 
 /**

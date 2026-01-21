@@ -38,9 +38,10 @@ export class Counter<T> extends Map<T, number> {
   /**
    * List the n most common elements and their counts
    * If n is undefined, list all elements from most common to least
+   * Uses ES2023 Array.prototype.toSorted() for immutable sorting
    */
   mostCommon(n?: number): [T, number][] {
-    const sorted = [...this.entries()].sort((a, b) => b[1] - a[1])
+    const sorted = [...this.entries()].toSorted((a, b) => b[1] - a[1])
     return n !== undefined ? sorted.slice(0, n) : sorted
   }
 
