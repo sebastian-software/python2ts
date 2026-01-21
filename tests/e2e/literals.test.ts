@@ -67,6 +67,44 @@ describe("E2E: Literals", () => {
     })
   })
 
+  describe("Implicit String Concatenation", () => {
+    it("should concatenate adjacent strings", () => {
+      const python = `msg = ("hello " "world")`
+      const ts = transpile(python, { includeRuntime: false })
+      expect(ts).toContain('"hello world"')
+    })
+
+    it("should concatenate multi-line strings", () => {
+      const python = `msg = ("This is a long "
+       "string message")`
+      const ts = transpile(python, { includeRuntime: false })
+      expect(ts).toContain('"This is a long string message"')
+    })
+
+    it("should concatenate raw strings", () => {
+      const python = `regex = (r'pattern1' r'pattern2')`
+      const ts = transpile(python, { includeRuntime: false })
+      expect(ts).toContain('"pattern1pattern2"')
+    })
+
+    it("should concatenate f-strings with + operator", () => {
+      const python = `fmt = (f'Hello {name}' f'World {value}')`
+      const ts = transpile(python, { includeRuntime: false })
+      expect(ts).toContain("`Hello ${name}`")
+      expect(ts).toContain("`World ${value}`")
+      expect(ts).toContain(" + ")
+    })
+
+    it("should concatenate mixed strings and f-strings", () => {
+      const python = `msg = ("prefix: " f"value={x}" " suffix")`
+      const ts = transpile(python, { includeRuntime: false })
+      expect(ts).toContain("`prefix: `")
+      expect(ts).toContain("`value=${x}`")
+      expect(ts).toContain("` suffix`")
+      expect(ts).toContain(" + ")
+    })
+  })
+
   describe("Booleans", () => {
     it("should convert True to true", () => {
       const ts = transpile("True", { includeRuntime: false })

@@ -804,6 +804,8 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
       return transformString(node, ctx)
     case "FormatString":
       return transformFormatString(node, ctx)
+    case "ContinuedString":
+      return transformContinuedString(node, ctx)
     case "Boolean":
       return transformBoolean(node, ctx)
     case "None":
@@ -1509,6 +1511,80 @@ function transformFormatString(node: SyntaxNode, ctx: TransformContext): string 
 
   result += "`"
   return result
+}
+
+/**
+ * Transform Python's implicit string concatenation (ContinuedString).
+ * In Python, adjacent string literals are automatically concatenated:
+ *   msg = ("hello "
+ *          "world")  # Same as "hello world"
+ */
+function transformContinuedString(node: SyntaxNode, ctx: TransformContext): string {
+  const children = getChildren(node)
+
+  // Check if any child is a FormatString (f-string)
+  const hasFormatString = children.some((c) => c.name === "FormatString")
+
+  if (hasFormatString) {
+    // If we have f-strings, we need to concatenate template literals
+    // Transform each part and join with +
+    const parts = children
+      .filter((c) => c.name === "String" || c.name === "FormatString")
+      .map((c) => {
+        if (c.name === "FormatString") {
+          return transformFormatString(c, ctx)
+        } else {
+          // Convert regular string to template literal for consistency
+          const text = getNodeText(c, ctx.source)
+          let content: string
+
+          // Handle raw strings
+          if (/^[rR]['"]/.test(text)) {
+            content = text.slice(2, -1)
+          } else if (/^[rR]"""/.test(text) || /^[rR]'''/.test(text)) {
+            content = text.slice(4, -3)
+          } else if (text.startsWith('"""') || text.startsWith("'''")) {
+            content = text.slice(3, -3)
+          } else {
+            content = text.slice(1, -1)
+          }
+
+          // Escape backticks and convert to template literal
+          return "`" + content.replace(/`/g, "\\`") + "`"
+        }
+      })
+
+    return parts.join(" + ")
+  } else {
+    // All regular strings - concatenate their contents into a single string
+    const parts = children
+      .filter((c) => c.name === "String")
+      .map((c) => {
+        const text = getNodeText(c, ctx.source)
+        let content: string
+
+        // Handle raw strings
+        if (/^[rR]['"]/.test(text)) {
+          content = text.slice(2, -1)
+        } else if (/^[rR]"""/.test(text) || /^[rR]'''/.test(text)) {
+          content = text.slice(4, -3)
+        } else if (text.startsWith('"""') || text.startsWith("'''")) {
+          content = text.slice(3, -3)
+        } else {
+          content = text.slice(1, -1)
+        }
+
+        return content
+      })
+
+    // Join and wrap in quotes - use double quotes by default
+    const joined = parts.join("")
+    // Check if content has double quotes, use single if so
+    if (joined.includes('"') && !joined.includes("'")) {
+      return "'" + joined + "'"
+    }
+    return '"' + joined + '"'
+  }
 }
 
 function transformBoolean(node: SyntaxNode, ctx: TransformContext): string {
