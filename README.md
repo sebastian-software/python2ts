@@ -23,8 +23,13 @@
 
 ---
 
-Python dominates AI, ML, and data science. TypeScript powers modern web applications. **python2ts**
-brings them together — transpile Python to production-ready TypeScript with full type safety.
+## The Bridge Between Two Worlds
+
+Python dominates AI, ML, and data science. TypeScript powers modern web applications. Until now,
+these worlds rarely met.
+
+**python2ts** changes that — transpile Python to production-ready TypeScript with full type safety.
+Your Python algorithms, data structures, and business logic can now run anywhere JavaScript runs.
 
 ## Packages
 
@@ -33,46 +38,82 @@ brings them together — transpile Python to production-ready TypeScript with fu
 | [**python2ts**](./packages/python2ts) | AST-based Python to TypeScript transpiler | [![npm](https://img.shields.io/npm/v/python2ts.svg)](https://www.npmjs.com/package/python2ts) |
 | [**pythonlib**](./packages/pythonlib) | Python standard library for TypeScript    | [![npm](https://img.shields.io/npm/v/pythonlib.svg)](https://www.npmjs.com/package/pythonlib) |
 
-## Quick Example
+## See It In Action
 
-**Python input:**
+<table>
+<tr>
+<td width="50%">
+
+**Python** (your algorithm)
 
 ```python
-def fibonacci(n: int) -> list[int]:
-    a, b = 0, 1
-    result = []
-    for _ in range(n):
-        result.append(a)
-        a, b = b, a + b
-    return result
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class TreeNode:
+    value: int
+    left: Optional["TreeNode"] = None
+    right: Optional["TreeNode"] = None
+
+def max_depth(node: Optional[TreeNode]) -> int:
+    if node is None:
+        return 0
+    return 1 + max(
+        max_depth(node.left),
+        max_depth(node.right)
+    )
 ```
 
-**TypeScript output:**
+</td>
+<td width="50%">
+
+**TypeScript** (ready to ship)
 
 ```typescript
-import { range } from "pythonlib"
+class TreeNode {
+  constructor(
+    public value: number,
+    public left: TreeNode | null = null,
+    public right: TreeNode | null = null
+  ) {}
+}
 
-function fibonacci(n: number): number[] {
-  let [a, b] = [0, 1]
-  let result: number[] = []
-  for (const _ of range(n)) {
-    result.push(a)
-    ;[a, b] = [b, a + b]
+function maxDepth(node: TreeNode | null): number {
+  if (node === null) {
+    return 0
   }
-  return result
+  return 1 + Math.max(maxDepth(node.left), maxDepth(node.right))
 }
 ```
 
+</td>
+</tr>
+</table>
+
 ## Why python2ts?
 
-- **Prototype in Python, deploy in TypeScript** — Keep your AI/ML workflows, ship to any JS runtime
-- **Run anywhere JavaScript runs** — Browsers, Node.js, Deno, Bun, Cloudflare Workers, AWS Lambda
-- **Type safety included** — Python type hints become TypeScript types automatically
-- **Full standard library** — itertools, functools, collections, datetime, re, and more
+### For AI/ML Teams
+
+- **Bring models to the browser** — Run inference directly on the client
+- **Share code with your frontend** — Same algorithms, same behavior, zero translation errors
+- **Edge deployment** — Cloudflare Workers, AWS Lambda@Edge, Vercel Edge Functions
+
+### For Full-Stack Developers
+
+- **Python prototyping → TypeScript production** — Iterate fast, ship faster
+- **No more manual rewrites** — Automated, deterministic transpilation
+- **Type safety preserved** — Python type hints become TypeScript types
+
+### For Everyone
+
+- **2000+ tests** — Battle-tested on real code patterns
+- **Complete standard library** — itertools, functools, collections, datetime, re, and more
+- **Run anywhere** — Browsers, Node.js, Deno, Bun, Workers
 
 ## Runtime Support
 
-Tested on every commit:
+Tested on every commit across all major JavaScript runtimes:
 
 <p>
   <img src=".github/assets/nodejs.svg" alt="Node.js" height="28" />
@@ -84,7 +125,34 @@ Tested on every commit:
   <img src=".github/assets/playwright.svg" alt="Browsers" height="28" />
 </p>
 
-**Node.js** (v22, v24) · **Bun** · **Deno** · **Browsers** (via Playwright)
+**Node.js** (v22, v24) · **Bun** · **Deno** · **Browsers** (Chrome, Firefox, Safari via Playwright)
+
+## What Gets Transpiled?
+
+| Python Feature               | TypeScript Output        | Status |
+| ---------------------------- | ------------------------ | :----: |
+| Functions & type hints       | Typed functions          |   ✅   |
+| Classes & dataclasses        | Classes                  |   ✅   |
+| List/dict/set comprehensions | `filter`/`map` chains    |   ✅   |
+| Pattern matching (`match`)   | `switch`/`if` statements |   ✅   |
+| `async`/`await`              | Native async/await       |   ✅   |
+| Decorators                   | Transformed decorators   |   ✅   |
+| `with` statements            | Try/finally blocks       |   ✅   |
+| f-strings                    | Template literals        |   ✅   |
+| Standard library             | pythonlib imports        |   ✅   |
+
+## Quick Start
+
+```bash
+# Install
+npm install -g python2ts
+
+# Transpile a file
+python2ts algorithm.py -o algorithm.ts
+
+# Or pipe it
+cat script.py | python2ts > script.ts
+```
 
 ## Documentation
 
@@ -101,7 +169,7 @@ Tested on every commit:
 ```bash
 pnpm install    # Install dependencies
 pnpm build      # Build all packages
-pnpm test       # Run tests (1400+ tests)
+pnpm test       # Run tests (2000+ tests)
 pnpm lint       # Lint code
 ```
 
