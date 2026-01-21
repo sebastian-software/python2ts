@@ -64,6 +64,36 @@ function declareVariable(ctx: TransformContext, name: string): void {
   }
 }
 
+/**
+ * Strip outer parentheses from an expression if they're redundant.
+ * Used to avoid double-parentheses in conditions like `if ((x === y))`.
+ * Does NOT strip if the expression contains an assignment (walrus operator needs double parens).
+ */
+function stripOuterParens(code: string): string {
+  const trimmed = code.trim()
+  if (trimmed.startsWith("(") && trimmed.endsWith(")")) {
+    // Don't strip if this contains an assignment expression (walrus operator)
+    // Assignment in condition requires double parens: if ((x = getValue()))
+    const inner = trimmed.slice(1, -1)
+    // Check for assignment: = not preceded by !, =, <, > (to avoid ==, !=, <=, >=)
+    if (/(?<![!=<>])=(?!=)/.test(inner)) {
+      return code
+    }
+
+    // Check if the parens are balanced (not just opening and closing separately)
+    let depth = 0
+    for (let i = 0; i < trimmed.length; i++) {
+      if (trimmed[i] === "(") depth++
+      else if (trimmed[i] === ")") depth--
+      // If depth reaches 0 before the end, the outer parens aren't matched
+      if (depth === 0 && i < trimmed.length - 1) return code
+    }
+    // Safe to strip the outer parens
+    return inner
+  }
+  return code
+}
+
 /** Check if a node or any of its descendants contain a yield statement */
 function containsYield(node: SyntaxNode): boolean {
   if (node.name === "YieldStatement" || node.name === "YieldExpression") {
@@ -1228,7 +1258,7 @@ function transformConditionalExpression(node: SyntaxNode, ctx: TransformContext)
 
     /* v8 ignore next -- defensive: checked exprs.length >= 3 above @preserve */
     if (trueExpr && condition && falseExpr) {
-      const condCode = transformNode(condition, ctx)
+      const condCode = stripOuterParens(transformNode(condition, ctx))
       const trueCode = transformNode(trueExpr, ctx)
       const falseCode = transformNode(falseExpr, ctx)
 
@@ -2327,7 +2357,7 @@ function transformIfStatement(node: SyntaxNode, ctx: TransformContext): string {
       const body = children.find((c, idx) => idx > i && c.name === "Body")
 
       if (condition && body) {
-        const condCode = transformNode(condition, ctx)
+        const condCode = stripOuterParens(transformNode(condition, ctx))
         const bodyCode = transformBody(body, ctx)
         parts.push(`if (${condCode}) {\n${bodyCode}\n}`)
       }
@@ -2339,7 +2369,7 @@ function transformIfStatement(node: SyntaxNode, ctx: TransformContext): string {
       const body = children.find((c, idx) => idx > i + 1 && c.name === "Body")
 
       if (condition && body) {
-        const condCode = transformNode(condition, ctx)
+        const condCode = stripOuterParens(transformNode(condition, ctx))
         const bodyCode = transformBody(body, ctx)
         parts.push(` else if (${condCode}) {\n${bodyCode}\n}`)
       }
@@ -2369,7 +2399,7 @@ function transformWhileStatement(node: SyntaxNode, ctx: TransformContext): strin
 
   if (!condition || !body) return getNodeText(node, ctx.source)
 
-  const condCode = transformNode(condition, ctx)
+  const condCode = stripOuterParens(transformNode(condition, ctx))
   const bodyCode = transformBody(body, ctx)
 
   return `while (${condCode}) {\n${bodyCode}\n}`
@@ -3015,14 +3045,25 @@ function transformTryStatement(node: SyntaxNode, ctx: TransformContext): string 
     const firstExcept = exceptBodies[0]
     if (firstExcept) {
       const catchVar = firstExcept.varName || "e"
-      const catchBody = transformBody(firstExcept.body, ctx)
+      let catchBody = transformBody(firstExcept.body, ctx)
+      const isEmpty = !catchBody.trim()
+
+      // Add comment for empty catch blocks (ESLint no-empty rule)
+      if (isEmpty) {
+        const innerIndent = "  ".repeat(ctx.indentLevel + 1)
+        const exceptionComment = firstExcept.type ? ` - ${firstExcept.type} expected` : ""
+        catchBody = `${innerIndent}// Intentionally empty${exceptionComment}`
+      }
+
+      // Omit catch variable if body is empty and no variable was explicitly named
+      const catchClause = isEmpty && !firstExcept.varName ? "catch" : `catch (${catchVar})`
 
       if (exceptBodies.length === 1 && !firstExcept.type) {
         // Simple catch-all
-        result += ` catch (${catchVar}) {\n${catchBody}\n${baseIndent}}`
+        result += ` ${catchClause} {\n${catchBody}\n${baseIndent}}`
       } else if (exceptBodies.length === 1) {
         // Single typed except - we still catch everything but could add instanceof check
-        result += ` catch (${catchVar}) {\n${catchBody}\n${baseIndent}}`
+        result += ` ${catchClause} {\n${catchBody}\n${baseIndent}}`
       } else {
         // Multiple except clauses - generate if/else chain
         const innerIndent = "  ".repeat(ctx.indentLevel + 1)

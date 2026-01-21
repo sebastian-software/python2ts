@@ -198,7 +198,7 @@ finally:
         raise ValueError("must be positive")`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "function validate(x) {
-          if ((x < 0)) {
+          if (x < 0) {
             throw new Error("must be positive");
         }
         }"

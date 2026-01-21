@@ -7,7 +7,7 @@ describe("E2E: Control Flow", () => {
       const python = `if x > 0:
     y = 1`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "if ((x > 0)) {
+        "if (x > 0) {
           let y = 1;
         }"
       `)
@@ -19,7 +19,7 @@ describe("E2E: Control Flow", () => {
 else:
     y = -1`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "if ((x > 0)) {
+        "if (x > 0) {
           let y = 1;
         } else {
           let y = (-1);
@@ -35,9 +35,9 @@ elif x < 0:
 else:
     y = 0`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "if ((x > 0)) {
+        "if (x > 0) {
           let y = 1;
-        } else if ((x < 0)) {
+        } else if (x < 0) {
           let y = (-1);
         } else {
           let y = 0;
@@ -50,8 +50,8 @@ else:
     if y > 0:
         z = 1`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "if ((x > 0)) {
-          if ((y > 0)) {
+        "if (x > 0) {
+          if (y > 0) {
             let z = 1;
         }
         }"
@@ -64,7 +64,7 @@ else:
       const python = `while x > 0:
     x = x - 1`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
-        "while ((x > 0)) {
+        "while (x > 0) {
           let x = (x - 1);
         }"
       `)
@@ -247,7 +247,7 @@ else:
     it("should convert conditional expression", () => {
       const python = "y = 1 if x > 0 else -1"
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
-        `"let y = ((x > 0) ? 1 : (-1));"`
+        `"let y = (x > 0 ? 1 : (-1));"`
       )
     })
   })
@@ -287,7 +287,7 @@ else:
         print(item)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "for (const item of iter(items)) {
-          if ((item > 0)) {
+          if (item > 0) {
             console.log(item);
         }
         }"

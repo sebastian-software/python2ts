@@ -36,7 +36,7 @@ z = 3`
       const ts = transpile(python)
       expect(ts).toContain("function process(items)")
       expect(ts).toContain("for (const item of iter(items))")
-      expect(ts).toContain("if ((item > 0))")
+      expect(ts).toContain("if (item > 0)")
     })
 
     it("should handle nested loops", () => {

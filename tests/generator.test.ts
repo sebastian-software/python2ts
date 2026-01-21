@@ -77,7 +77,7 @@ describe("Generator", () => {
 
     it("should generate valid TypeScript for if-else", () => {
       const ts = transpile("if x > 0:\n    y = 1\nelse:\n    y = -1", { includeRuntime: false })
-      expect(ts).toContain("if ((x > 0))")
+      expect(ts).toContain("if (x > 0)")
       expect(ts).toContain("else")
     })
 
@@ -88,7 +88,7 @@ describe("Generator", () => {
 
     it("should generate valid TypeScript for while-loop", () => {
       const ts = transpile("while x > 0:\n    x = x - 1", { includeRuntime: false })
-      expect(ts).toContain("while ((x > 0))")
+      expect(ts).toContain("while (x > 0)")
     })
 
     it("should generate valid TypeScript for list operations", () => {

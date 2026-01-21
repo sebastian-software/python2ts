@@ -398,7 +398,7 @@ describe("E2E: Functions", () => {
     return dtype`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "function func(dtype) {
-          if ((dtype === null)) {
+          if (dtype === null) {
             dtype = bool;
         }
           return dtype;
@@ -413,7 +413,7 @@ describe("E2E: Functions", () => {
     return umr_any(a, axis, dtype, out)`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
         "function _any(a, axis = null, dtype = null, out = null) {
-          if ((dtype === null)) {
+          if (dtype === null) {
             dtype = bool_dt;
         }
           return umr_any(a, axis, dtype, out);

@@ -78,7 +78,7 @@ print(result)
       const ts = transpile(python, { includeRuntime: false })
 
       expect(ts).toContain("function fibonacci(n)")
-      expect(ts).toContain("if ((n <= 1))")
+      expect(ts).toContain("if (n <= 1)")
       expect(ts).toContain("return n")
       expect(ts).toContain("return (fibonacci((n - 1)) + fibonacci((n - 2)))")
       expect(ts).toContain("let result = fibonacci(10)")

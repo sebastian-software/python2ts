@@ -126,7 +126,7 @@ describe("E2E: Advanced Functions", () => {
     it("should convert lambda with conditional expression", () => {
       const python = "f = lambda x: 1 if x > 0 else -1"
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
-        `"let f = (x) => ((x > 0) ? 1 : (-1));"`
+        `"let f = (x) => (x > 0 ? 1 : (-1));"`
       )
     })
   })
