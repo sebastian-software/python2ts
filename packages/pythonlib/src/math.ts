@@ -2,9 +2,10 @@
  * Python math module for TypeScript
  *
  * Provides mathematical functions and constants matching Python's math module.
- * Most functions map directly to JavaScript's Math object.
+ * Includes trigonometric, logarithmic, and special functions like factorial and gcd.
  *
  * @see {@link https://docs.python.org/3/library/math.html | Python math documentation}
+ * @module
  */
 
 // ============================================================================

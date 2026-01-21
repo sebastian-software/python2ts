@@ -1,15 +1,11 @@
 /**
  * Python re module for TypeScript
  *
- * Provides regular expression matching operations matching Python's re module.
- * Uses JavaScript's RegExp as the underlying engine.
- *
- * Note: Some Python regex features are not supported in JavaScript:
- * - Lookbehind assertions (limited support in modern JS)
- * - Named groups use different syntax (?P<name>...) vs (?<name>...)
- * - Verbose mode (x flag) is not supported
+ * Provides regular expression matching operations matching Python's re module,
+ * including match, search, findall, sub, and split functions.
  *
  * @see {@link https://docs.python.org/3/library/re.html | Python re documentation}
+ * @module
  */
 
 // ============================================================================

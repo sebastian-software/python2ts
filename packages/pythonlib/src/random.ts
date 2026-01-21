@@ -1,13 +1,11 @@
 /**
  * Python random module for TypeScript
  *
- * Provides random number generation functions matching Python's random module.
- * Uses JavaScript's Math.random() as the underlying generator.
- *
- * Note: This is NOT cryptographically secure. For security-sensitive
- * applications, use the Web Crypto API instead.
+ * Provides random number generation functions matching Python's random module,
+ * including choice, shuffle, sample, and various distributions.
  *
  * @see {@link https://docs.python.org/3/library/random.html | Python random documentation}
+ * @module
  */
 
 // ============================================================================

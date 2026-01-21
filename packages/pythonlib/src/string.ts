@@ -1,9 +1,11 @@
 /**
  * Python string module for TypeScript
  *
- * Provides string constants and utility classes matching Python's string module.
+ * Provides string constants and utility classes matching Python's string module,
+ * including ascii_letters, digits, punctuation, and the Template class.
  *
  * @see {@link https://docs.python.org/3/library/string.html | Python string documentation}
+ * @module
  */
 
 function escapeRegex(str: string): string {

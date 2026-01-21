@@ -1,9 +1,12 @@
 /**
  * Python collections module for TypeScript
  *
- * Provides specialized container datatypes.
+ * Provides specialized container datatypes including Counter for counting
+ * hashable objects, defaultdict for dictionaries with default values, and
+ * deque for double-ended queues.
  *
  * @see {@link https://docs.python.org/3/library/collections.html | Python collections documentation}
+ * @module
  */
 
 /**

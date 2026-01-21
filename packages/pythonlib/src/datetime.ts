@@ -1,9 +1,11 @@
 /**
  * Python datetime module for TypeScript
  *
- * Provides date and time handling matching Python's datetime module.
+ * Provides date and time handling matching Python's datetime module,
+ * including date, time, datetime, and timedelta classes.
  *
  * @see {@link https://docs.python.org/3/library/datetime.html | Python datetime documentation}
+ * @module
  */
 
 // ============================================================================

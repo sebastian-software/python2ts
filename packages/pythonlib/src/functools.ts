@@ -1,9 +1,11 @@
 /**
  * Python functools module for TypeScript
  *
- * Provides higher-order functions and operations on callable objects.
+ * Provides higher-order functions and operations on callable objects,
+ * including partial application, function caching (lru_cache), and reduce.
  *
  * @see {@link https://docs.python.org/3/library/functools.html | Python functools documentation}
+ * @module
  */
 
 /**

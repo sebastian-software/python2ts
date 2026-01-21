@@ -2,12 +2,10 @@
  * Python itertools module for TypeScript
  *
  * Provides iterator building blocks inspired by Python's itertools module.
+ * Includes functions for permutations, combinations, grouping, and chaining iterables.
  *
  * @see {@link https://docs.python.org/3/library/itertools.html | Python itertools documentation}
- *
- * Design Decision (ADR-0008):
- * - Most functions return eager arrays for better debugging and familiarity
- * - Only infinite sequences (cycle, repeat without count) use generators
+ * @module
  */
 
 /**

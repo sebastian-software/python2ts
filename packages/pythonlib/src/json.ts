@@ -5,6 +5,7 @@
  * Maps directly to JavaScript's JSON object with Python-compatible options.
  *
  * @see {@link https://docs.python.org/3/library/json.html | Python json documentation}
+ * @module
  */
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }

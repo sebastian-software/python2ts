@@ -1,11 +1,12 @@
 /**
  * Python os module for TypeScript
  *
- * Provides operating system interface functions matching Python's os module.
- * Note: This is a browser-compatible subset. Some functions are stubs.
+ * Provides operating system interface functions matching Python's os module,
+ * including path manipulation, environment variables, and file system operations.
  *
  * @see {@link https://docs.python.org/3/library/os.html | Python os documentation}
  * @see {@link https://docs.python.org/3/library/os.path.html | Python os.path documentation}
+ * @module
  */
 
 // ============================================================================
