@@ -12,7 +12,6 @@ export default defineConfig({
         "packages/*/src/**/*.d.ts",
         "packages/python2ts/src/cli/**", // Integration-tested via execSync
         "packages/pythonlib/src/os.browser.ts", // Browser stubs, can't be tested in Node.js
-        "packages/pythonlib/src/hashlib.browser.ts", // Browser stubs, async Web Crypto API
         "packages/pythonlib/src/pathlib.browser.ts", // Browser stubs
         "packages/pythonlib/src/glob.browser.ts" // Browser stubs
       ],

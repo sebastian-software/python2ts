@@ -3,9 +3,9 @@ import * as hashlib from "./hashlib.js"
 
 describe("hashlib module", () => {
   describe("md5()", () => {
-    it("should compute MD5 hash", () => {
+    it("should compute MD5 hash", async () => {
       const h = hashlib.md5("hello")
-      expect(h.hexdigest()).toBe("5d41402abc4b2a76b9719d911017c592")
+      expect(await h.hexdigest()).toBe("5d41402abc4b2a76b9719d911017c592")
     })
 
     it("should have correct name", () => {
@@ -20,9 +20,9 @@ describe("hashlib module", () => {
   })
 
   describe("sha1()", () => {
-    it("should compute SHA-1 hash", () => {
+    it("should compute SHA-1 hash", async () => {
       const h = hashlib.sha1("hello")
-      expect(h.hexdigest()).toBe("aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
+      expect(await h.hexdigest()).toBe("aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
     })
 
     it("should have correct digestSize", () => {
@@ -32,9 +32,11 @@ describe("hashlib module", () => {
   })
 
   describe("sha256()", () => {
-    it("should compute SHA-256 hash", () => {
+    it("should compute SHA-256 hash", async () => {
       const h = hashlib.sha256("hello")
-      expect(h.hexdigest()).toBe("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
+      expect(await h.hexdigest()).toBe(
+        "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+      )
     })
 
     it("should have correct digestSize", () => {
@@ -44,9 +46,9 @@ describe("hashlib module", () => {
   })
 
   describe("sha512()", () => {
-    it("should compute SHA-512 hash", () => {
+    it("should compute SHA-512 hash", async () => {
       const h = hashlib.sha512("hello")
-      expect(h.hexdigest()).toBe(
+      expect(await h.hexdigest()).toBe(
         "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
       )
     })
@@ -58,33 +60,56 @@ describe("hashlib module", () => {
   })
 
   describe("update()", () => {
-    it("should allow incremental hashing", () => {
+    it("should allow incremental hashing", async () => {
       const h = hashlib.sha256()
       h.update("hel")
       h.update("lo")
-      expect(h.hexdigest()).toBe("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
+      expect(await h.hexdigest()).toBe(
+        "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+      )
     })
 
-    it("should accept Uint8Array", () => {
+    it("should accept Uint8Array", async () => {
       const h = hashlib.sha256()
       h.update(new TextEncoder().encode("hello"))
-      expect(h.hexdigest()).toBe("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
+      expect(await h.hexdigest()).toBe(
+        "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+      )
     })
   })
 
   describe("digest()", () => {
-    it("should return Uint8Array", () => {
+    it("should return Uint8Array", async () => {
       const h = hashlib.md5("hello")
-      const digest = h.digest()
+      const digest = await h.digest()
       expect(digest).toBeInstanceOf(Uint8Array)
       expect(digest.length).toBe(16)
     })
   })
 
+  describe("copy()", () => {
+    it("should create independent copy", async () => {
+      const h1 = hashlib.sha256()
+      h1.update("hello")
+      const h2 = h1.copy()
+      h1.update("world")
+
+      // h2 should only have "hello", not "helloworld"
+      expect(await h2.hexdigest()).toBe(
+        "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+      )
+      expect(await h1.hexdigest()).toBe(
+        "936a185caaa266bb9cbe981e9e05cb78cd732b0b3280eb944412bb6f8f8f07af"
+      )
+    })
+  })
+
   describe("newHash()", () => {
-    it("should create hash by name", () => {
+    it("should create hash by name", async () => {
       const h = hashlib.newHash("sha256", "hello")
-      expect(h.hexdigest()).toBe("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
+      expect(await h.hexdigest()).toBe(
+        "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+      )
     })
   })
 
@@ -96,31 +121,71 @@ describe("hashlib module", () => {
   })
 
   describe("algorithmsGuaranteed", () => {
-    it("should include standard algorithms", () => {
-      expect(hashlib.algorithmsGuaranteed.has("md5")).toBe(true)
+    it("should include Web Crypto algorithms", () => {
+      // MD5 is not in Web Crypto, so not guaranteed
+      expect(hashlib.algorithmsGuaranteed.has("md5")).toBe(false)
+      expect(hashlib.algorithmsGuaranteed.has("sha1")).toBe(true)
       expect(hashlib.algorithmsGuaranteed.has("sha256")).toBe(true)
+      expect(hashlib.algorithmsGuaranteed.has("sha384")).toBe(true)
+      expect(hashlib.algorithmsGuaranteed.has("sha512")).toBe(true)
     })
   })
 
   describe("pbkdf2Hmac()", () => {
-    it("should derive key", () => {
-      const key = hashlib.pbkdf2Hmac("sha256", "password", "salt", 1000, 32)
+    it("should derive key", async () => {
+      const key = await hashlib.pbkdf2Hmac("sha256", "password", "salt", 1000, 32)
+      expect(key).toBeInstanceOf(Uint8Array)
+      expect(key.length).toBe(32)
+    })
+  })
+
+  describe("scrypt()", () => {
+    it("should derive key", async () => {
+      const key = await hashlib.scrypt("password", "salt", 16384, 8, 1, 32)
       expect(key).toBeInstanceOf(Uint8Array)
       expect(key.length).toBe(32)
     })
   })
 
   describe("compareDigest()", () => {
-    it("should return true for equal strings", () => {
-      expect(hashlib.compareDigest("abc", "abc")).toBe(true)
+    it("should return true for equal strings", async () => {
+      expect(await hashlib.compareDigest("abc", "abc")).toBe(true)
     })
 
-    it("should return false for different strings", () => {
-      expect(hashlib.compareDigest("abc", "abd")).toBe(false)
+    it("should return false for different strings", async () => {
+      expect(await hashlib.compareDigest("abc", "abd")).toBe(false)
     })
 
-    it("should return false for different lengths", () => {
-      expect(hashlib.compareDigest("abc", "ab")).toBe(false)
+    it("should return false for different lengths", async () => {
+      expect(await hashlib.compareDigest("abc", "ab")).toBe(false)
+    })
+
+    it("should work with Uint8Array", async () => {
+      const a = new Uint8Array([1, 2, 3])
+      const b = new Uint8Array([1, 2, 3])
+      const c = new Uint8Array([1, 2, 4])
+      expect(await hashlib.compareDigest(a, b)).toBe(true)
+      expect(await hashlib.compareDigest(a, c)).toBe(false)
+    })
+  })
+
+  describe("fileDigest()", () => {
+    it("should hash a file", async () => {
+      // Create a temp file and hash it
+      const fs = await import("node:fs")
+      const path = await import("node:path")
+      const os = await import("node:os")
+
+      const tempDir = os.tmpdir()
+      const tempFile = path.join(tempDir, `hashlib-test-${String(Date.now())}.txt`)
+      fs.writeFileSync(tempFile, "hello")
+
+      try {
+        const hash = await hashlib.fileDigest(tempFile, "sha256")
+        expect(hash).toBe("2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
+      } finally {
+        fs.unlinkSync(tempFile)
+      }
     })
   })
 })
