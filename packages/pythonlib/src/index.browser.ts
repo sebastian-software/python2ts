@@ -23,6 +23,8 @@
  * @module
  */
 
+/* v8 ignore start -- browser version tested via browser tests @preserve */
+
 // =============================================================================
 // Module imports (for namespace exports) - Browser versions
 // =============================================================================
@@ -190,3 +192,5 @@ export const format = builtins.format
 export const getattr = builtins.getattr
 export const hasattr = builtins.hasattr
 export const setattr = builtins.setattr
+
+/* v8 ignore stop */

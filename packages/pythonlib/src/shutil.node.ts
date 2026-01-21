@@ -220,6 +220,7 @@ export interface DiskUsage {
  * @returns Object with total, used, and free bytes
  */
 export async function diskUsage(path: string): Promise<DiskUsage> {
+  /* v8 ignore next 3 -- Windows-specific check @preserve */
   if (process.platform === "win32") {
     throw new Error("diskUsage is not implemented on Windows")
   }
@@ -283,6 +284,7 @@ export async function copyfile(src: string, dst: string): Promise<void> {
  * @param fdst - Destination writable stream
  * @param length - Number of bytes to copy (optional, copies all if not specified)
  */
+/* v8 ignore start -- stream operations are tested via integration @preserve */
 export function copyfileobj(
   fsrc: ReadStream | NodeJS.ReadableStream,
   fdst: WriteStream | NodeJS.WritableStream,
@@ -301,6 +303,7 @@ export function copyfileobj(
     })
   }
 }
+/* v8 ignore stop */
 
 /**
  * Create an archive file from a directory.

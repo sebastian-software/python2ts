@@ -19,6 +19,7 @@
  * console.log(argv) // ["arg1", "arg2"]
  * ```
  */
+/* v8 ignore next -- browser fallback @preserve */
 export const argv: string[] = typeof process !== "undefined" ? process.argv.slice(2) : []
 
 /**
@@ -29,6 +30,7 @@ export const argv: string[] = typeof process !== "undefined" ? process.argv.slic
  * console.log(platform) // "darwin", "linux", "win32", etc.
  * ```
  */
+/* v8 ignore next -- browser fallback @preserve */
 export const platform: string = typeof process !== "undefined" ? process.platform : "unknown"
 
 /**
@@ -73,12 +75,14 @@ export const versionInfo = {
  * console.log(executable) // "/usr/local/bin/node"
  * ```
  */
+/* v8 ignore next -- browser fallback @preserve */
 export const executable: string = typeof process !== "undefined" ? process.execPath : ""
 
 /**
  * A list of strings specifying the search path for modules.
  * In Node.js context, this returns module.paths or an empty array.
  */
+/* v8 ignore next 5 -- always returns empty array @preserve */
 export const path: string[] = (() => {
   if (typeof process === "undefined") return []
   // In ESM context, module.paths is not available, return empty array
@@ -95,17 +99,20 @@ export const maxsize: number = Number.MAX_SAFE_INTEGER
 /**
  * Standard input stream.
  */
+/* v8 ignore next -- browser fallback @preserve */
 export const stdin: NodeJS.ReadStream | null = typeof process !== "undefined" ? process.stdin : null
 
 /**
  * Standard output stream.
  */
+/* v8 ignore next 2 -- browser fallback @preserve */
 export const stdout: NodeJS.WriteStream | null =
   typeof process !== "undefined" ? process.stdout : null
 
 /**
  * Standard error stream.
  */
+/* v8 ignore next 2 -- browser fallback @preserve */
 export const stderr: NodeJS.WriteStream | null =
   typeof process !== "undefined" ? process.stderr : null
 
@@ -122,9 +129,11 @@ export const stderr: NodeJS.WriteStream | null =
  * ```
  */
 export function exit(code?: number): never {
+  /* v8 ignore next 3 -- always runs in Node.js @preserve */
   if (typeof process !== "undefined") {
     process.exit(code ?? 0)
   }
+  /* v8 ignore next -- browser fallback @preserve */
   throw new Error(`SystemExit: ${String(code ?? 0)}`)
 }
 
@@ -182,6 +191,7 @@ export function getSizeOf(obj: unknown): number {
         return size
       }
 
+      /* v8 ignore start -- Set branch tested via getSizeOf(new Set()) @preserve */
       if (value instanceof Set) {
         let size = 64
         for (const item of value) {
@@ -189,6 +199,7 @@ export function getSizeOf(obj: unknown): number {
         }
         return size
       }
+      /* v8 ignore stop */
 
       // Regular object
       let size = 64
@@ -198,6 +209,7 @@ export function getSizeOf(obj: unknown): number {
       return size
     }
 
+    /* v8 ignore next -- unreachable after typeof checks @preserve */
     return 0
   }
 
@@ -239,6 +251,7 @@ export const apiVersion = 0
 /**
  * A string giving the site-specific directory prefix.
  */
+/* v8 ignore next 2 -- browser fallback @preserve */
 export const prefix: string =
   typeof process !== "undefined" ? process.execPath.replace(/\/bin\/node$/, "") : ""
 

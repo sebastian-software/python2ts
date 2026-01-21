@@ -80,6 +80,76 @@ describe("uuid module", () => {
     it("should throw for invalid bytes length", () => {
       expect(() => new uuid.UUID({ bytes: new Uint8Array(8) })).toThrow("16-byte")
     })
+
+    it("should handle hex with braces", () => {
+      const u = new uuid.UUID({ hex: "{550e8400-e29b-41d4-a716-446655440000}" })
+      expect(u.toString()).toBe("550e8400-e29b-41d4-a716-446655440000")
+    })
+
+    it("should return correct timeLow", () => {
+      const u = new uuid.UUID({ hex: "550e8400e29b41d4a716446655440000" })
+      expect(u.timeLow).toBe(0x550e8400)
+    })
+
+    it("should return correct timeMid", () => {
+      const u = new uuid.UUID({ hex: "550e8400e29b41d4a716446655440000" })
+      expect(u.timeMid).toBe(0xe29b)
+    })
+
+    it("should return correct timeHiVersion", () => {
+      const u = new uuid.UUID({ hex: "550e8400e29b41d4a716446655440000" })
+      expect(u.timeHiVersion).toBe(0x41d4)
+    })
+
+    it("should return correct clockSeqHiVariant", () => {
+      const u = new uuid.UUID({ hex: "550e8400e29b41d4a716446655440000" })
+      expect(u.clockSeqHiVariant).toBe(0xa7)
+    })
+
+    it("should return correct clockSeqLow", () => {
+      const u = new uuid.UUID({ hex: "550e8400e29b41d4a716446655440000" })
+      expect(u.clockSeqLow).toBe(0x16)
+    })
+
+    it("should return correct node", () => {
+      const u = new uuid.UUID({ hex: "550e8400e29b41d4a716446655440000" })
+      expect(u.node).toBe(0x446655440000n)
+    })
+
+    it("equals() should return false for non-UUID", () => {
+      const u = new uuid.UUID({ hex: "550e8400e29b41d4a716446655440000" })
+      expect(u.equals("not a uuid" as unknown as uuid.UUID)).toBe(false)
+    })
+
+    it("should detect NCS variant", () => {
+      // NCS variant: high bit is 0 (0x00-0x7F in byte 8)
+      const bytes = new Uint8Array([
+        0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4, 0x00, 0x16, 0x44, 0x66, 0x55, 0x44, 0x00,
+        0x00
+      ])
+      const u = new uuid.UUID({ bytes })
+      expect(u.variant).toBe("reserved for NCS compatibility")
+    })
+
+    it("should detect Microsoft variant", () => {
+      // Microsoft variant: bits are 110x (0xC0-0xDF in byte 8)
+      const bytes = new Uint8Array([
+        0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4, 0xc0, 0x16, 0x44, 0x66, 0x55, 0x44, 0x00,
+        0x00
+      ])
+      const u = new uuid.UUID({ bytes })
+      expect(u.variant).toBe("reserved for Microsoft compatibility")
+    })
+
+    it("should detect future reserved variant", () => {
+      // Future variant: bits are 111x (0xE0-0xFF in byte 8)
+      const bytes = new Uint8Array([
+        0x55, 0x0e, 0x84, 0x00, 0xe2, 0x9b, 0x41, 0xd4, 0xe0, 0x16, 0x44, 0x66, 0x55, 0x44, 0x00,
+        0x00
+      ])
+      const u = new uuid.UUID({ bytes })
+      expect(u.variant).toBe("reserved for future definition")
+    })
   })
 
   describe("uuid4()", () => {
@@ -119,6 +189,26 @@ describe("uuid module", () => {
         uuids.add(uuid.uuid1().toString())
       }
       expect(uuids.size).toBe(100)
+    })
+
+    it("should accept custom node and clockSeq", () => {
+      const node = 0x001122334455n
+      const clockSeq = 0x1234
+      const u = uuid.uuid1(node, clockSeq)
+      expect(u.version).toBe(1)
+      expect(u.node).toBe(node)
+    })
+  })
+
+  describe("uuid3()", () => {
+    it("should throw not implemented error", () => {
+      expect(() => uuid.uuid3(uuid.NAMESPACE_DNS, "example.com")).toThrow("requires hashlib")
+    })
+  })
+
+  describe("uuid5()", () => {
+    it("should throw not implemented error", () => {
+      expect(() => uuid.uuid5(uuid.NAMESPACE_DNS, "example.com")).toThrow("requires hashlib")
     })
   })
 

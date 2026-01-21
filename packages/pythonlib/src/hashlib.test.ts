@@ -59,6 +59,74 @@ describe("hashlib module", () => {
     })
   })
 
+  describe("sha224()", () => {
+    it("should compute SHA-224 hash", async () => {
+      const h = hashlib.sha224("hello")
+      const digest = await h.hexdigest()
+      expect(digest.length).toBe(56) // 28 bytes = 56 hex chars
+    })
+
+    it("should have correct digestSize", () => {
+      expect(hashlib.sha224().digestSize).toBe(28)
+    })
+  })
+
+  describe("sha384()", () => {
+    it("should compute SHA-384 hash", async () => {
+      const h = hashlib.sha384("hello")
+      const digest = await h.hexdigest()
+      expect(digest.length).toBe(96) // 48 bytes = 96 hex chars
+    })
+
+    it("should have correct digestSize", () => {
+      expect(hashlib.sha384().digestSize).toBe(48)
+    })
+  })
+
+  describe("sha3_256()", () => {
+    it("should compute SHA3-256 hash", async () => {
+      const h = hashlib.sha3_256("hello")
+      const digest = await h.hexdigest()
+      expect(digest.length).toBe(64) // 32 bytes = 64 hex chars
+    })
+
+    it("should have correct properties", () => {
+      const h = hashlib.sha3_256()
+      expect(h.name).toBe("sha3-256")
+      expect(h.digestSize).toBe(32)
+    })
+  })
+
+  describe("sha3_512()", () => {
+    it("should compute SHA3-512 hash", async () => {
+      const h = hashlib.sha3_512("hello")
+      const digest = await h.hexdigest()
+      expect(digest.length).toBe(128) // 64 bytes = 128 hex chars
+    })
+
+    it("should have correct properties", () => {
+      const h = hashlib.sha3_512()
+      expect(h.name).toBe("sha3-512")
+      expect(h.digestSize).toBe(64)
+    })
+  })
+
+  describe("blake2b()", () => {
+    it("should compute BLAKE2b hash", async () => {
+      const h = hashlib.blake2b("hello")
+      const digest = await h.hexdigest()
+      expect(digest.length).toBe(128) // 64 bytes = 128 hex chars
+    })
+  })
+
+  describe("blake2s()", () => {
+    it("should compute BLAKE2s hash", async () => {
+      const h = hashlib.blake2s("hello")
+      const digest = await h.hexdigest()
+      expect(digest.length).toBe(64) // 32 bytes = 64 hex chars
+    })
+  })
+
   describe("update()", () => {
     it("should allow incremental hashing", async () => {
       const h = hashlib.sha256()

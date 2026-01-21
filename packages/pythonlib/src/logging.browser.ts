@@ -8,6 +8,8 @@
  * @module
  */
 
+/* v8 ignore start -- browser version tested via browser tests @preserve */
+
 /**
  * Logging levels.
  */
@@ -426,3 +428,5 @@ export function shutdown(): void {
   }
   loggers.clear()
 }
+
+/* v8 ignore stop */

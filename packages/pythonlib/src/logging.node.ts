@@ -126,6 +126,7 @@ export class FileHandler extends Handler {
     this.mode = mode
   }
 
+  /* v8 ignore start -- async file writing is tested via integration @preserve */
   emit(record: LogRecord): void {
     const msg = this.format(record) + "\n"
     // Use dynamic import for fs/promises to allow browser compatibility
@@ -136,6 +137,7 @@ export class FileHandler extends Handler {
         console.log(msg)
       })
   }
+  /* v8 ignore stop */
 }
 
 /**

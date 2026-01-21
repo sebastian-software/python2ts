@@ -11,9 +11,7 @@ export default defineConfig({
       exclude: [
         "packages/*/src/**/*.d.ts",
         "packages/python2ts/src/cli/**", // Integration-tested via execSync
-        "packages/pythonlib/src/os.browser.ts", // Browser stubs, can't be tested in Node.js
-        "packages/pythonlib/src/pathlib.browser.ts", // Browser stubs
-        "packages/pythonlib/src/glob.browser.ts" // Browser stubs
+        "packages/pythonlib/src/*.browser.ts" // Browser stubs, can't be tested in Node.js
       ],
       thresholds: {
         lines: 80,

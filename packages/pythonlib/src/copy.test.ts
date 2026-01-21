@@ -58,6 +58,56 @@ describe("copy module", () => {
       expect(copied.flags).toBe(original.flags)
       expect(copied).not.toBe(original)
     })
+
+    it("should handle bigint and symbol", () => {
+      expect(copy.copy(BigInt(42))).toBe(BigInt(42))
+      const sym = Symbol("test")
+      expect(copy.copy(sym)).toBe(sym)
+    })
+
+    it("should copy TypedArrays", () => {
+      const original = new Uint8Array([1, 2, 3])
+      const copied = copy.copy(original)
+      expect(copied).toEqual(original)
+      expect(copied).not.toBe(original)
+      expect(copied.buffer).not.toBe(original.buffer)
+    })
+
+    it("should copy ArrayBuffer", () => {
+      const original = new ArrayBuffer(8)
+      const copied = copy.copy(original)
+      expect(copied.byteLength).toBe(original.byteLength)
+      expect(copied).not.toBe(original)
+    })
+
+    it("should copy DataView", () => {
+      const buffer = new ArrayBuffer(8)
+      const original = new DataView(buffer, 2, 4)
+      const copied = copy.copy(original)
+      expect(copied.byteLength).toBe(original.byteLength)
+      expect(copied.byteOffset).toBe(original.byteOffset)
+      expect(copied).not.toBe(original)
+    })
+
+    it("should copy custom class instances", () => {
+      class Point {
+        constructor(
+          public x: number,
+          public y: number
+        ) {}
+      }
+      const original = new Point(1, 2)
+      const copied = copy.copy(original)
+      expect(copied.x).toBe(1)
+      expect(copied.y).toBe(2)
+      expect(copied).not.toBe(original)
+      expect(copied).toBeInstanceOf(Point)
+    })
+
+    it("should return functions as-is", () => {
+      const fn = () => 42
+      expect(copy.copy(fn)).toBe(fn)
+    })
   })
 
   describe("deepcopy()", () => {

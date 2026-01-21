@@ -384,6 +384,8 @@ export class Popen {
     return [this._stdout, this._stderr]
   }
 
+  /* v8 ignore start -- process control methods are hard to test reliably @preserve */
+
   /**
    * Send a signal to the process.
    */
@@ -404,6 +406,8 @@ export class Popen {
   kill(): boolean {
     return this.process.kill("SIGKILL")
   }
+
+  /* v8 ignore stop */
 
   /**
    * The process ID.

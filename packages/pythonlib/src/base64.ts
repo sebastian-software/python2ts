@@ -15,12 +15,14 @@ function uint8ArrayToBase64(bytes: Uint8Array): string {
     // Node.js environment
     return Buffer.from(bytes).toString("base64")
   }
+  /* v8 ignore start -- browser fallback @preserve */
   // Browser environment
   let binary = ""
   for (const byte of bytes) {
     binary += String.fromCharCode(byte)
   }
   return btoa(binary)
+  /* v8 ignore stop */
 }
 
 /**
@@ -31,6 +33,7 @@ function base64ToUint8Array(base64: string): Uint8Array {
     // Node.js environment
     return new Uint8Array(Buffer.from(base64, "base64"))
   }
+  /* v8 ignore start -- browser fallback @preserve */
   // Browser environment
   const binary = atob(base64)
   const bytes = new Uint8Array(binary.length)
@@ -38,6 +41,7 @@ function base64ToUint8Array(base64: string): Uint8Array {
     bytes[i] = binary.charCodeAt(i)
   }
   return bytes
+  /* v8 ignore stop */
 }
 
 /**
