@@ -221,6 +221,7 @@ export function transpile(python: string, options: GeneratorOptions = {}): strin
 
 /**
  * Create ESLint flat config for TypeScript with type-aware rules
+ * Uses typescript-eslint strictTypeChecked and stylisticTypeChecked presets
  */
 function createEslintConfig(tempDir: string): ESLint.Options {
   return {
@@ -228,35 +229,35 @@ function createEslintConfig(tempDir: string): ESLint.Options {
     fix: true,
     overrideConfigFile: true,
     overrideConfig: [
-      // Base config with TypeScript parser
+      // TypeScript-ESLint strict + stylistic presets (type-checked)
+      ...tseslint.configs.strictTypeChecked,
+      ...tseslint.configs.stylisticTypeChecked,
+      // Custom configuration
       {
         files: ["**/*.ts"],
         languageOptions: {
-          parser: tseslint.parser,
           parserOptions: {
             projectService: true,
             tsconfigRootDir: tempDir
           }
         },
-        plugins: {
-          "@typescript-eslint": tseslint.plugin
-        },
         rules: {
-          // Basic ESLint rules
+          // Additional ESLint core rules (auto-fixable)
           "prefer-const": "error",
           "prefer-arrow-callback": "error",
           "prefer-template": "error",
           curly: "error",
           "no-lonely-if": "error",
 
-          // TypeScript-ESLint stylistic rules (auto-fixable)
-          "@typescript-eslint/array-type": ["error", { default: "array-simple" }],
-          "@typescript-eslint/prefer-optional-chain": "error",
-          "@typescript-eslint/prefer-nullish-coalescing": "error",
-          "@typescript-eslint/no-unnecessary-type-assertion": "error",
-          "@typescript-eslint/no-unnecessary-condition": "error",
-          "@typescript-eslint/prefer-string-starts-ends-with": "error",
-          "@typescript-eslint/prefer-includes": "error"
+          // Disable rules that don't make sense for generated code
+          "@typescript-eslint/explicit-function-return-type": "off",
+          "@typescript-eslint/explicit-module-boundary-types": "off",
+          "@typescript-eslint/no-explicit-any": "off",
+          "@typescript-eslint/no-unsafe-assignment": "off",
+          "@typescript-eslint/no-unsafe-member-access": "off",
+          "@typescript-eslint/no-unsafe-call": "off",
+          "@typescript-eslint/no-unsafe-return": "off",
+          "@typescript-eslint/no-unsafe-argument": "off"
         }
       }
     ]
