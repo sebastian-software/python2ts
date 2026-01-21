@@ -141,32 +141,37 @@ export function sorted<T>(
   })
 }
 
+// ES2024 Iterator Helpers interface (TypeScript doesn't have built-in types yet)
+interface IteratorHelpers<T> extends Iterator<T>, Iterable<T> {
+  map<U>(fn: (x: T) => U): IteratorHelpers<U>
+  filter(fn: (x: T) => boolean): IteratorHelpers<T>
+  take(n: number): IteratorHelpers<T>
+  drop(n: number): IteratorHelpers<T>
+  flatMap<U>(fn: (x: T) => Iterable<U>): IteratorHelpers<U>
+  toArray(): T[]
+}
+
+/** Get iterator with ES2024 Iterator Helpers */
+function getIterator<T>(iterable: Iterable<T>): IteratorHelpers<T> {
+  return iterable[Symbol.iterator]() as IteratorHelpers<T>
+}
+
 /**
  * Python map() function
+ * Uses ES2024 Iterator.prototype.map()
  */
 export function map<T, U>(fn: (x: T) => U, iterable: Iterable<T>): Iterable<U> {
-  return {
-    *[Symbol.iterator]() {
-      for (const item of iterable) {
-        yield fn(item)
-      }
-    }
-  }
+  return getIterator(iterable).map(fn)
 }
 
 /**
  * Python filter() function
+ * Uses ES2024 Iterator.prototype.filter()
  */
 export function filter<T>(fn: ((x: T) => boolean) | null, iterable: Iterable<T>): Iterable<T> {
-  return {
-    *[Symbol.iterator]() {
-      for (const item of iterable) {
-        if (fn === null ? bool(item) : fn(item)) {
-          yield item
-        }
-      }
-    }
-  }
+  // Python's filter(None, iterable) filters by truthiness
+  const predicate = fn === null ? (x: T) => bool(x) : fn
+  return getIterator(iterable).filter(predicate)
 }
 
 // ============================================================
