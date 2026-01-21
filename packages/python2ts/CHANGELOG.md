@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.2](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.4.1...python2ts-v1.4.2) (2026-01-21)
+
+
+### Bug Fixes
+
+* spread operator in tuples and __doc__ attribute ([a8464cd](https://github.com/sebastian-software/python2ts/commit/a8464cddb569f6316e7442c0f655c18faf4464ad))
+
 ## [1.4.1](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.4.0...python2ts-v1.4.1) (2026-01-21)
 
 
