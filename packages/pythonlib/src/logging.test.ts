@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest"
-import * as logging from "./logging.js"
+import * as logging from "./logging.node.js"
 
 describe("logging module", () => {
   beforeEach(() => {

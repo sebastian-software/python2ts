@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import * as fs from "node:fs"
-import * as glob from "./glob.js"
+import * as glob from "./glob.node.js"
 
 describe("glob module", () => {
   const testDir = "/tmp/glob-test-" + Date.now()

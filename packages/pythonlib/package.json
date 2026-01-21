@@ -98,20 +98,60 @@
       "types": "./dist/hashlib.d.ts"
     },
     "./pathlib": {
-      "import": "./dist/pathlib.js",
-      "types": "./dist/pathlib.d.ts"
+      "browser": {
+        "import": "./dist/pathlib.browser.js",
+        "types": "./dist/pathlib.browser.d.ts"
+      },
+      "node": {
+        "import": "./dist/pathlib.node.js",
+        "types": "./dist/pathlib.node.d.ts"
+      },
+      "default": {
+        "import": "./dist/pathlib.node.js",
+        "types": "./dist/pathlib.node.d.ts"
+      }
     },
     "./glob": {
-      "import": "./dist/glob.js",
-      "types": "./dist/glob.d.ts"
+      "browser": {
+        "import": "./dist/glob.browser.js",
+        "types": "./dist/glob.browser.d.ts"
+      },
+      "node": {
+        "import": "./dist/glob.node.js",
+        "types": "./dist/glob.node.d.ts"
+      },
+      "default": {
+        "import": "./dist/glob.node.js",
+        "types": "./dist/glob.node.d.ts"
+      }
     },
     "./shutil": {
-      "import": "./dist/shutil.js",
-      "types": "./dist/shutil.d.ts"
+      "browser": {
+        "import": "./dist/shutil.browser.js",
+        "types": "./dist/shutil.browser.d.ts"
+      },
+      "node": {
+        "import": "./dist/shutil.node.js",
+        "types": "./dist/shutil.node.d.ts"
+      },
+      "default": {
+        "import": "./dist/shutil.node.js",
+        "types": "./dist/shutil.node.d.ts"
+      }
     },
     "./tempfile": {
-      "import": "./dist/tempfile.js",
-      "types": "./dist/tempfile.d.ts"
+      "browser": {
+        "import": "./dist/tempfile.browser.js",
+        "types": "./dist/tempfile.browser.d.ts"
+      },
+      "node": {
+        "import": "./dist/tempfile.node.js",
+        "types": "./dist/tempfile.node.d.ts"
+      },
+      "default": {
+        "import": "./dist/tempfile.node.js",
+        "types": "./dist/tempfile.node.d.ts"
+      }
     },
     "./subprocess": {
       "import": "./dist/subprocess.js",
@@ -122,8 +162,18 @@
       "types": "./dist/urllib.d.ts"
     },
     "./logging": {
-      "import": "./dist/logging.js",
-      "types": "./dist/logging.d.ts"
+      "browser": {
+        "import": "./dist/logging.browser.js",
+        "types": "./dist/logging.browser.d.ts"
+      },
+      "node": {
+        "import": "./dist/logging.node.js",
+        "types": "./dist/logging.node.d.ts"
+      },
+      "default": {
+        "import": "./dist/logging.node.js",
+        "types": "./dist/logging.node.d.ts"
+      }
     }
   },
   "files": [

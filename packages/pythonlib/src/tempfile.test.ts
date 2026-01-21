@@ -7,7 +7,7 @@ import {
   mkdtemp,
   NamedTemporaryFile,
   TemporaryDirectory
-} from "./tempfile.js"
+} from "./tempfile.node.js"
 
 describe("tempfile module", () => {
   describe("gettempdir()", () => {

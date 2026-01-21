@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import * as fs from "node:fs"
-import { Path } from "./pathlib.js"
+import { Path } from "./pathlib.node.js"
 
 describe("pathlib module", () => {
   const testDir = "/tmp/pathlib-test-" + Date.now()

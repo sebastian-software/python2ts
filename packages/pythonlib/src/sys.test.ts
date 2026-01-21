@@ -45,8 +45,9 @@ describe("sys module", () => {
   })
 
   describe("executable", () => {
-    it("should return path to Node.js executable", () => {
-      expect(sys.executable).toContain("node")
+    it("should return path to runtime executable", () => {
+      // Works with Node.js, Deno, Bun, etc.
+      expect(sys.executable.length).toBeGreaterThan(0)
     })
   })
 
