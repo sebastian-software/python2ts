@@ -42,9 +42,9 @@ describe("E2E: F-Strings", () => {
     })
 
     it("should handle mixed escaped and replacements", () => {
-      const python = `x = f"{{literal}} {var} {{another}}"`
+      const python = `x = f"{{literal}} {value} {{another}}"`
       expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(
-        `"let x = \`{literal} \${var} {another}\`;"`
+        `"let x = \`{literal} \${value} {another}\`;"`
       )
     })
   })

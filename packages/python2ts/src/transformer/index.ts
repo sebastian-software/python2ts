@@ -2,6 +2,81 @@ import type { SyntaxNode } from "@lezer/common"
 import { getNodeText, getChildren, parse, type ParseResult } from "../parser/index.js"
 import { toJsName } from "./name-mappings.js"
 
+/**
+ * JavaScript/TypeScript reserved keywords that cannot be used as variable names.
+ * Python allows these as identifiers, so we need to rename them.
+ */
+const JS_RESERVED_KEYWORDS = new Set([
+  // ECMAScript reserved words
+  "break",
+  "case",
+  "catch",
+  "continue",
+  "debugger",
+  "default",
+  "delete",
+  "do",
+  "else",
+  "finally",
+  "for",
+  "function",
+  "if",
+  "in",
+  "instanceof",
+  "new",
+  "return",
+  "switch",
+  "this",
+  "throw",
+  "try",
+  "typeof",
+  "var",
+  "void",
+  "while",
+  "with",
+  // ECMAScript 6+ reserved words
+  "class",
+  "const",
+  "enum",
+  "export",
+  "extends",
+  "import",
+  // Note: 'super' is intentionally NOT in this list as it's valid in JS class contexts
+  // Strict mode reserved words
+  "implements",
+  "interface",
+  "let",
+  "package",
+  "private",
+  "protected",
+  "public",
+  "static",
+  "yield",
+  // TypeScript reserved words
+  "abstract",
+  "as",
+  "async",
+  "await",
+  "declare",
+  "from",
+  "get",
+  "is",
+  "module",
+  "namespace",
+  "of",
+  "require",
+  "set",
+  "type"
+])
+
+/**
+ * Escape a variable name if it's a reserved keyword.
+ * Adds underscore prefix to reserved keywords.
+ */
+function escapeReservedKeyword(name: string): string {
+  return JS_RESERVED_KEYWORDS.has(name) ? `_${name}` : name
+}
+
 export interface TransformContext {
   source: string
   indentLevel: number
@@ -715,7 +790,7 @@ function transformNode(node: SyntaxNode, ctx: TransformContext): string {
     case "None":
       return "null"
     case "VariableName":
-      return getNodeText(node, ctx.source)
+      return escapeReservedKeyword(getNodeText(node, ctx.source))
     case "CallExpression":
       return transformCallExpression(node, ctx)
     case "MemberExpression":
@@ -3847,7 +3922,7 @@ function extractParamNames(node: SyntaxNode, source: string): string[] {
     if (child.name === "*" || getNodeText(child, source) === "*") {
       const nextChild = children[i + 1]
       if (nextChild?.name === "VariableName") {
-        names.push(getNodeText(nextChild, source))
+        names.push(escapeReservedKeyword(getNodeText(nextChild, source)))
         i += 2
         continue
       }
@@ -3859,7 +3934,7 @@ function extractParamNames(node: SyntaxNode, source: string): string[] {
     if (child.name === "**" || getNodeText(child, source) === "**") {
       const nextChild = children[i + 1]
       if (nextChild?.name === "VariableName") {
-        names.push(getNodeText(nextChild, source))
+        names.push(escapeReservedKeyword(getNodeText(nextChild, source)))
         i += 2
         continue
       }
@@ -3869,7 +3944,7 @@ function extractParamNames(node: SyntaxNode, source: string): string[] {
 
     // Regular parameter
     if (child.name === "VariableName") {
-      names.push(getNodeText(child, source))
+      names.push(escapeReservedKeyword(getNodeText(child, source)))
       i++
       continue
     }
@@ -3879,7 +3954,7 @@ function extractParamNames(node: SyntaxNode, source: string): string[] {
       const paramChildren = getChildren(child)
       const name = paramChildren.find((c) => c.name === "VariableName")
       if (name) {
-        names.push(getNodeText(name, source))
+        names.push(escapeReservedKeyword(getNodeText(name, source)))
       }
       i++
       continue
@@ -5634,7 +5709,7 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
     const child = children[startIndex]
     if (child?.name !== "VariableName") return null
 
-    const nameCode = getNodeText(child, ctx.source)
+    const nameCode = escapeReservedKeyword(getNodeText(child, ctx.source))
     let tsType: string | null = null
     let defaultValue: string | null = null
     let offset = 1
@@ -5689,7 +5764,7 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
       const nextChild = children[i + 1]
       if (nextChild?.name === "VariableName") {
         // This is *args (rest parameter)
-        const name = getNodeText(nextChild, ctx.source)
+        const name = escapeReservedKeyword(getNodeText(nextChild, ctx.source))
         const typeChild = children[i + 2]
         if (typeChild?.name === "TypeDef") {
           const tsType = extractTypeAnnotation(typeChild, ctx)
@@ -5713,7 +5788,7 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
     if (child.name === "**" || getNodeText(child, ctx.source) === "**") {
       const nextChild = children[i + 1]
       if (nextChild?.name === "VariableName") {
-        kwargsParam = getNodeText(nextChild, ctx.source)
+        kwargsParam = escapeReservedKeyword(getNodeText(nextChild, ctx.source))
         i += 2
         continue
       }
@@ -5743,7 +5818,7 @@ function transformParamList(node: SyntaxNode, ctx: TransformContext): string {
       const defaultVal = paramChildren[paramChildren.length - 1]
 
       if (name) {
-        const nameCode = getNodeText(name, ctx.source)
+        const nameCode = escapeReservedKeyword(getNodeText(name, ctx.source))
         const tsType = extractTypeAnnotation(typeDef, ctx)
         let defaultValue: string | null = null
 

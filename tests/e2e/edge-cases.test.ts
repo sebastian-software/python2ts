@@ -459,4 +459,50 @@ x = 1`
       expect(result).toContain("set")
     })
   })
+
+  describe("Reserved keyword escaping", () => {
+    it("should escape 'new' as variable name", () => {
+      const python = `new = get_metadata()
+if new:
+    return new`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "let _new = get_metadata();
+        if (_new) {
+          return _new;
+        }"
+      `)
+    })
+
+    it("should escape reserved keywords as function parameters", () => {
+      const python = `def process(delete, instanceof):
+    return delete + instanceof`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "function process(_delete, _instanceof) {
+          return (_delete + _instanceof);
+        }"
+      `)
+    })
+
+    it("should escape 'typeof' and 'void' as variables", () => {
+      const python = `typeof = get_type(x)
+void = None`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "let _typeof = get_type(x);
+        let _void = null;"
+      `)
+    })
+
+    it("should not escape 'super' since it's valid in JS classes", () => {
+      const python = `class Child(Parent):
+    def __init__(self):
+        super().__init__()`
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`
+        "class Child extends Parent {
+          constructor() {
+            super();
+          }
+        }"
+      `)
+    })
+  })
 })
