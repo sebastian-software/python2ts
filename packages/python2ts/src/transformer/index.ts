@@ -2718,9 +2718,9 @@ function transformMemberExpression(node: SyntaxNode, ctx: TransformContext): str
     // Map Python special attributes to JavaScript equivalents
     const attrMap: Record<string, string> = {
       __name__: "name",
-      __doc__: "undefined", // JS functions don't have docstrings
       __class__: "constructor",
       __dict__: "this" // Rough equivalent
+      // Note: __doc__ is kept as-is since it's a valid JS property name
     }
 
     const mappedProp = attrMap[propName] ?? propName
@@ -2850,10 +2850,50 @@ function transformDictionaryExpression(node: SyntaxNode, ctx: TransformContext):
 
 function transformTupleExpression(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
-  const elements = children.filter((c) => c.name !== "(" && c.name !== ")" && c.name !== ",")
+
+  // Check for spread operators (*) in the tuple
+  // AST: ( * VariableName , * VariableName )
+  const elementCodes: string[] = []
+  let hasSpread = false
+  let i = 0
+
+  while (i < children.length) {
+    const child = children[i]
+    if (!child) {
+      i++
+      continue
+    }
+
+    // Skip parentheses and commas
+    if (child.name === "(" || child.name === ")" || child.name === ",") {
+      i++
+      continue
+    }
+
+    // Check for spread: * followed by an expression
+    if (child.name === "*" || getNodeText(child, ctx.source) === "*") {
+      const nextChild = children[i + 1]
+      if (nextChild && nextChild.name !== "," && nextChild.name !== ")") {
+        // This is a spread expression
+        hasSpread = true
+        elementCodes.push(`...${transformNode(nextChild, ctx)}`)
+        i += 2 // Skip both * and the expression
+        continue
+      }
+    }
+
+    // Regular element
+    elementCodes.push(transformNode(child, ctx))
+    i++
+  }
+
+  // If we have spreads, use array literal instead of tuple()
+  // because tuple() can't handle spread syntax
+  if (hasSpread) {
+    return `[${elementCodes.join(", ")}]`
+  }
 
   ctx.usesRuntime.add("tuple")
-  const elementCodes = elements.map((el) => transformNode(el, ctx))
   return `tuple(${elementCodes.join(", ")})`
 }
 
