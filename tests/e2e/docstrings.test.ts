@@ -423,5 +423,74 @@ def compute(x):
       expect(result).toContain("let z = (y + 1)")
       expect(result).toContain("return z")
     })
+
+    it("should handle raw docstring with r prefix", () => {
+      const python = `
+def example():
+    r"""Raw docstring with \\n escape sequences."""
+    pass
+`
+      const result = transpile(python, { includeRuntime: false })
+      expect(result).toContain("/**")
+      expect(result).toContain(" * Raw docstring with \\n escape sequences.")
+      expect(result).toContain(" */")
+      expect(result).not.toContain('r"""')
+    })
+
+    it("should handle raw docstring with R prefix (uppercase)", () => {
+      const python = `
+def example():
+    R"""Uppercase raw docstring."""
+    pass
+`
+      const result = transpile(python, { includeRuntime: false })
+      expect(result).toContain("/**")
+      expect(result).toContain(" * Uppercase raw docstring.")
+      expect(result).toContain(" */")
+      expect(result).not.toContain('R"""')
+    })
+
+    it("should handle unicode docstring with u prefix", () => {
+      const python = `
+def example():
+    u"""Unicode docstring."""
+    pass
+`
+      const result = transpile(python, { includeRuntime: false })
+      expect(result).toContain("/**")
+      expect(result).toContain(" * Unicode docstring.")
+      expect(result).toContain(" */")
+      expect(result).not.toContain('u"""')
+    })
+
+    it("should handle raw single-quoted docstring", () => {
+      const python = `
+def example():
+    r'''Raw single-quoted docstring.'''
+    pass
+`
+      const result = transpile(python, { includeRuntime: false })
+      expect(result).toContain("/**")
+      expect(result).toContain(" * Raw single-quoted docstring.")
+      expect(result).toContain(" */")
+      expect(result).not.toContain("r'''")
+    })
+
+    it("should handle raw docstring with Args section", () => {
+      const python = `
+def process(data):
+    r"""Process data.
+
+    Args:
+        data: The input data.
+    """
+    return data
+`
+      const result = transpile(python, { includeRuntime: false })
+      expect(result).toContain("/**")
+      expect(result).toContain(" * Process data.")
+      expect(result).toContain("@param data - The input data.")
+      expect(result).toContain(" */")
+    })
   })
 })

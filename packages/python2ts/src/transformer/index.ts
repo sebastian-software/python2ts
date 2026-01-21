@@ -487,19 +487,38 @@ function isDocstringNode(node: SyntaxNode, ctx: TransformContext): boolean {
   if (firstChild?.name !== "String") return false
 
   const text = getNodeText(firstChild, ctx.source)
-  // Must be a triple-quoted string
-  return text.startsWith('"""') || text.startsWith("'''")
+  // Must be a triple-quoted string (with optional r/R/u/U prefix for raw/unicode strings)
+  return isTripleQuotedString(text)
+}
+
+/**
+ * Check if a string literal is a triple-quoted string (docstring candidate)
+ * Handles prefixes: r, R, u, U (raw and unicode strings)
+ */
+function isTripleQuotedString(text: string): boolean {
+  // Strip optional prefix (r, R, u, U)
+  let stripped = text
+  if (/^[rRuU]/.test(text)) {
+    stripped = text.slice(1)
+  }
+  return stripped.startsWith('"""') || stripped.startsWith("'''")
 }
 
 /**
  * Extract docstring content from a triple-quoted string
+ * Handles prefixes: r, R, u, U (raw and unicode strings)
  */
 function extractDocstringContent(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
   const stringNode = children[0]
   if (!stringNode) return ""
 
-  const text = getNodeText(stringNode, ctx.source)
+  let text = getNodeText(stringNode, ctx.source)
+
+  // Strip optional prefix (r, R, u, U) for raw/unicode strings
+  if (/^[rRuU]/.test(text)) {
+    text = text.slice(1)
+  }
 
   // Remove triple quotes (""" or ''')
   let content = text
