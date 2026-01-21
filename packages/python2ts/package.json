@@ -57,7 +57,8 @@
     "@lezer/python": "^1.1.18",
     "eslint": "^9.39.2",
     "prettier": "^3.8.0",
-    "pythonlib": "workspace:*"
+    "pythonlib": "workspace:*",
+    "typescript-eslint": "^8.53.1"
   },
   "devDependencies": {
     "tsup": "^8.5.1",

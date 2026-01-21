@@ -1,7 +1,11 @@
 import { transform, type TransformResult } from "../transformer/index.js"
 import type { ParseResult } from "../parser/index.js"
 import * as prettier from "prettier"
-import { Linter } from "eslint"
+import { ESLint } from "eslint"
+import tseslint from "typescript-eslint"
+import { writeFileSync, readFileSync, mkdtempSync, rmSync } from "fs"
+import { join } from "path"
+import { tmpdir } from "os"
 
 export interface GeneratorOptions {
   includeRuntime?: boolean
@@ -215,27 +219,95 @@ export function transpile(python: string, options: GeneratorOptions = {}): strin
   return generate(python, options).code
 }
 
-/** ESLint linter instance for fixing generated code */
-const eslintLinter = new Linter({ configType: "eslintrc" })
+/**
+ * Create ESLint flat config for TypeScript with type-aware rules
+ */
+function createEslintConfig(tempDir: string): ESLint.Options {
+  return {
+    cwd: tempDir,
+    fix: true,
+    overrideConfigFile: true,
+    overrideConfig: [
+      // Base config with TypeScript parser
+      {
+        files: ["**/*.ts"],
+        languageOptions: {
+          parser: tseslint.parser,
+          parserOptions: {
+            projectService: true,
+            tsconfigRootDir: tempDir
+          }
+        },
+        plugins: {
+          "@typescript-eslint": tseslint.plugin
+        },
+        rules: {
+          // Basic ESLint rules
+          "prefer-const": "error",
+          "prefer-arrow-callback": "error",
+          "prefer-template": "error",
+          curly: "error",
+          "no-lonely-if": "error",
 
-/** ESLint configuration for generated TypeScript code */
-const eslintConfig: Linter.LegacyConfig = {
-  parserOptions: { ecmaVersion: 2022 },
-  rules: {
-    "prefer-const": "error",
-    "prefer-arrow-callback": "error",
-    "prefer-template": "error",
-    curly: "error",
-    "no-lonely-if": "error"
+          // TypeScript-ESLint stylistic rules (auto-fixable)
+          "@typescript-eslint/array-type": ["error", { default: "array-simple" }],
+          "@typescript-eslint/prefer-optional-chain": "error",
+          "@typescript-eslint/prefer-nullish-coalescing": "error",
+          "@typescript-eslint/no-unnecessary-type-assertion": "error",
+          "@typescript-eslint/no-unnecessary-condition": "error",
+          "@typescript-eslint/prefer-string-starts-ends-with": "error",
+          "@typescript-eslint/prefer-includes": "error"
+        }
+      }
+    ]
   }
 }
 
 /**
- * Apply ESLint fixes to code (e.g., prefer-const)
+ * Apply ESLint fixes with TypeScript type-aware rules
  */
-function applyEslintFixes(code: string): string {
-  const result = eslintLinter.verifyAndFix(code, eslintConfig, { filename: "output.ts" })
-  return result.output
+async function applyTypedEslintFixes(code: string): Promise<string> {
+  // Create temporary directory
+  const tempDir = mkdtempSync(join(tmpdir(), "python2ts-"))
+
+  try {
+    // Write temp tsconfig.json
+    const tsconfigPath = join(tempDir, "tsconfig.json")
+    writeFileSync(
+      tsconfigPath,
+      JSON.stringify({
+        compilerOptions: {
+          target: "ES2024",
+          module: "ESNext",
+          moduleResolution: "bundler",
+          strict: true,
+          skipLibCheck: true,
+          noEmit: true
+        },
+        include: ["*.ts"]
+      })
+    )
+
+    // Write temp TypeScript file
+    const tempFile = join(tempDir, "output.ts")
+    writeFileSync(tempFile, code)
+
+    // Create ESLint instance with typed config
+    const eslint = new ESLint(createEslintConfig(tempDir))
+
+    // Lint and fix (use relative path since cwd is set to tempDir)
+    const results = await eslint.lintFiles(["output.ts"])
+
+    // Return fixed output if available, otherwise original
+    if (results.length > 0 && results[0]?.output) {
+      return results[0].output
+    }
+
+    return readFileSync(tempFile, "utf-8")
+  } finally {
+    // Cleanup temp directory
+    rmSync(tempDir, { recursive: true, force: true })
+  }
 }
 
 /* v8 ignore start -- async wrappers tested via CLI @preserve */
@@ -244,8 +316,8 @@ function applyEslintFixes(code: string): string {
  */
 export async function formatCode(code: string): Promise<string> {
   try {
-    // First apply ESLint fixes (prefer-const)
-    const eslintFixed = applyEslintFixes(code)
+    // First apply ESLint fixes with TypeScript type-aware rules
+    const eslintFixed = await applyTypedEslintFixes(code)
     // Then format with Prettier
     return await prettier.format(eslintFixed, prettierOptions)
   } catch {

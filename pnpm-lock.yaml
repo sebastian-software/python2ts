@@ -120,6 +120,9 @@ importers:
       pythonlib:
         specifier: workspace:*
         version: link:../pythonlib
+      typescript-eslint:
+        specifier: ^8.53.1
+        version: 8.53.1(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3)
     devDependencies:
       tsup:
         specifier: ^8.5.1
