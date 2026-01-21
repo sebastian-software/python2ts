@@ -11,7 +11,8 @@ export default defineConfig({
     "src/datetime.ts",
     "src/re.ts",
     "src/json.ts",
-    "src/os.ts",
+    "src/os.browser.ts",
+    "src/os.node.ts",
     "src/string.ts"
   ],
   format: ["esm"],

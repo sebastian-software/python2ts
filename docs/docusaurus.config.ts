@@ -60,7 +60,7 @@ const config: Config = {
           "../packages/pythonlib/src/random.ts",
           "../packages/pythonlib/src/string.ts",
           "../packages/pythonlib/src/json.ts",
-          "../packages/pythonlib/src/os.ts"
+          "../packages/pythonlib/src/os.node.ts"
         ],
         entryPointStrategy: "expand",
         tsconfig: "../packages/pythonlib/tsconfig.json",

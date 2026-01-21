@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/restrict-plus-operands */
 import { describe, it, expect } from "vitest"
+import * as fs from "node:fs"
 import * as random from "../packages/pythonlib/src/random"
 import * as math from "../packages/pythonlib/src/math"
 import * as datetime from "../packages/pythonlib/src/datetime"
 import * as json from "../packages/pythonlib/src/json"
 import * as re from "../packages/pythonlib/src/re"
 import * as functools from "../packages/pythonlib/src/functools"
-import * as os from "../packages/pythonlib/src/os"
+import * as os from "../packages/pythonlib/src/os.node"
 import * as string from "../packages/pythonlib/src/string"
 import * as itertools from "../packages/pythonlib/src/itertools"
 
@@ -2275,9 +2276,11 @@ describe("os module", () => {
       expect(os.path.normPath("a//b")).toBe("a/b")
     })
 
-    it("absPath should normalize path", () => {
+    it("absPath should return absolute normalized path", () => {
       const result = os.path.absPath("a/../b")
-      expect(result).toBe("b")
+      // In Node.js, absPath returns cwd + relative path
+      expect(os.path.isAbs(result)).toBe(true)
+      expect(result.endsWith("/b") || result.endsWith("\\b")).toBe(true)
     })
 
     it("relPath should return relative path", () => {
@@ -2324,6 +2327,90 @@ describe("os module", () => {
 
     it("should export name", () => {
       expect(["posix", "nt"]).toContain(os.name)
+    })
+  })
+
+  describe("filesystem operations (Node.js)", () => {
+    const testDir = "/tmp/pythonlib-test-" + Date.now()
+
+    it("mkdir should create directory", () => {
+      os.mkdir(testDir)
+      expect(os.path.isDir(testDir)).toBe(true)
+    })
+
+    it("listDir should list directory contents", () => {
+      const contents = os.listDir(testDir)
+      expect(Array.isArray(contents)).toBe(true)
+    })
+
+    it("makeDirs should create nested directories", () => {
+      const nested = testDir + "/a/b/c"
+      os.makeDirs(nested)
+      expect(os.path.isDir(nested)).toBe(true)
+    })
+
+    it("path.exists should detect existing paths", () => {
+      expect(os.path.exists(testDir)).toBe(true)
+      expect(os.path.exists(testDir + "/nonexistent")).toBe(false)
+    })
+
+    it("path.isFile should detect files", () => {
+      const filePath = testDir + "/testfile.txt"
+      // Create a file using Node's fs
+      fs.writeFileSync(filePath, "test content")
+      expect(os.path.isFile(filePath)).toBe(true)
+      expect(os.path.isFile(testDir)).toBe(false)
+    })
+
+    it("path.getSize should return file size", () => {
+      const filePath = testDir + "/testfile.txt"
+      const size = os.path.getSize(filePath)
+      expect(size).toBe(12) // "test content" = 12 bytes
+    })
+
+    it("stat should return file statistics", () => {
+      const filePath = testDir + "/testfile.txt"
+      const s = os.stat(filePath)
+      expect(s.st_size).toBe(12)
+      expect(s.st_mtime).toBeGreaterThan(0)
+    })
+
+    it("rename should rename file", () => {
+      const oldPath = testDir + "/testfile.txt"
+      const newPath = testDir + "/renamed.txt"
+      os.rename(oldPath, newPath)
+      expect(os.path.exists(oldPath)).toBe(false)
+      expect(os.path.exists(newPath)).toBe(true)
+    })
+
+    it("walk should traverse directory tree", () => {
+      const results: Array<[string, string[], string[]]> = []
+      for (const entry of os.walk(testDir)) {
+        results.push(entry)
+      }
+      expect(results.length).toBeGreaterThan(0)
+      const firstResult = results[0]
+      expect(firstResult).toBeDefined()
+      expect(firstResult?.[0]).toBe(testDir)
+    })
+
+    it("remove should delete file", () => {
+      const filePath = testDir + "/renamed.txt"
+      os.remove(filePath)
+      expect(os.path.exists(filePath)).toBe(false)
+    })
+
+    it("rmdir should remove empty directory", () => {
+      const emptyDir = testDir + "/empty"
+      os.mkdir(emptyDir)
+      os.rmdir(emptyDir)
+      expect(os.path.exists(emptyDir)).toBe(false)
+    })
+
+    // Cleanup
+    it("cleanup: remove test directory", () => {
+      fs.rmSync(testDir, { recursive: true, force: true })
+      expect(os.path.exists(testDir)).toBe(false)
     })
   })
 })

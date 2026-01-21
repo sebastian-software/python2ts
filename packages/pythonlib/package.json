@@ -56,8 +56,18 @@
       "types": "./dist/json.d.ts"
     },
     "./os": {
-      "import": "./dist/os.js",
-      "types": "./dist/os.d.ts"
+      "browser": {
+        "import": "./dist/os.browser.js",
+        "types": "./dist/os.browser.d.ts"
+      },
+      "node": {
+        "import": "./dist/os.node.js",
+        "types": "./dist/os.node.d.ts"
+      },
+      "default": {
+        "import": "./dist/os.node.js",
+        "types": "./dist/os.node.d.ts"
+      }
     },
     "./string": {
       "import": "./dist/string.js",
