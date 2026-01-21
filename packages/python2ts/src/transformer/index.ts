@@ -953,6 +953,63 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
   const children = getChildren(node)
   if (children.length < 3) return getNodeText(node, ctx.source)
 
+  // Check for chained assignment: a = b = c = value
+  // Multiple AssignOp nodes indicate chained assignment
+  const assignOpIndices = children
+    .map((c, i) => (c.name === "AssignOp" || c.name === "=" ? i : -1))
+    .filter((i) => i !== -1)
+
+  if (assignOpIndices.length > 1) {
+    // Chained assignment: extract all targets and the final value
+    // Pattern: target1 = target2 = ... = value
+    const targets: SyntaxNode[] = []
+    const lastAssignOpIndex = assignOpIndices[assignOpIndices.length - 1]
+    if (lastAssignOpIndex === undefined) return getNodeText(node, ctx.source)
+
+    for (let i = 0; i < assignOpIndices.length; i++) {
+      const opIndex = assignOpIndices[i]
+      if (opIndex === undefined) continue
+      // Target is the node(s) before this AssignOp (after previous AssignOp or start)
+      const prevOpIndex = i > 0 ? assignOpIndices[i - 1] : -1
+      const startIdx = prevOpIndex !== undefined ? prevOpIndex + 1 : 0
+      const targetNodes = children.slice(startIdx, opIndex).filter((c) => c.name !== ",")
+      if (targetNodes.length === 1 && targetNodes[0]) {
+        targets.push(targetNodes[0])
+      }
+    }
+
+    // Value is everything after the last AssignOp
+    const valueNodes = children.slice(lastAssignOpIndex + 1).filter((c) => c.name !== ",")
+    if (valueNodes.length !== 1 || !valueNodes[0]) return getNodeText(node, ctx.source)
+
+    const valueCode = transformNode(valueNodes[0], ctx)
+
+    // Generate chained assignment: let b = value; let a = b;
+    // Assign to targets in reverse order (rightmost first)
+    const results: string[] = []
+    let lastVarName = valueCode
+
+    for (let i = targets.length - 1; i >= 0; i--) {
+      const target = targets[i]
+      if (!target) continue
+      const targetCode = transformNode(target, ctx)
+      const varName = getNodeText(target, ctx.source)
+
+      // Determine declaration keyword
+      let needsDeclaration = false
+      if (target.name === "VariableName" && !isVariableDeclared(ctx, varName)) {
+        needsDeclaration = true
+        declareVariable(ctx, varName)
+      }
+
+      const keyword = needsDeclaration ? "let " : ""
+      results.push(`${keyword}${targetCode} = ${lastVarName}`)
+      lastVarName = targetCode
+    }
+
+    return results.join(";\n")
+  }
+
   // Find the assignment operator
   const assignOpIndex = children.findIndex((c) => c.name === "AssignOp" || c.name === "=")
   if (assignOpIndex === -1) return getNodeText(node, ctx.source)
@@ -4771,6 +4828,75 @@ function transformClassAssignment(node: SyntaxNode, ctx: TransformContext): stri
   const children = getChildren(node)
   if (children.length < 3) return getNodeText(node, ctx.source)
 
+  // Check for chained assignment: a = b = c = value
+  // Multiple AssignOp nodes indicate chained assignment
+  const assignOpIndices = children
+    .map((c, i) => (c.name === "AssignOp" || c.name === "=" ? i : -1))
+    .filter((i) => i !== -1)
+
+  if (assignOpIndices.length > 1) {
+    // Chained assignment: extract all targets and the final value
+    // Pattern: target1 = target2 = ... = value
+    const chainTargets: SyntaxNode[] = []
+    const lastAssignOpIndex = assignOpIndices[assignOpIndices.length - 1]
+    if (lastAssignOpIndex === undefined) return getNodeText(node, ctx.source)
+
+    for (let i = 0; i < assignOpIndices.length; i++) {
+      const opIndex = assignOpIndices[i]
+      if (opIndex === undefined) continue
+      // Target is the node(s) before this AssignOp (after previous AssignOp or start)
+      const prevOpIndex = i > 0 ? assignOpIndices[i - 1] : -1
+      const startIdx = prevOpIndex !== undefined ? prevOpIndex + 1 : 0
+      const targetNodes = children.slice(startIdx, opIndex).filter((c) => c.name !== ",")
+      if (targetNodes.length === 1 && targetNodes[0]) {
+        chainTargets.push(targetNodes[0])
+      }
+    }
+
+    // Value is everything after the last AssignOp
+    const valueNodes = children.slice(lastAssignOpIndex + 1).filter((c) => c.name !== ",")
+    if (valueNodes.length !== 1 || !valueNodes[0]) return getNodeText(node, ctx.source)
+
+    const valueCode = transformNode(valueNodes[0], ctx)
+
+    // Generate chained assignment: let b = value; let a = b;
+    // Assign to targets in reverse order (rightmost first)
+    const results: string[] = []
+    let lastVarName = valueCode
+    const indent = "  ".repeat(ctx.indentLevel)
+
+    for (let i = chainTargets.length - 1; i >= 0; i--) {
+      const target = chainTargets[i]
+      if (!target) continue
+      const targetCode = transformNode(target, ctx)
+      const varName = getNodeText(target, ctx.source)
+
+      // Check if target is a member expression (like self.x)
+      const isMemberAssignment = target.name === "MemberExpression"
+
+      // Determine declaration keyword
+      let needsDeclaration = false
+      if (
+        !isMemberAssignment &&
+        target.name === "VariableName" &&
+        !isVariableDeclared(ctx, varName)
+      ) {
+        needsDeclaration = true
+        declareVariable(ctx, varName)
+      }
+
+      const keyword = needsDeclaration ? "let " : ""
+      results.push(`${keyword}${targetCode} = ${lastVarName}`)
+      lastVarName = targetCode
+    }
+
+    // Join with semicolons and indent (except first line which gets indented by caller)
+    // The caller adds indent + ";" around the result, so we need to:
+    // - Not add final semicolon (caller adds it)
+    // - Add indent to all lines except first
+    return results.join(`;\n${indent}`)
+  }
+
   const assignOpIndex = children.findIndex((c) => c.name === "AssignOp" || c.name === "=")
   if (assignOpIndex === -1) return getNodeText(node, ctx.source)
 
@@ -6153,18 +6279,56 @@ function parseComprehensionClauses(
       item.name === "for" ||
       (item.name === "Keyword" && getNodeText(item, ctx.source) === "for")
     ) {
-      // for variable in iterable
-      const varNode = items[i + 1]
-      // Skip 'in' keyword
-      const iterableNode = items[i + 3]
+      // for variable(s) in iterable
+      // Handle tuple unpacking: for ax, s in enumerate(...)
+      // Find the 'in' keyword to determine where variables end
+      let inIndex = -1
+      for (let j = i + 1; j < items.length; j++) {
+        const candidate = items[j]
+        if (
+          candidate &&
+          (candidate.name === "in" ||
+            (candidate.name === "Keyword" && getNodeText(candidate, ctx.source) === "in"))
+        ) {
+          inIndex = j
+          break
+        }
+      }
 
-      if (varNode && iterableNode) {
+      if (inIndex === -1) {
+        i++
+        continue
+      }
+
+      // Collect all variable nodes between 'for' and 'in'
+      const varNodes: SyntaxNode[] = []
+      for (let j = i + 1; j < inIndex; j++) {
+        const varCandidate = items[j]
+        if (varCandidate && varCandidate.name !== ",") {
+          varNodes.push(varCandidate)
+        }
+      }
+
+      // Get the iterable node after 'in'
+      const iterableNode = items[inIndex + 1]
+
+      if (varNodes.length > 0 && iterableNode) {
+        let variable: string
+        const firstVarNode = varNodes[0]
+        if (varNodes.length === 1 && firstVarNode) {
+          // Single variable
+          variable = transformNode(firstVarNode, ctx)
+        } else {
+          // Tuple unpacking - create destructuring pattern
+          variable = "[" + varNodes.map((v) => transformNode(v, ctx)).join(", ") + "]"
+        }
+
         clauses.push({
           type: "for",
-          variable: transformNode(varNode, ctx),
+          variable,
           iterable: transformNode(iterableNode, ctx)
         })
-        i += 4
+        i = inIndex + 2 // Move past 'in' and iterable
       } else {
         i++
       }
