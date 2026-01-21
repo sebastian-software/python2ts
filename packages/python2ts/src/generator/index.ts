@@ -223,7 +223,10 @@ const eslintConfig: Linter.LegacyConfig = {
   parserOptions: { ecmaVersion: 2022 },
   rules: {
     "prefer-const": "error",
-    "prefer-arrow-callback": "error"
+    "prefer-arrow-callback": "error",
+    "prefer-template": "error",
+    curly: "error",
+    "no-lonely-if": "error"
   }
 }
 
