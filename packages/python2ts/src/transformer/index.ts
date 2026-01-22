@@ -1231,6 +1231,7 @@ function isSliceExpression(node: SyntaxNode): boolean {
 
 /**
  * Transform a slice assignment: arr[1:3] = values -> py.list.sliceAssign(arr, 1, 3, undefined, values)
+ * For multi-dimensional slices: arr[:, 0] = values -> py.ndarray.set(arr, [slice(undefined, undefined), 0], values)
  */
 function transformSliceAssignment(
   target: SyntaxNode,
@@ -1255,47 +1256,8 @@ function transformSliceAssignment(
   // Extract slice parts between brackets
   const sliceParts = children.slice(bracketStart + 1, bracketEnd)
 
-  // Parse the slice notation
-  // Possible patterns: [a:b], [:b], [a:], [:], [a:b:c], [::c], etc.
-  let start: string | undefined
-  let end: string | undefined
-  let step: string | undefined
-
-  const colonIndices: number[] = []
-  for (let i = 0; i < sliceParts.length; i++) {
-    if (sliceParts[i]?.name === ":") {
-      colonIndices.push(i)
-    }
-  }
-
-  if (colonIndices.length >= 1) {
-    // Parts before first colon = start
-    const beforeFirst = sliceParts.slice(0, colonIndices[0])
-    if (beforeFirst.length > 0 && beforeFirst[0]?.name !== ":") {
-      start = beforeFirst.map((n) => transformNode(n, ctx)).join("")
-    }
-
-    const firstColon = colonIndices[0] ?? 0
-    const secondColon = colonIndices[1]
-
-    if (colonIndices.length === 1) {
-      // [start:end]
-      const afterFirst = sliceParts.slice(firstColon + 1)
-      if (afterFirst.length > 0) {
-        end = afterFirst.map((n) => transformNode(n, ctx)).join("")
-      }
-    } else if (secondColon !== undefined) {
-      // [start:end:step]
-      const betweenColons = sliceParts.slice(firstColon + 1, secondColon)
-      if (betweenColons.length > 0) {
-        end = betweenColons.map((n) => transformNode(n, ctx)).join("")
-      }
-      const afterSecond = sliceParts.slice(secondColon + 1)
-      if (afterSecond.length > 0) {
-        step = afterSecond.map((n) => transformNode(n, ctx)).join("")
-      }
-    }
-  }
+  // Check if this is multi-dimensional (has comma)
+  const hasComma = sliceParts.some((p) => p.name === ",")
 
   // Transform the values
   const firstValue = values[0]
@@ -1304,9 +1266,103 @@ function transformSliceAssignment(
       ? transformNode(firstValue, ctx)
       : `[${values.map((v) => transformNode(v, ctx)).join(", ")}]`
 
+  if (hasComma) {
+    // Multi-dimensional slicing: arr[:, 0] = value
+    // Split by commas to get each dimension
+    const dimensions: SyntaxNode[][] = []
+    let currentDim: SyntaxNode[] = []
+
+    for (const part of sliceParts) {
+      if (part.name === ",") {
+        dimensions.push(currentDim)
+        currentDim = []
+      } else {
+        currentDim.push(part)
+      }
+    }
+    dimensions.push(currentDim)
+
+    // Transform each dimension to either a slice or an index
+    const dimCodes = dimensions.map((dim) => {
+      const hasColon = dim.some((p) => p.name === ":")
+      if (hasColon) {
+        // This is a slice
+        const { start, end, step } = parseSliceDimension(dim, ctx)
+        return `ndarray.slice(${start ?? "undefined"}, ${end ?? "undefined"}${step ? `, ${step}` : ""})`
+      } else {
+        // This is an index
+        const indexParts = dim.filter((p) => p.name !== ":" && p.name !== ",")
+        if (indexParts.length > 0 && indexParts[0]) {
+          return transformNode(indexParts[0], ctx)
+        }
+        return "undefined"
+      }
+    })
+
+    ctx.usesRuntime.add("ndarray.set")
+
+    return `ndarray.set(${objCode}, [${dimCodes.join(", ")}], ${valuesCode})`
+  }
+
+  // 1D slice: parse the slice notation
+  // Possible patterns: [a:b], [:b], [a:], [:], [a:b:c], [::c], etc.
+  const { start, end, step } = parseSliceDimension(sliceParts, ctx)
+
   ctx.usesRuntime.add("list.sliceAssign")
 
   return `list.sliceAssign(${objCode}, ${start ?? "undefined"}, ${end ?? "undefined"}, ${step ?? "undefined"}, ${valuesCode})`
+}
+
+/**
+ * Parse a single slice dimension like [:], [1:3], [::2], [1:3:2]
+ */
+function parseSliceDimension(
+  parts: SyntaxNode[],
+  ctx: TransformContext
+): { start?: string | undefined; end?: string | undefined; step?: string | undefined } {
+  const colonIndices: number[] = []
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i]?.name === ":") {
+      colonIndices.push(i)
+    }
+  }
+
+  if (colonIndices.length === 0) {
+    return {}
+  }
+
+  let start: string | undefined
+  let end: string | undefined
+  let step: string | undefined
+
+  // Parts before first colon = start
+  const firstColon = colonIndices[0] ?? 0
+  const beforeFirst = parts.slice(0, firstColon)
+  if (beforeFirst.length > 0 && beforeFirst[0]?.name !== ":") {
+    start = beforeFirst.map((n) => transformNode(n, ctx)).join("")
+  }
+
+  const secondColon = colonIndices[1]
+
+  if (colonIndices.length === 1) {
+    // [start:end]
+    const afterFirst = parts.slice(firstColon + 1)
+    if (afterFirst.length > 0) {
+      end = afterFirst.map((n) => transformNode(n, ctx)).join("")
+    }
+  } else if (secondColon !== undefined) {
+    // [start:end:step]
+    const betweenColons = parts.slice(firstColon + 1, secondColon)
+    if (betweenColons.length > 0) {
+      end = betweenColons.map((n) => transformNode(n, ctx)).join("")
+    }
+    const afterSecond = parts.slice(secondColon + 1)
+    if (afterSecond.length > 0) {
+      step = afterSecond.map((n) => transformNode(n, ctx)).join("")
+    }
+  }
+
+  return { start, end, step }
 }
 
 function transformAssignTarget(node: SyntaxNode, ctx: TransformContext): string {
@@ -1517,7 +1573,10 @@ function transformConditionalExpression(node: SyntaxNode, ctx: TransformContext)
   const children = getChildren(node)
   // Python: value_if_true if condition else value_if_false
   // Format: TrueExpr 'if' Condition 'else' FalseExpr
-  const exprs = children.filter((c) => c.name !== "if" && c.name !== "else" && c.name !== "Keyword")
+  // Filter out keywords and comments (inline comments break single-line output)
+  const exprs = children.filter(
+    (c) => c.name !== "if" && c.name !== "else" && c.name !== "Keyword" && c.name !== "Comment"
+  )
 
   if (exprs.length >= 3) {
     const trueExpr = exprs[0]
@@ -2890,7 +2949,7 @@ function transformSliceFromMember(
 
     // Process each dimension as a slice
     const dimSlices = dimensions.map((dimElements) => {
-      return parseSliceDimension(dimElements, ctx)
+      return parseSliceDimensionForSubscript(dimElements, ctx)
     })
 
     return `slice(${objCode}, ${dimSlices.join(", ")})`
@@ -2949,7 +3008,7 @@ function parseSliceParts(elements: SyntaxNode[], ctx: TransformContext): string[
  * Parse a single dimension's slice notation for multi-dimensional slices
  * Returns a string like "[null, null]" or "[1, 5]" or index like "0"
  */
-function parseSliceDimension(elements: SyntaxNode[], ctx: TransformContext): string {
+function parseSliceDimensionForSubscript(elements: SyntaxNode[], ctx: TransformContext): string {
   const parts = parseSliceParts(elements, ctx)
   // If only one part (index, not a slice), return it directly
   if (parts.length === 1) {
@@ -2974,8 +3033,13 @@ function transformArrayExpression(node: SyntaxNode, ctx: TransformContext): stri
       continue
     }
 
-    // Skip brackets and commas
-    if (child.name === "[" || child.name === "]" || child.name === ",") {
+    // Skip brackets, commas, and comments (inline comments break single-line output)
+    if (
+      child.name === "[" ||
+      child.name === "]" ||
+      child.name === "," ||
+      child.name === "Comment"
+    ) {
       i++
       continue
     }
@@ -3002,9 +3066,10 @@ function transformArrayExpression(node: SyntaxNode, ctx: TransformContext): stri
 function transformDictionaryExpression(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
 
-  // Filter out braces and commas
+  // Filter out braces, commas, and comments (inline comments break single-line output)
   const items = children.filter(
-    (c) => c.name !== "{" && c.name !== "}" && c.name !== "," && c.name !== ":"
+    (c) =>
+      c.name !== "{" && c.name !== "}" && c.name !== "," && c.name !== ":" && c.name !== "Comment"
   )
 
   // Check if all keys are valid TypeScript object literal keys (strings, numbers)

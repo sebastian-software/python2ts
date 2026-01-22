@@ -93,7 +93,7 @@ const BUILTINS = new Set([
 ])
 
 /** Mapping of module namespaces that should still use namespace.method() style */
-const MODULE_NAMESPACES = new Set(["string", "list", "dict", "set"])
+const MODULE_NAMESPACES = new Set(["string", "list", "dict", "set", "ndarray"])
 
 /**
  * Generate TypeScript code from Python (sync, unformatted)

@@ -55,6 +55,7 @@ import * as builtins from "./builtins.js"
 import { list as listMethods } from "./list.js"
 import { dict as dictMethods } from "./dict.js"
 import { set as setMethods } from "./set.js"
+import { ndarray as ndarrayMethods } from "./ndarray.js"
 
 // =============================================================================
 // Module namespace exports (for: import { itertools } from "pythonlib")
@@ -121,6 +122,8 @@ export const set: SetConstructor = Object.assign(
   <T>(iterable?: Iterable<T>): Set<T> => builtins.set(iterable),
   setMethods
 )
+
+export const ndarray = ndarrayMethods
 
 // =============================================================================
 // Core operations (Python-specific semantics)
