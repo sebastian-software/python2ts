@@ -1094,7 +1094,8 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
       return `${targetCode} = ${valueCode}`
     } else {
       // Multiple values into single target (creates array)
-      const valuesCodes = values.map((v) => transformNode(v, ctx))
+      // Handle spread operators: *expr becomes ...expr
+      const valuesCodes = transformValuesWithSpread(values, ctx)
       if (needsDeclaration) {
         return `${declarationKeyword} ${targetCode}${typeAnnotation} = [${valuesCodes.join(", ")}]`
       }
@@ -1127,11 +1128,46 @@ function transformAssignStatement(node: SyntaxNode, ctx: TransformContext): stri
       : `let ${targetPattern} = ${valueCode}`
   } else {
     // Multiple values: a, b = 1, 2
-    const valuesCodes = values.map((v) => transformNode(v, ctx))
+    // Handle spread operators: *expr becomes ...expr
+    const valuesCodes = transformValuesWithSpread(values, ctx)
     return allDeclaredAtAccessibleScope
       ? `${targetPattern} = [${valuesCodes.join(", ")}]`
       : `let ${targetPattern} = [${valuesCodes.join(", ")}]`
   }
+}
+
+/**
+ * Transform a list of value nodes, handling spread operators (* -> ...)
+ * For assignments like: shape = *arr, 3 -> shape = [...arr, 3]
+ */
+function transformValuesWithSpread(values: SyntaxNode[], ctx: TransformContext): string[] {
+  const result: string[] = []
+  let i = 0
+
+  while (i < values.length) {
+    const value = values[i]
+    if (!value) {
+      i++
+      continue
+    }
+
+    // Check for spread: * followed by an expression
+    if (value.name === "*" || getNodeText(value, ctx.source) === "*") {
+      const nextValue = values[i + 1]
+      if (nextValue) {
+        // This is a spread expression: *expr -> ...expr
+        result.push(`...${transformNode(nextValue, ctx)}`)
+        i += 2 // Skip both * and the expression
+        continue
+      }
+    }
+
+    // Regular value
+    result.push(transformNode(value, ctx))
+    i++
+  }
+
+  return result
 }
 
 function extractVariableNames(nodes: SyntaxNode[], source: string): string[] {
@@ -1275,7 +1311,8 @@ function transformSliceAssignment(
 
 function transformAssignTarget(node: SyntaxNode, ctx: TransformContext): string {
   if (node.name === "VariableName") {
-    return getNodeText(node, ctx.source)
+    // Escape reserved keywords in destructuring patterns
+    return escapeReservedKeyword(getNodeText(node, ctx.source))
   } else if (node.name === "TupleExpression") {
     // Nested destructuring: (a, b) -> [a, b]
     const children = getChildren(node)
@@ -2999,8 +3036,13 @@ function transformTupleExpression(node: SyntaxNode, ctx: TransformContext): stri
       continue
     }
 
-    // Skip parentheses and commas
-    if (child.name === "(" || child.name === ")" || child.name === ",") {
+    // Skip parentheses, commas, and comments (inline comments break single-line output)
+    if (
+      child.name === "(" ||
+      child.name === ")" ||
+      child.name === "," ||
+      child.name === "Comment"
+    ) {
       i++
       continue
     }
@@ -3646,6 +3688,18 @@ function transformForStatement(node: SyntaxNode, ctx: TransformContext): string 
     varCode = "[" + varNodes.map((v) => transformForLoopVar(v, ctx)).join(", ") + "]"
   }
 
+  // Declare all for-loop variables in context (including escaped reserved keywords)
+  // This ensures reassignments inside the loop body don't get 'let' prefix
+  const forLoopVarNames = extractForLoopVarNames(varNodes, ctx.source)
+  for (const varName of forLoopVarNames) {
+    declareVariable(ctx, varName)
+    // Also declare the escaped name if it's a reserved keyword
+    const escapedName = escapeReservedKeyword(varName)
+    if (escapedName !== varName) {
+      declareVariable(ctx, escapedName)
+    }
+  }
+
   let iterableCode = transformNode(iterableNode, ctx)
   const bodyCode = transformBody(bodyNode, ctx)
 
@@ -3663,7 +3717,8 @@ function transformForStatement(node: SyntaxNode, ctx: TransformContext): string 
 
 function transformForLoopVar(node: SyntaxNode, ctx: TransformContext): string {
   if (node.name === "VariableName") {
-    return getNodeText(node, ctx.source)
+    // Escape reserved keywords in destructuring patterns
+    return escapeReservedKeyword(getNodeText(node, ctx.source))
   } else if (node.name === "TupleExpression") {
     // Nested tuple: (a, b) -> [a, b]
     const children = getChildren(node)
@@ -3671,6 +3726,24 @@ function transformForLoopVar(node: SyntaxNode, ctx: TransformContext): string {
     return "[" + elements.map((e) => transformForLoopVar(e, ctx)).join(", ") + "]"
   }
   return transformNode(node, ctx)
+}
+
+/**
+ * Extract all variable names from for-loop variable nodes
+ * Handles simple variables and nested tuple unpacking
+ */
+function extractForLoopVarNames(varNodes: SyntaxNode[], source: string): string[] {
+  const names: string[] = []
+  for (const node of varNodes) {
+    if (node.name === "VariableName") {
+      names.push(getNodeText(node, source))
+    } else if (node.name === "TupleExpression") {
+      const children = getChildren(node)
+      const elements = children.filter((c) => c.name !== "(" && c.name !== ")" && c.name !== ",")
+      names.push(...extractForLoopVarNames(elements, source))
+    }
+  }
+  return names
 }
 
 function transformTryStatement(node: SyntaxNode, ctx: TransformContext): string {
@@ -4628,6 +4701,13 @@ function transformClassBody(node: SyntaxNode, ctx: TransformContext, skipFirst =
 function transformClassProperty(node: SyntaxNode, ctx: TransformContext, indent: string): string {
   const children = getChildren(node)
   if (children.length < 2) return ""
+
+  // Skip __doc__ assignments - they're not valid in JS class bodies
+  // Pattern: method.__doc__ = something
+  const nodeText = getNodeText(node, ctx.source)
+  if (nodeText.includes(".__doc__")) {
+    return ""
+  }
 
   // Find the assignment operator
   const assignOpIndex = children.findIndex((c) => c.name === "AssignOp" || c.name === "=")
