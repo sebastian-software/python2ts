@@ -1,7 +1,7 @@
 /* Starlight theme customization - only CSS variables and keyframes that can't be done with Tailwind */
 
 :root {
-  /* Language colors for reference in MDX */
+  /* Language colors for reference */
   --python-blue: #3776ab;
   --python-yellow: #ffd43b;
   --typescript-blue: #3178c6;
@@ -24,7 +24,7 @@
   100% { background-position: 0% 50%; }
 }
 
-/* Animation utility classes */
+/* Animation utility classes (can't be done with Tailwind easily) */
 .animate-float {
   animation: float 4s ease-in-out infinite;
 }
@@ -46,7 +46,7 @@
   animation: gradient-shift 5s ease infinite;
 }
 
-/* Gradient text utility */
+/* Gradient text utility (complex gradient can't be done inline with Tailwind) */
 .gradient-text {
   background: linear-gradient(135deg, var(--python-blue) 0%, var(--python-yellow) 40%, var(--typescript-blue) 100%);
   -webkit-background-clip: text;
@@ -54,16 +54,7 @@
   background-clip: text;
 }
 
-/* Language-specific backgrounds */
-.bg-python {
-  background: linear-gradient(135deg, #3776ab 0%, #4a8bc2 100%);
-}
-
-.bg-typescript {
-  background: linear-gradient(135deg, #3178c6 0%, #4a90d9 100%);
-}
-
-/* Starlight card improvements */
+/* Starlight card hover improvements */
 .sl-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -71,4 +62,36 @@
 .sl-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Stats grid background */
+.stats-bg {
+  background: var(--sl-color-gray-6);
+}
+
+/* Install badge style */
+.install-bg {
+  background: var(--sl-color-black);
+  border: 1px solid var(--sl-color-gray-5);
+}
+
+/* Runtime badge style */
+.runtime-bg {
+  background: var(--sl-color-gray-6);
+  border: 1px solid var(--sl-color-gray-5);
+}
+
+/* Accent color text */
+.accent-text {
+  color: var(--sl-color-accent);
+}
+
+/* Muted text color */
+.muted-text {
+  color: var(--sl-color-gray-3);
+}
+
+/* Arrow icon color (inherits accent) */
+.arrow-icon {
+  color: var(--sl-color-accent);
 }
