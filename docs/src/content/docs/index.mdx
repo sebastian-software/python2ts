@@ -3,7 +3,7 @@ title: python2ts + pythonlib
 description: Write Python. Ship TypeScript. Run Everywhere.
 template: splash
 hero:
-  tagline: "Two packages: python2ts transpiles Python to TypeScript. pythonlib provides 20+ Python standard library modules for TypeScript."
+  tagline: "Two packages that bridge the Python and TypeScript worlds. Transpile Python to clean TypeScript, or use Python's best APIs directly in your TypeScript projects."
   image:
     file: ../../assets/logo.svg
   actions:
@@ -16,24 +16,58 @@ hero:
       variant: minimal
 ---
 
-import { Card, CardGrid, Tabs, TabItem, Code, LinkCard } from '@astrojs/starlight/components';
+import { Card, CardGrid, Tabs, TabItem, LinkCard } from '@astrojs/starlight/components';
+
+<div class="hero-visual">
+  <img src="/python2ts/python-logo.svg" alt="Python" class="hero-logo python" />
+  <div class="hero-arrow">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </svg>
+    <span>transpiles to</span>
+  </div>
+  <img src="/python2ts/typescript-logo.svg" alt="TypeScript" class="hero-logo typescript" />
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-number">2000+</div>
+    <div class="stat-label">Tests</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-number">20+</div>
+    <div class="stat-label">Modules</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-number">4</div>
+    <div class="stat-label">Runtimes</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-number">0</div>
+    <div class="stat-label">Dependencies</div>
+  </div>
+</div>
 
 ## Two Packages, One Mission
 
 <CardGrid>
   <Card title="python2ts" icon="rocket">
+    <img src="/python2ts/python-logo.svg" alt="" style="width: 32px; height: 32px; margin-bottom: 0.5rem;" />
+
     **The Transpiler** — Converts Python source code to clean, idiomatic TypeScript. Full type preservation, docstring conversion, and intelligent runtime imports.
 
-    ```bash
-    npm install python2ts
-    ```
+    <div class="install-command">
+      <span class="prompt">$</span> npm install python2ts
+    </div>
   </Card>
   <Card title="pythonlib" icon="open-book">
+    <img src="/python2ts/typescript-logo.svg" alt="" style="width: 32px; height: 32px; margin-bottom: 0.5rem;" />
+
     **The Runtime Library** — 20+ Python standard library modules reimplemented in TypeScript. Zero dependencies, tree-shakeable, works standalone.
 
-    ```bash
-    npm install pythonlib
-    ```
+    <div class="install-command">
+      <span class="prompt">$</span> npm install pythonlib
+    </div>
   </Card>
 </CardGrid>
 
@@ -46,8 +80,8 @@ import { Card, CardGrid, Tabs, TabItem, Code, LinkCard } from '@astrojs/starligh
   <Card title="Full Type Safety" icon="approve-check">
     Python type hints become TypeScript types automatically. Generics, Protocols, TypedDicts, Callable — all preserved.
   </Card>
-  <Card title="2000+ Tests" icon="approve-check-circle">
-    Battle-tested with comprehensive test coverage. Runs on every commit across Node.js, Bun, Deno, and browsers.
+  <Card title="Battle-Tested" icon="approve-check-circle">
+    Comprehensive test coverage with 2000+ tests. Runs on every commit across Node.js, Bun, Deno, and browsers.
   </Card>
   <Card title="Zero Dependencies" icon="heart">
     pythonlib has zero runtime dependencies. No bloat, no supply chain risks, minimal bundle size.
@@ -58,42 +92,51 @@ import { Card, CardGrid, Tabs, TabItem, Code, LinkCard } from '@astrojs/starligh
 
 See how Python transforms to clean TypeScript:
 
-<Tabs>
-  <TabItem label="Functions & Types">
+<div class="transform-visual">
+  <div class="code-panel python">
+    <div class="code-panel-header">
+      <img src="/python2ts/python-logo.svg" alt="" />
+      Python
+    </div>
 ```python
-# Python
-def greet(name: str, times: int = 1) -> str:
-    return f"Hello, {name}!" * times
-```
-
-```typescript
-// TypeScript
-function greet(name: string, times: number = 1): string {
-  return `Hello, ${name}!`.repeat(times)
-}
-```
-  </TabItem>
-  <TabItem label="Classes & Dataclasses">
-```python
-# Python
 @dataclass
-class Point:
-    x: float
-    y: float
-    label: str = "origin"
-```
+class User:
+    name: str
+    email: str
+    age: int = 0
 
+def greet(user: User) -> str:
+    return f"Hello, {user.name}!"
+```
+  </div>
+  <div class="transform-arrow">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </svg>
+    python2ts
+  </div>
+  <div class="code-panel typescript">
+    <div class="code-panel-header">
+      <img src="/python2ts/typescript-logo.svg" alt="" />
+      TypeScript
+    </div>
 ```typescript
-// TypeScript
-class Point {
+class User {
   constructor(
-    public x: number,
-    public y: number,
-    public label: string = "origin"
+    public name: string,
+    public email: string,
+    public age: number = 0
   ) {}
 }
+
+function greet(user: User): string {
+  return `Hello, ${user.name}!`
+}
 ```
-  </TabItem>
+  </div>
+</div>
+
+<Tabs>
   <TabItem label="Generics">
 ```python
 # Python
@@ -102,6 +145,9 @@ T = TypeVar('T')
 class Container(Generic[T]):
     def __init__(self, value: T) -> None:
         self.value = value
+
+    def get(self) -> T:
+        return self.value
 ```
 
 ```typescript
@@ -112,6 +158,10 @@ class Container<T> {
   constructor(value: T) {
     this.value = value
   }
+
+  get(): T {
+    return this.value
+  }
 }
 ```
   </TabItem>
@@ -121,6 +171,7 @@ class Container<T> {
 squares = [x ** 2 for x in range(10)]
 evens = [x for x in nums if x % 2 == 0]
 lookup = {k: v for k, v in pairs}
+unique = {x for x in items}
 ```
 
 ```typescript
@@ -128,6 +179,60 @@ lookup = {k: v for k, v in pairs}
 let squares = range(10).map(x => pow(x, 2))
 let evens = nums.filter(x => mod(x, 2) === 0)
 let lookup = Object.fromEntries(pairs)
+let unique = new Set(items)
+```
+  </TabItem>
+  <TabItem label="Async/Await">
+```python
+# Python
+async def fetch_data(url: str) -> dict:
+    response = await http_get(url)
+    return await response.json()
+
+async def main():
+    data = await fetch_data("https://api.example.com")
+    print(data)
+```
+
+```typescript
+// TypeScript
+async function fetchData(url: string): Promise<object> {
+  const response = await httpGet(url)
+  return await response.json()
+}
+
+async function main(): Promise<void> {
+  const data = await fetchData("https://api.example.com")
+  console.log(data)
+}
+```
+  </TabItem>
+  <TabItem label="Pattern Matching">
+```python
+# Python
+match command:
+    case "start":
+        start_server()
+    case "stop":
+        stop_server()
+    case ["move", x, y]:
+        move_to(int(x), int(y))
+    case _:
+        print("Unknown command")
+```
+
+```typescript
+// TypeScript
+if (command === "start") {
+  startServer()
+} else if (command === "stop") {
+  stopServer()
+} else if (Array.isArray(command) &&
+           command[0] === "move") {
+  moveTo(int(command[1]), int(command[2]))
+} else {
+  console.log("Unknown command")
+}
 ```
   </TabItem>
 </Tabs>
@@ -216,20 +321,28 @@ Use Python's best APIs in TypeScript — standalone, without the transpiler:
 
 Tested on every commit across all major JavaScript runtimes:
 
-<CardGrid>
-  <Card title="Node.js" icon="node">
-    v22, v24 — Full test suite
-  </Card>
-  <Card title="Bun" icon="bun">
-    Latest — Full test suite
-  </Card>
-  <Card title="Deno" icon="seti:json">
-    v2.x — Full test suite
-  </Card>
-  <Card title="Browser" icon="laptop">
-    All modern — Runtime tests via Playwright
-  </Card>
-</CardGrid>
+<div class="runtime-grid">
+  <div class="runtime-badge">
+    <img src="https://nodejs.org/static/logos/nodejsLight.svg" alt="Node.js" />
+    <span>Node.js v22, v24</span>
+    <span class="check">✓</span>
+  </div>
+  <div class="runtime-badge">
+    <img src="https://bun.sh/logo.svg" alt="Bun" />
+    <span>Bun Latest</span>
+    <span class="check">✓</span>
+  </div>
+  <div class="runtime-badge">
+    <img src="https://deno.land/logo.svg" alt="Deno" />
+    <span>Deno v2.x</span>
+    <span class="check">✓</span>
+  </div>
+  <div class="runtime-badge">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"/></svg>
+    <span>All Modern Browsers</span>
+    <span class="check">✓</span>
+  </div>
+</div>
 
 ## Use Cases
 
@@ -260,6 +373,9 @@ npm install python2ts
 npx python2ts input.py -o output.ts
 
 # Or use programmatically
+```
+
+```typescript
 import { transpile } from "python2ts"
 const ts = transpile(pythonCode)
 ```
