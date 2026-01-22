@@ -1,9 +1,9 @@
 ---
-title: python2ts
+title: python2ts + pythonlib
 description: Write Python. Ship TypeScript. Run Everywhere.
 template: splash
 hero:
-  tagline: Bridge Python and TypeScript - transpile Python to production-ready TypeScript with full type safety.
+  tagline: "Two packages: python2ts transpiles Python to TypeScript. pythonlib provides 20+ Python standard library modules for TypeScript."
   image:
     file: ../../assets/logo.svg
   actions:
@@ -16,21 +16,270 @@ hero:
       variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Card, CardGrid, Tabs, TabItem, Code, LinkCard } from '@astrojs/starlight/components';
+
+## Two Packages, One Mission
+
+<CardGrid>
+  <Card title="python2ts" icon="rocket">
+    **The Transpiler** — Converts Python source code to clean, idiomatic TypeScript. Full type preservation, docstring conversion, and intelligent runtime imports.
+
+    ```bash
+    npm install python2ts
+    ```
+  </Card>
+  <Card title="pythonlib" icon="open-book">
+    **The Runtime Library** — 20+ Python standard library modules reimplemented in TypeScript. Zero dependencies, tree-shakeable, works standalone.
+
+    ```bash
+    npm install pythonlib
+    ```
+  </Card>
+</CardGrid>
 
 ## Why python2ts?
 
 <CardGrid stagger>
-  <Card title="AI-First Workflow" icon="rocket">
-    Python dominates AI/ML. TypeScript powers modern web apps. Bridge the gap - prototype in Python, deploy anywhere JavaScript runs.
+  <Card title="AI-First Workflow" icon="star">
+    Python dominates AI/ML. TypeScript powers modern web apps. Bridge the gap — prototype in Python, deploy anywhere JavaScript runs.
   </Card>
   <Card title="Full Type Safety" icon="approve-check">
-    Python type hints become TypeScript types automatically. Generics, Protocols, TypedDicts, Callable - all preserved.
+    Python type hints become TypeScript types automatically. Generics, Protocols, TypedDicts, Callable — all preserved.
   </Card>
-  <Card title="20+ Python Modules" icon="seti:python">
-    itertools, functools, collections, datetime, re, os, pathlib, hashlib, uuid, base64, and more.
+  <Card title="2000+ Tests" icon="approve-check-circle">
+    Battle-tested with comprehensive test coverage. Runs on every commit across Node.js, Bun, Deno, and browsers.
   </Card>
-  <Card title="Run Everywhere" icon="globe">
-    Node.js, Deno, Bun, browsers, Cloudflare Workers, AWS Lambda - anywhere JavaScript runs.
+  <Card title="Zero Dependencies" icon="heart">
+    pythonlib has zero runtime dependencies. No bloat, no supply chain risks, minimal bundle size.
   </Card>
 </CardGrid>
+
+## Code Transformation
+
+See how Python transforms to clean TypeScript:
+
+<Tabs>
+  <TabItem label="Functions & Types">
+```python
+# Python
+def greet(name: str, times: int = 1) -> str:
+    return f"Hello, {name}!" * times
+```
+
+```typescript
+// TypeScript
+function greet(name: string, times: number = 1): string {
+  return `Hello, ${name}!`.repeat(times)
+}
+```
+  </TabItem>
+  <TabItem label="Classes & Dataclasses">
+```python
+# Python
+@dataclass
+class Point:
+    x: float
+    y: float
+    label: str = "origin"
+```
+
+```typescript
+// TypeScript
+class Point {
+  constructor(
+    public x: number,
+    public y: number,
+    public label: string = "origin"
+  ) {}
+}
+```
+  </TabItem>
+  <TabItem label="Generics">
+```python
+# Python
+T = TypeVar('T')
+
+class Container(Generic[T]):
+    def __init__(self, value: T) -> None:
+        self.value = value
+```
+
+```typescript
+// TypeScript
+class Container<T> {
+  value: T
+
+  constructor(value: T) {
+    this.value = value
+  }
+}
+```
+  </TabItem>
+  <TabItem label="Comprehensions">
+```python
+# Python
+squares = [x ** 2 for x in range(10)]
+evens = [x for x in nums if x % 2 == 0]
+lookup = {k: v for k, v in pairs}
+```
+
+```typescript
+// TypeScript
+let squares = range(10).map(x => pow(x, 2))
+let evens = nums.filter(x => mod(x, 2) === 0)
+let lookup = Object.fromEntries(pairs)
+```
+  </TabItem>
+</Tabs>
+
+## pythonlib Modules
+
+Use Python's best APIs in TypeScript — standalone, without the transpiler:
+
+<CardGrid>
+  <Card title="itertools" icon="list-format">
+    `chain`, `combinations`, `permutations`, `product`, `cycle`, `groupby`, `takeWhile`, `dropWhile`
+
+    ```typescript
+    import { combinations } from "pythonlib/itertools"
+    [...combinations([1, 2, 3], 2)]
+    // [[1,2], [1,3], [2,3]]
+    ```
+  </Card>
+  <Card title="functools" icon="setting">
+    `lruCache`, `partial`, `reduce`, `pipe`, `compose`, `cache`
+
+    ```typescript
+    import { lruCache } from "pythonlib/functools"
+    const fib = lruCache((n: number): number =>
+      n <= 1 ? n : fib(n - 1) + fib(n - 2)
+    )
+    ```
+  </Card>
+  <Card title="collections" icon="puzzle">
+    `Counter`, `defaultdict`, `deque`, `OrderedDict`
+
+    ```typescript
+    import { Counter } from "pythonlib/collections"
+    new Counter("mississippi").mostCommon(2)
+    // [["i", 4], ["s", 4]]
+    ```
+  </Card>
+  <Card title="datetime" icon="seti:clock">
+    `datetime`, `date`, `time`, `timedelta`
+
+    ```typescript
+    import { datetime, timedelta } from "pythonlib/datetime"
+    datetime.now().add(timedelta({ days: 7 }))
+    ```
+  </Card>
+  <Card title="pathlib" icon="document">
+    `Path` with `exists`, `readText`, `writeText`, `glob`
+
+    ```typescript
+    import { Path } from "pythonlib/pathlib"
+    const p = new Path("/home/user/file.txt")
+    p.stem // "file"
+    ```
+  </Card>
+  <Card title="hashlib" icon="seti:lock">
+    `md5`, `sha1`, `sha256`, `sha512`, `blake2b`
+
+    ```typescript
+    import { sha256 } from "pythonlib/hashlib"
+    sha256("password").hexdigest()
+    ```
+  </Card>
+  <Card title="re" icon="magnifier">
+    `search`, `match`, `findAll`, `sub`, `compile` with named groups
+
+    ```typescript
+    import { search } from "pythonlib/re"
+    search("(?P<name>\\w+)@(?P<domain>\\w+)", email)
+    ```
+  </Card>
+  <Card title="random" icon="random">
+    `randInt`, `choice`, `shuffle`, `sample`, `uniform`
+
+    ```typescript
+    import { choice, shuffle } from "pythonlib/random"
+    choice(["a", "b", "c"])
+    ```
+  </Card>
+</CardGrid>
+
+**Plus 12 more modules:** `math`, `json`, `string`, `os`, `sys`, `time`, `glob`, `shutil`, `tempfile`, `subprocess`, `urllib`, `base64`, `uuid`, `logging`, `copy`
+
+<LinkCard title="View all modules" href="/python2ts/reference/runtime" description="Complete documentation for all 20+ pythonlib modules" />
+
+## Runtime Support
+
+Tested on every commit across all major JavaScript runtimes:
+
+<CardGrid>
+  <Card title="Node.js" icon="node">
+    v22, v24 — Full test suite
+  </Card>
+  <Card title="Bun" icon="bun">
+    Latest — Full test suite
+  </Card>
+  <Card title="Deno" icon="seti:json">
+    v2.x — Full test suite
+  </Card>
+  <Card title="Browser" icon="laptop">
+    All modern — Runtime tests via Playwright
+  </Card>
+</CardGrid>
+
+## Use Cases
+
+<CardGrid stagger>
+  <Card title="AI/ML to Production" icon="star">
+    Prototype your ML algorithms in Python, then ship them as TypeScript for edge deployment, browser inference, or serverless functions.
+  </Card>
+  <Card title="Code Migration" icon="right-arrow">
+    Gradually migrate Python codebases to TypeScript. Convert module by module while maintaining functionality.
+  </Card>
+  <Card title="Learning & Teaching" icon="open-book">
+    Help Python developers learn TypeScript by showing side-by-side conversions. Great for tutorials and documentation.
+  </Card>
+  <Card title="Performance Critical" icon="rocket">
+    Run Python algorithms in V8's highly optimized JavaScript engine. Benefit from JIT compilation and modern runtime features.
+  </Card>
+</CardGrid>
+
+## Quick Start
+
+<Tabs>
+  <TabItem label="Transpiler">
+```bash
+# Install
+npm install python2ts
+
+# Transpile a file
+npx python2ts input.py -o output.ts
+
+# Or use programmatically
+import { transpile } from "python2ts"
+const ts = transpile(pythonCode)
+```
+  </TabItem>
+  <TabItem label="Runtime Only">
+```bash
+# Install just the runtime
+npm install pythonlib
+```
+
+```typescript
+// Use Python-style APIs directly
+import { range, enumerate, zip } from "pythonlib"
+import { combinations } from "pythonlib/itertools"
+import { Counter } from "pythonlib/collections"
+import { Path } from "pythonlib/pathlib"
+
+for (const [i, item] of enumerate(items)) {
+  console.log(i, item)
+}
+```
+  </TabItem>
+</Tabs>
