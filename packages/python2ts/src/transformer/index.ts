@@ -86,6 +86,8 @@ export interface TransformContext {
   isAbstractClass?: boolean
   /** Depth counter for function bodies (0 = module level, 1+ = inside function) */
   insideFunctionBody: number
+  /** Depth counter for try blocks (0 = not in try, 1+ = inside try block) */
+  insideTryBlock: number
   /** Imports found inside function bodies that need to be hoisted to module level */
   hoistedImports: string[]
 }
@@ -104,6 +106,7 @@ function createContext(source: string): TransformContext {
     scopeStack: [new Set()], // Start with one global scope
     definedClasses: new Set(),
     insideFunctionBody: 0,
+    insideTryBlock: 0,
     hoistedImports: []
   }
 }
@@ -2664,13 +2667,17 @@ function transformMethodCall(
       return `set.issuperset(${objCode}, ${args})`
 
     // Hash object methods (hashlib) - async
+    // Skip if objCode is 'self' or 'this' - user-defined class, not a Hash object
     case "digest":
+      if (objCode === "self" || objCode === "this") return null
       return `await ${objCode}.digest()`
     case "hexdigest":
+      if (objCode === "self" || objCode === "this") return null
       return `await ${objCode}.hexdigest()`
 
     // Path object methods (pathlib) - async
     // Only handle snake_case methods that are unique to Path
+    // Skip if objCode is 'self' or 'this' - user-defined class, not a Path object
     case "is_file":
     case "is_dir":
     case "is_symlink":
@@ -2681,6 +2688,9 @@ function transformMethodCall(
     case "symlink_to":
     case "link_to":
     case "iterdir": {
+      if (objCode === "self" || objCode === "this") {
+        return null // Let caller handle user-defined class methods
+      }
       const jsMethod = toJsName(methodName)
       return `await ${objCode}.${jsMethod}(${args})`
     }
@@ -3927,7 +3937,10 @@ function transformTryStatement(node: SyntaxNode, ctx: TransformContext): string 
   }
 
   // Build the try/catch/finally
+  // Mark that we're inside a try block (imports need special handling)
+  ctx.insideTryBlock++
   const tryCode = transformBody(tryBody, ctx)
+  ctx.insideTryBlock--
   let result = `try {\n${tryCode}\n${baseIndent}}`
 
   // Transform except clauses to catch
@@ -4104,6 +4117,15 @@ function transformImportStatement(node: SyntaxNode, ctx: TransformContext): stri
   // Determine if this is a "from X import Y" or "import X" style
   const hasFrom = children.some((c) => c.name === "from")
 
+  // If we're inside a try block, use dynamic import (static imports can't be in try blocks)
+  if (ctx.insideTryBlock > 0) {
+    if (hasFrom) {
+      return transformFromImportDynamic(children, ctx)
+    } else {
+      return transformSimpleImportDynamic(children, ctx)
+    }
+  }
+
   let importCode: string
   if (hasFrom) {
     importCode = transformFromImport(children, ctx)
@@ -4179,6 +4201,128 @@ function transformSimpleImport(children: SyntaxNode[], ctx: TransformContext): s
       return `import * as ${importName} from "${module}"`
     })
     .join("\n")
+}
+
+/**
+ * Transform simple import to dynamic import (for try blocks)
+ * import ctypes -> const ctypes = await import("ctypes")
+ */
+function transformSimpleImportDynamic(children: SyntaxNode[], ctx: TransformContext): string {
+  const names: { module: string; alias: string | null }[] = []
+  let i = 0
+
+  while (i < children.length) {
+    const child = children[i]
+    if (!child) {
+      i++
+      continue
+    }
+
+    if (child.name === "import" || child.name === ",") {
+      i++
+      continue
+    }
+
+    if (child.name === "VariableName") {
+      const moduleName = getNodeText(child, ctx.source)
+      let alias: string | null = null
+
+      const nextChild = children[i + 1]
+      if (nextChild?.name === "as") {
+        const aliasChild = children[i + 2]
+        if (aliasChild?.name === "VariableName") {
+          alias = getNodeText(aliasChild, ctx.source)
+          i += 3
+          names.push({ module: moduleName, alias })
+          continue
+        }
+      }
+
+      names.push({ module: moduleName, alias: null })
+      i++
+      continue
+    }
+
+    i++
+  }
+
+  // Filter out runtime modules and typing modules
+  const filteredNames = names.filter(
+    ({ module }) => !RUNTIME_MODULES.has(module) && !TYPING_MODULES.has(module)
+  )
+
+  if (filteredNames.length === 0) {
+    return ""
+  }
+
+  // Generate dynamic import statements
+  return filteredNames
+    .map(({ module, alias }) => {
+      const importName = alias ?? module
+      return `const ${importName} = await import("${module}")`
+    })
+    .join("\n")
+}
+
+/**
+ * Transform from-import to dynamic import (for try blocks)
+ * from X import Y -> const { Y } = await import("X")
+ */
+function transformFromImportDynamic(children: SyntaxNode[], ctx: TransformContext): string {
+  // First pass: find the module name
+  let moduleName = ""
+  for (const child of children) {
+    if (child.name === "VariableName") {
+      const prevChild = children[children.indexOf(child) - 1]
+      if (prevChild?.name === "from" || prevChild?.name === ".") {
+        moduleName = getNodeText(child, ctx.source)
+        break
+      }
+    }
+  }
+
+  // Skip typing and runtime modules
+  if (TYPING_MODULES.has(moduleName) || RUNTIME_MODULES.has(moduleName)) {
+    return ""
+  }
+
+  // Collect imported names
+  const importedNames: { name: string; alias: string | null }[] = []
+  let afterImport = false
+
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i]
+    if (!child) continue
+
+    if (child.name === "import") {
+      afterImport = true
+      continue
+    }
+
+    if (afterImport && child.name === "VariableName") {
+      const name = getNodeText(child, ctx.source)
+      const nextChild = children[i + 1]
+      if (nextChild?.name === "as") {
+        const aliasChild = children[i + 2]
+        if (aliasChild?.name === "VariableName") {
+          importedNames.push({ name, alias: getNodeText(aliasChild, ctx.source) })
+          i += 2
+          continue
+        }
+      }
+      importedNames.push({ name, alias: null })
+    }
+  }
+
+  if (importedNames.length === 0) {
+    return ""
+  }
+
+  // Generate destructuring assignment from dynamic import
+  const bindings = importedNames
+    .map(({ name, alias }) => (alias ? `${name}: ${alias}` : name))
+    .join(", ")
+  return `const { ${bindings} } = await import("${moduleName}")`
 }
 
 /** Modules whose imports should be ignored (type-only modules) */
@@ -4727,7 +4871,13 @@ function transformClassDefinition(node: SyntaxNode, ctx: TransformContext): stri
     }
 
     // Special handling for ABC (Abstract Base Class)
-    if (firstParent === "ABC" || parentClasses.includes("ABC")) {
+    // Check for both "ABC" (from abc import ABC) and "abc.ABC" (import abc)
+    const isAbcClass =
+      firstParent === "ABC" ||
+      firstParent === "abc.ABC" ||
+      parentClasses.includes("ABC") ||
+      parentClasses.includes("abc.ABC")
+    if (isAbcClass) {
       return transformAbstractClass(className, parentClasses, body, ctx, jsdoc)
     }
 
@@ -6163,8 +6313,8 @@ function transformAbstractClass(
   ctx: TransformContext,
   jsdoc: string | null
 ): string {
-  // Filter out ABC from parent classes
-  const filteredParents = parentClasses.filter((p) => p !== "ABC")
+  // Filter out ABC and abc.ABC from parent classes
+  const filteredParents = parentClasses.filter((p) => p !== "ABC" && p !== "abc.ABC")
 
   // Build class header
   let classHeader = `abstract class ${className}`
