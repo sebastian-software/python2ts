@@ -115,7 +115,7 @@ except:
 
     it("should convert raise without argument", () => {
       const python = `raise`
-      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`"throw;"`)
+      expect(transpile(python, { includeRuntime: false })).toMatchInlineSnapshot(`"throw e;"`)
     })
 
     it("should convert raise with TypeError", () => {

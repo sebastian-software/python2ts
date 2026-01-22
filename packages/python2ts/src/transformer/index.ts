@@ -1333,6 +1333,24 @@ function transformBinaryExpression(node: SyntaxNode, ctx: TransformContext): str
 
   const opText = getNodeText(op, ctx.source)
 
+  // Handle scientific notation parsed incorrectly: 1.e-5 -> MemberExpression(1, e) - 5
+  // Pattern: MemberExpression(Number, ".", "e"|"E") +|- Number
+  if ((opText === "-" || opText === "+") && left.name === "MemberExpression") {
+    const memberChildren = getChildren(left)
+    const numNode = memberChildren.find((c) => c.name === "Number")
+    const propNode = memberChildren.find((c) => c.name === "PropertyName")
+    const right = children[2]
+    if (numNode && propNode && right?.name === "Number") {
+      const propName = getNodeText(propNode, ctx.source).toLowerCase()
+      if (propName === "e") {
+        // This is scientific notation: 1.e-5 -> 1e-5
+        const numText = getNodeText(numNode, ctx.source)
+        const expText = getNodeText(right, ctx.source)
+        return `${numText}e${opText}${expText}`
+      }
+    }
+  }
+
   // Handle 'is not' and 'not in' operators (4 children: left, is/not, not/in, right)
   if ((opText === "is" || opText === "not") && children.length >= 4) {
     const secondOp = children[2]
@@ -1638,6 +1656,8 @@ function transformFormatString(node: SyntaxNode, ctx: TransformContext): string 
     let formatSpec: string | undefined
     let conversion: string | undefined
 
+    let selfDoc = false // Python 3.8+ f"{var=}" debug syntax
+
     for (const child of replChildren) {
       if (child.name === "{" || child.name === "}") continue
       if (child.name === "FormatSpec") {
@@ -1646,6 +1666,9 @@ function transformFormatString(node: SyntaxNode, ctx: TransformContext): string 
       } else if (child.name === "FormatConversion") {
         // Get the conversion character (r, s, or a)
         conversion = getNodeText(child, ctx.source).slice(1) // Remove !
+      } else if (child.name === "FormatSelfDoc") {
+        // Python 3.8+ debug syntax: f"{var=}" -> "var=${var}"
+        selfDoc = true
       } else {
         expr = child
       }
@@ -1653,6 +1676,8 @@ function transformFormatString(node: SyntaxNode, ctx: TransformContext): string 
 
     if (expr) {
       let exprCode = transformNode(expr, ctx)
+      // Get the original expression text for debug syntax
+      const exprText = getNodeText(expr, ctx.source)
 
       // Apply conversion first (!r, !s, !a)
       if (conversion === "r") {
@@ -1669,7 +1694,15 @@ function transformFormatString(node: SyntaxNode, ctx: TransformContext): string 
       // Apply format spec
       if (formatSpec) {
         ctx.usesRuntime.add("format")
-        result += `\${format(${exprCode}, "${formatSpec}")}`
+        if (selfDoc) {
+          // f"{var=:.2f}" -> "var=${format(var, '.2f')}"
+          result += `${exprText}=\${format(${exprCode}, "${formatSpec}")}`
+        } else {
+          result += `\${format(${exprCode}, "${formatSpec}")}`
+        }
+      } else if (selfDoc) {
+        // f"{var=}" -> "var=${var}"
+        result += `${exprText}=\${${exprCode}}`
       } else {
         // Simple case - just the expression (with optional conversion already applied)
         result += `\${${exprCode}}`
@@ -2601,7 +2634,10 @@ function transformMethodCall(
 
 function transformArgList(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
-  const items = children.filter((c) => c.name !== "(" && c.name !== ")" && c.name !== "ArgList")
+  // Filter out parentheses, nested ArgList, and Comments (inline comments break single-line output)
+  const items = children.filter(
+    (c) => c.name !== "(" && c.name !== ")" && c.name !== "ArgList" && c.name !== "Comment"
+  )
 
   // Check if this is a generator expression inside the arglist (e.g., sum(x for x in items))
   const hasForKeyword = items.some(
@@ -3933,8 +3969,9 @@ function transformRaiseStatement(node: SyntaxNode, ctx: TransformContext): strin
   const exprNode = children.find((c) => c.name !== "raise")
 
   if (!exprNode) {
-    // raise without argument - re-throw
-    return "throw"
+    // raise without argument - re-throw the current exception
+    // In JS, we need to throw something, so use 'e' (the default catch variable name)
+    return "throw e"
   }
 
   const expr = transformNode(exprNode, ctx)

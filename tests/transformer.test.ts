@@ -522,7 +522,7 @@ describe("Transformer", () => {
 
     it("should transform bare raise", () => {
       const result = transform("raise")
-      expect(result.code).toBe("throw;")
+      expect(result.code).toBe("throw e;")
     })
   })
 
