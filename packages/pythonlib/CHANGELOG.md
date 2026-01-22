@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.4](https://github.com/sebastian-software/python2ts/compare/pythonlib-v2.0.3...pythonlib-v2.0.4) (2026-01-22)
+
+
+### Bug Fixes
+
+* filter comments in expressions, 2D slice assignment with ndarray ([9a94e18](https://github.com/sebastian-software/python2ts/commit/9a94e1863cd457f0d9995d6ba1a99fe12f7bb393))
+
 ## [2.0.3](https://github.com/sebastian-software/python2ts/compare/pythonlib-v2.0.2...pythonlib-v2.0.3) (2026-01-21)
 
 
