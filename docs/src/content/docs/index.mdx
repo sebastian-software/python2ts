@@ -18,33 +18,33 @@ hero:
 
 import { Card, CardGrid, Tabs, TabItem, LinkCard } from '@astrojs/starlight/components';
 
-<div class="hero-visual">
-  <img src="/python2ts/python-logo.svg" alt="Python" class="hero-logo python" />
-  <div class="hero-arrow">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<div class="flex items-center justify-center gap-8 py-12 my-8">
+  <img src="/python2ts/python-logo.svg" alt="Python" class="w-28 h-28 transition-all duration-300 hover:scale-110 animate-float animate-pulse-glow" />
+  <div class="flex flex-col items-center gap-2 text-accent-600">
+    <svg class="w-16 h-16 stroke-current animate-pulse-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M5 12h14M12 5l7 7-7 7"/>
     </svg>
-    <span>transpiles to</span>
+    <span class="text-sm font-semibold">transpiles to</span>
   </div>
-  <img src="/python2ts/typescript-logo.svg" alt="TypeScript" class="hero-logo typescript" />
+  <img src="/python2ts/typescript-logo.svg" alt="TypeScript" class="w-28 h-28 transition-all duration-300 hover:scale-110 animate-float-delayed animate-pulse-glow-delayed" />
 </div>
 
-<div class="stats-bar">
-  <div class="stat-item">
-    <div class="stat-number">2000+</div>
-    <div class="stat-label">Tests</div>
+<div class="flex flex-wrap justify-center gap-12 p-8 my-8 bg-gray-800 dark:bg-gray-800 rounded-xl">
+  <div class="text-center">
+    <div class="text-4xl font-extrabold gradient-text">2000+</div>
+    <div class="text-sm text-gray-400 uppercase tracking-wider">Tests</div>
   </div>
-  <div class="stat-item">
-    <div class="stat-number">20+</div>
-    <div class="stat-label">Modules</div>
+  <div class="text-center">
+    <div class="text-4xl font-extrabold gradient-text">20+</div>
+    <div class="text-sm text-gray-400 uppercase tracking-wider">Modules</div>
   </div>
-  <div class="stat-item">
-    <div class="stat-number">4</div>
-    <div class="stat-label">Runtimes</div>
+  <div class="text-center">
+    <div class="text-4xl font-extrabold gradient-text">4</div>
+    <div class="text-sm text-gray-400 uppercase tracking-wider">Runtimes</div>
   </div>
-  <div class="stat-item">
-    <div class="stat-number">0</div>
-    <div class="stat-label">Dependencies</div>
+  <div class="text-center">
+    <div class="text-4xl font-extrabold gradient-text">0</div>
+    <div class="text-sm text-gray-400 uppercase tracking-wider">Dependencies</div>
   </div>
 </div>
 
@@ -52,21 +52,21 @@ import { Card, CardGrid, Tabs, TabItem, LinkCard } from '@astrojs/starlight/comp
 
 <CardGrid>
   <Card title="python2ts" icon="rocket">
-    <img src="/python2ts/python-logo.svg" alt="" style="width: 32px; height: 32px; margin-bottom: 0.5rem;" />
+    <img src="/python2ts/python-logo.svg" alt="" class="w-8 h-8 mb-2" />
 
     **The Transpiler** — Converts Python source code to clean, idiomatic TypeScript. Full type preservation, docstring conversion, and intelligent runtime imports.
 
-    <div class="install-command">
-      <span class="prompt">$</span> npm install python2ts
+    <div class="inline-flex items-center gap-3 px-4 py-3 mt-2 bg-gray-900 rounded-lg font-mono text-sm border border-gray-700">
+      <span class="text-accent-600">$</span> npm install python2ts
     </div>
   </Card>
   <Card title="pythonlib" icon="open-book">
-    <img src="/python2ts/typescript-logo.svg" alt="" style="width: 32px; height: 32px; margin-bottom: 0.5rem;" />
+    <img src="/python2ts/typescript-logo.svg" alt="" class="w-8 h-8 mb-2" />
 
     **The Runtime Library** — 20+ Python standard library modules reimplemented in TypeScript. Zero dependencies, tree-shakeable, works standalone.
 
-    <div class="install-command">
-      <span class="prompt">$</span> npm install pythonlib
+    <div class="inline-flex items-center gap-3 px-4 py-3 mt-2 bg-gray-900 rounded-lg font-mono text-sm border border-gray-700">
+      <span class="text-accent-600">$</span> npm install pythonlib
     </div>
   </Card>
 </CardGrid>
@@ -92,10 +92,10 @@ import { Card, CardGrid, Tabs, TabItem, LinkCard } from '@astrojs/starlight/comp
 
 See how Python transforms to clean TypeScript:
 
-<div class="transform-visual">
-  <div class="code-panel python">
-    <div class="code-panel-header">
-      <img src="/python2ts/python-logo.svg" alt="" />
+<div class="grid md:grid-cols-[1fr_auto_1fr] gap-4 items-center my-8 p-6 bg-gray-800 rounded-xl">
+  <div class="rounded-lg overflow-hidden shadow-lg">
+    <div class="bg-python px-4 py-3 text-white font-semibold text-sm flex items-center gap-2">
+      <img src="/python2ts/python-logo.svg" alt="" class="w-5 h-5" />
       Python
     </div>
 ```python
@@ -109,15 +109,15 @@ def greet(user: User) -> str:
     return f"Hello, {user.name}!"
 ```
   </div>
-  <div class="transform-arrow">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <div class="flex flex-col items-center gap-2 text-accent-600 py-4">
+    <svg class="w-12 h-12 stroke-current animate-pulse-glow md:rotate-0 rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M5 12h14M12 5l7 7-7 7"/>
     </svg>
-    python2ts
+    <span class="text-sm font-semibold">python2ts</span>
   </div>
-  <div class="code-panel typescript">
-    <div class="code-panel-header">
-      <img src="/python2ts/typescript-logo.svg" alt="" />
+  <div class="rounded-lg overflow-hidden shadow-lg">
+    <div class="bg-typescript px-4 py-3 text-white font-semibold text-sm flex items-center gap-2">
+      <img src="/python2ts/typescript-logo.svg" alt="" class="w-5 h-5" />
       TypeScript
     </div>
 ```typescript
@@ -321,26 +321,26 @@ Use Python's best APIs in TypeScript — standalone, without the transpiler:
 
 Tested on every commit across all major JavaScript runtimes:
 
-<div class="runtime-grid">
-  <div class="runtime-badge">
-    <img src="https://nodejs.org/static/logos/nodejsLight.svg" alt="Node.js" />
-    <span>Node.js v22, v24</span>
-    <span class="check">✓</span>
+<div class="flex flex-wrap gap-4 justify-center my-8">
+  <div class="flex items-center gap-3 px-6 py-4 bg-gray-800 rounded-lg border border-gray-700 transition-all duration-300 hover:-translate-y-1 hover:border-accent-600 hover:shadow-lg">
+    <img src="https://nodejs.org/static/logos/nodejsLight.svg" alt="Node.js" class="w-8 h-8" />
+    <span class="font-medium">Node.js v22, v24</span>
+    <span class="text-accent-600 text-xl">✓</span>
   </div>
-  <div class="runtime-badge">
-    <img src="https://bun.sh/logo.svg" alt="Bun" />
-    <span>Bun Latest</span>
-    <span class="check">✓</span>
+  <div class="flex items-center gap-3 px-6 py-4 bg-gray-800 rounded-lg border border-gray-700 transition-all duration-300 hover:-translate-y-1 hover:border-accent-600 hover:shadow-lg">
+    <img src="https://bun.sh/logo.svg" alt="Bun" class="w-8 h-8" />
+    <span class="font-medium">Bun Latest</span>
+    <span class="text-accent-600 text-xl">✓</span>
   </div>
-  <div class="runtime-badge">
-    <img src="https://deno.land/logo.svg" alt="Deno" />
-    <span>Deno v2.x</span>
-    <span class="check">✓</span>
+  <div class="flex items-center gap-3 px-6 py-4 bg-gray-800 rounded-lg border border-gray-700 transition-all duration-300 hover:-translate-y-1 hover:border-accent-600 hover:shadow-lg">
+    <img src="https://deno.land/logo.svg" alt="Deno" class="w-8 h-8" />
+    <span class="font-medium">Deno v2.x</span>
+    <span class="text-accent-600 text-xl">✓</span>
   </div>
-  <div class="runtime-badge">
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"/></svg>
-    <span>All Modern Browsers</span>
-    <span class="check">✓</span>
+  <div class="flex items-center gap-3 px-6 py-4 bg-gray-800 rounded-lg border border-gray-700 transition-all duration-300 hover:-translate-y-1 hover:border-accent-600 hover:shadow-lg">
+    <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"/></svg>
+    <span class="font-medium">All Modern Browsers</span>
+    <span class="text-accent-600 text-xl">✓</span>
   </div>
 </div>
 
