@@ -5027,6 +5027,8 @@ function transformMethodParamListImpl(
 ): string {
   const children = getChildren(node)
   const params: string[] = []
+  let restParam: string | null = null
+  let kwargsParam: string | null = null
   let i = 0
   let isFirstParam = true
 
@@ -5054,12 +5056,12 @@ function transformMethodParamListImpl(
     }
     isFirstParam = false
 
-    // Check for *args (rest parameter)
+    // Check for *args (rest parameter) - save for later, must be last in JS
     if (child.name === "*" || getNodeText(child, ctx.source) === "*") {
       const nextChild = children[i + 1]
       if (nextChild?.name === "VariableName") {
         const name = escapeReservedKeyword(getNodeText(nextChild, ctx.source))
-        params.push(`...${name}`)
+        restParam = `...${name}`
         i += 2
         continue
       }
@@ -5067,12 +5069,12 @@ function transformMethodParamListImpl(
       continue
     }
 
-    // Check for **kwargs
+    // Check for **kwargs - save for later, comes before rest param
     if (child.name === "**" || getNodeText(child, ctx.source) === "**") {
       const nextChild = children[i + 1]
       if (nextChild?.name === "VariableName") {
         const name = escapeReservedKeyword(getNodeText(nextChild, ctx.source))
-        params.push(name)
+        kwargsParam = `${name}: Record<string, unknown> = {}`
         i += 2
         continue
       }
@@ -5117,6 +5119,16 @@ function transformMethodParamListImpl(
     }
 
     i++
+  }
+
+  // Add kwargs parameter if present (before rest param)
+  if (kwargsParam) {
+    params.push(kwargsParam)
+  }
+
+  // Add rest parameter last (must be last in JS)
+  if (restParam) {
+    params.push(restParam)
   }
 
   return params.join(", ")
