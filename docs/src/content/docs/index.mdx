@@ -20,12 +20,9 @@ import { Card, CardGrid, Tabs, TabItem, LinkCard } from '@astrojs/starlight/comp
 
 <div style="display: flex; align-items: center; justify-content: center; gap: 2rem; padding: 3rem 0; margin: 2rem 0;">
   <img src="/python2ts/python-logo.svg" alt="Python" style="width: 100px; height: 100px;" class="animate-float animate-pulse-glow" />
-  <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: var(--sl-color-accent);">
-    <svg style="width: 48px; height: 48px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M5 12h14M12 5l7 7-7 7"/>
-    </svg>
-    <span style="font-size: 0.875rem; font-weight: 600;">transpiles to</span>
-  </div>
+  <svg style="width: 48px; height: 48px; color: var(--sl-color-accent);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 12h14M12 5l7 7-7 7"/>
+  </svg>
   <img src="/python2ts/typescript-logo.svg" alt="TypeScript" style="width: 100px; height: 100px;" class="animate-float-delayed animate-pulse-glow-delayed" />
 </div>
 
@@ -52,8 +49,6 @@ import { Card, CardGrid, Tabs, TabItem, LinkCard } from '@astrojs/starlight/comp
 
 <CardGrid>
   <Card title="python2ts" icon="rocket">
-    <img src="/python2ts/python-logo.svg" alt="" style="width: 32px; height: 32px; margin-bottom: 0.5rem;" />
-
     **The Transpiler** — Converts Python source code to clean, idiomatic TypeScript. Full type preservation, docstring conversion, and intelligent runtime imports.
 
     <div style="display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; margin-top: 0.5rem; background: var(--sl-color-black); border-radius: 0.5rem; font-family: monospace; font-size: 0.875rem; border: 1px solid var(--sl-color-gray-5);">
@@ -61,8 +56,6 @@ import { Card, CardGrid, Tabs, TabItem, LinkCard } from '@astrojs/starlight/comp
     </div>
   </Card>
   <Card title="pythonlib" icon="open-book">
-    <img src="/python2ts/typescript-logo.svg" alt="" style="width: 32px; height: 32px; margin-bottom: 0.5rem;" />
-
     **The Runtime Library** — 20+ Python standard library modules reimplemented in TypeScript. Zero dependencies, tree-shakeable, works standalone.
 
     <div style="display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; margin-top: 0.5rem; background: var(--sl-color-black); border-radius: 0.5rem; font-family: monospace; font-size: 0.875rem; border: 1px solid var(--sl-color-gray-5);">
