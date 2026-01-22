@@ -18,33 +18,33 @@ hero:
 
 import { Card, CardGrid, Tabs, TabItem, LinkCard } from '@astrojs/starlight/components';
 
-<div class="flex items-center justify-center gap-8 py-12 my-8">
-  <img src="/python2ts/python-logo.svg" alt="Python" class="w-28 h-28 transition-all duration-300 hover:scale-110 animate-float animate-pulse-glow" />
-  <div class="flex flex-col items-center gap-2 text-accent-600">
-    <svg class="w-16 h-16 stroke-current animate-pulse-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<div style="display: flex; align-items: center; justify-content: center; gap: 2rem; padding: 3rem 0; margin: 2rem 0;">
+  <img src="/python2ts/python-logo.svg" alt="Python" style="width: 100px; height: 100px;" class="animate-float animate-pulse-glow" />
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: var(--sl-color-accent);">
+    <svg style="width: 48px; height: 48px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M5 12h14M12 5l7 7-7 7"/>
     </svg>
-    <span class="text-sm font-semibold">transpiles to</span>
+    <span style="font-size: 0.875rem; font-weight: 600;">transpiles to</span>
   </div>
-  <img src="/python2ts/typescript-logo.svg" alt="TypeScript" class="w-28 h-28 transition-all duration-300 hover:scale-110 animate-float-delayed animate-pulse-glow-delayed" />
+  <img src="/python2ts/typescript-logo.svg" alt="TypeScript" style="width: 100px; height: 100px;" class="animate-float-delayed animate-pulse-glow-delayed" />
 </div>
 
-<div class="flex flex-wrap justify-center gap-12 p-8 my-8 bg-gray-800 dark:bg-gray-800 rounded-xl">
-  <div class="text-center">
-    <div class="text-4xl font-extrabold gradient-text">2000+</div>
-    <div class="text-sm text-gray-400 uppercase tracking-wider">Tests</div>
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 3rem; padding: 2rem; margin: 2rem 0; background: var(--sl-color-gray-6); border-radius: 1rem;">
+  <div style="text-align: center;">
+    <div class="gradient-text" style="font-size: 2.5rem; font-weight: 800;">2000+</div>
+    <div style="font-size: 0.875rem; color: var(--sl-color-gray-3); text-transform: uppercase; letter-spacing: 0.05em;">Tests</div>
   </div>
-  <div class="text-center">
-    <div class="text-4xl font-extrabold gradient-text">20+</div>
-    <div class="text-sm text-gray-400 uppercase tracking-wider">Modules</div>
+  <div style="text-align: center;">
+    <div class="gradient-text" style="font-size: 2.5rem; font-weight: 800;">20+</div>
+    <div style="font-size: 0.875rem; color: var(--sl-color-gray-3); text-transform: uppercase; letter-spacing: 0.05em;">Modules</div>
   </div>
-  <div class="text-center">
-    <div class="text-4xl font-extrabold gradient-text">4</div>
-    <div class="text-sm text-gray-400 uppercase tracking-wider">Runtimes</div>
+  <div style="text-align: center;">
+    <div class="gradient-text" style="font-size: 2.5rem; font-weight: 800;">4</div>
+    <div style="font-size: 0.875rem; color: var(--sl-color-gray-3); text-transform: uppercase; letter-spacing: 0.05em;">Runtimes</div>
   </div>
-  <div class="text-center">
-    <div class="text-4xl font-extrabold gradient-text">0</div>
-    <div class="text-sm text-gray-400 uppercase tracking-wider">Dependencies</div>
+  <div style="text-align: center;">
+    <div class="gradient-text" style="font-size: 2.5rem; font-weight: 800;">0</div>
+    <div style="font-size: 0.875rem; color: var(--sl-color-gray-3); text-transform: uppercase; letter-spacing: 0.05em;">Dependencies</div>
   </div>
 </div>
 
@@ -52,21 +52,21 @@ import { Card, CardGrid, Tabs, TabItem, LinkCard } from '@astrojs/starlight/comp
 
 <CardGrid>
   <Card title="python2ts" icon="rocket">
-    <img src="/python2ts/python-logo.svg" alt="" class="w-8 h-8 mb-2" />
+    <img src="/python2ts/python-logo.svg" alt="" style="width: 32px; height: 32px; margin-bottom: 0.5rem;" />
 
     **The Transpiler** — Converts Python source code to clean, idiomatic TypeScript. Full type preservation, docstring conversion, and intelligent runtime imports.
 
-    <div class="inline-flex items-center gap-3 px-4 py-3 mt-2 bg-gray-900 rounded-lg font-mono text-sm border border-gray-700">
-      <span class="text-accent-600">$</span> npm install python2ts
+    <div style="display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; margin-top: 0.5rem; background: var(--sl-color-black); border-radius: 0.5rem; font-family: monospace; font-size: 0.875rem; border: 1px solid var(--sl-color-gray-5);">
+      <span style="color: var(--sl-color-accent);">$</span> npm install python2ts
     </div>
   </Card>
   <Card title="pythonlib" icon="open-book">
-    <img src="/python2ts/typescript-logo.svg" alt="" class="w-8 h-8 mb-2" />
+    <img src="/python2ts/typescript-logo.svg" alt="" style="width: 32px; height: 32px; margin-bottom: 0.5rem;" />
 
     **The Runtime Library** — 20+ Python standard library modules reimplemented in TypeScript. Zero dependencies, tree-shakeable, works standalone.
 
-    <div class="inline-flex items-center gap-3 px-4 py-3 mt-2 bg-gray-900 rounded-lg font-mono text-sm border border-gray-700">
-      <span class="text-accent-600">$</span> npm install pythonlib
+    <div style="display: inline-flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; margin-top: 0.5rem; background: var(--sl-color-black); border-radius: 0.5rem; font-family: monospace; font-size: 0.875rem; border: 1px solid var(--sl-color-gray-5);">
+      <span style="color: var(--sl-color-accent);">$</span> npm install pythonlib
     </div>
   </Card>
 </CardGrid>
@@ -92,13 +92,10 @@ import { Card, CardGrid, Tabs, TabItem, LinkCard } from '@astrojs/starlight/comp
 
 See how Python transforms to clean TypeScript:
 
-<div class="grid md:grid-cols-[1fr_auto_1fr] gap-4 items-center my-8 p-6 bg-gray-800 rounded-xl">
-  <div class="rounded-lg overflow-hidden shadow-lg">
-    <div class="bg-python px-4 py-3 text-white font-semibold text-sm flex items-center gap-2">
-      <img src="/python2ts/python-logo.svg" alt="" class="w-5 h-5" />
-      Python
-    </div>
+<Tabs>
+  <TabItem label="Dataclasses">
 ```python
+# Python
 @dataclass
 class User:
     name: str
@@ -108,19 +105,9 @@ class User:
 def greet(user: User) -> str:
     return f"Hello, {user.name}!"
 ```
-  </div>
-  <div class="flex flex-col items-center gap-2 text-accent-600 py-4">
-    <svg class="w-12 h-12 stroke-current animate-pulse-glow md:rotate-0 rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M5 12h14M12 5l7 7-7 7"/>
-    </svg>
-    <span class="text-sm font-semibold">python2ts</span>
-  </div>
-  <div class="rounded-lg overflow-hidden shadow-lg">
-    <div class="bg-typescript px-4 py-3 text-white font-semibold text-sm flex items-center gap-2">
-      <img src="/python2ts/typescript-logo.svg" alt="" class="w-5 h-5" />
-      TypeScript
-    </div>
+
 ```typescript
+// TypeScript
 class User {
   constructor(
     public name: string,
@@ -133,10 +120,7 @@ function greet(user: User): string {
   return `Hello, ${user.name}!`
 }
 ```
-  </div>
-</div>
-
-<Tabs>
+  </TabItem>
   <TabItem label="Generics">
 ```python
 # Python
@@ -204,34 +188,6 @@ async function fetchData(url: string): Promise<object> {
 async function main(): Promise<void> {
   const data = await fetchData("https://api.example.com")
   console.log(data)
-}
-```
-  </TabItem>
-  <TabItem label="Pattern Matching">
-```python
-# Python
-match command:
-    case "start":
-        start_server()
-    case "stop":
-        stop_server()
-    case ["move", x, y]:
-        move_to(int(x), int(y))
-    case _:
-        print("Unknown command")
-```
-
-```typescript
-// TypeScript
-if (command === "start") {
-  startServer()
-} else if (command === "stop") {
-  stopServer()
-} else if (Array.isArray(command) &&
-           command[0] === "move") {
-  moveTo(int(command[1]), int(command[2]))
-} else {
-  console.log("Unknown command")
 }
 ```
   </TabItem>
@@ -321,26 +277,26 @@ Use Python's best APIs in TypeScript — standalone, without the transpiler:
 
 Tested on every commit across all major JavaScript runtimes:
 
-<div class="flex flex-wrap gap-4 justify-center my-8">
-  <div class="flex items-center gap-3 px-6 py-4 bg-gray-800 rounded-lg border border-gray-700 transition-all duration-300 hover:-translate-y-1 hover:border-accent-600 hover:shadow-lg">
-    <img src="https://nodejs.org/static/logos/nodejsLight.svg" alt="Node.js" class="w-8 h-8" />
-    <span class="font-medium">Node.js v22, v24</span>
-    <span class="text-accent-600 text-xl">✓</span>
+<div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; margin: 2rem 0;">
+  <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.5rem; background: var(--sl-color-gray-6); border-radius: 0.75rem; border: 1px solid var(--sl-color-gray-5);">
+    <img src="/python2ts/nodejs-logo.svg" alt="Node.js" style="width: 32px; height: 32px;" />
+    <span style="font-weight: 500;">Node.js v22, v24</span>
+    <span style="color: var(--sl-color-accent); font-size: 1.25rem;">✓</span>
   </div>
-  <div class="flex items-center gap-3 px-6 py-4 bg-gray-800 rounded-lg border border-gray-700 transition-all duration-300 hover:-translate-y-1 hover:border-accent-600 hover:shadow-lg">
-    <img src="https://bun.sh/logo.svg" alt="Bun" class="w-8 h-8" />
-    <span class="font-medium">Bun Latest</span>
-    <span class="text-accent-600 text-xl">✓</span>
+  <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.5rem; background: var(--sl-color-gray-6); border-radius: 0.75rem; border: 1px solid var(--sl-color-gray-5);">
+    <img src="/python2ts/bun-logo.svg" alt="Bun" style="width: 32px; height: 32px;" />
+    <span style="font-weight: 500;">Bun Latest</span>
+    <span style="color: var(--sl-color-accent); font-size: 1.25rem;">✓</span>
   </div>
-  <div class="flex items-center gap-3 px-6 py-4 bg-gray-800 rounded-lg border border-gray-700 transition-all duration-300 hover:-translate-y-1 hover:border-accent-600 hover:shadow-lg">
-    <img src="https://deno.land/logo.svg" alt="Deno" class="w-8 h-8" />
-    <span class="font-medium">Deno v2.x</span>
-    <span class="text-accent-600 text-xl">✓</span>
+  <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.5rem; background: var(--sl-color-gray-6); border-radius: 0.75rem; border: 1px solid var(--sl-color-gray-5);">
+    <img src="/python2ts/deno-logo.svg" alt="Deno" style="width: 32px; height: 32px;" />
+    <span style="font-weight: 500;">Deno v2.x</span>
+    <span style="color: var(--sl-color-accent); font-size: 1.25rem;">✓</span>
   </div>
-  <div class="flex items-center gap-3 px-6 py-4 bg-gray-800 rounded-lg border border-gray-700 transition-all duration-300 hover:-translate-y-1 hover:border-accent-600 hover:shadow-lg">
-    <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"/></svg>
-    <span class="font-medium">All Modern Browsers</span>
-    <span class="text-accent-600 text-xl">✓</span>
+  <div style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.5rem; background: var(--sl-color-gray-6); border-radius: 0.75rem; border: 1px solid var(--sl-color-gray-5);">
+    <img src="/python2ts/browser-logo.svg" alt="Browser" style="width: 32px; height: 32px;" />
+    <span style="font-weight: 500;">All Modern Browsers</span>
+    <span style="color: var(--sl-color-accent); font-size: 1.25rem;">✓</span>
   </div>
 </div>
 
