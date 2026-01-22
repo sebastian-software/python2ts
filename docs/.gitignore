@@ -4,6 +4,9 @@ node_modules/
 # Build output
 dist/
 
+# Generated API docs (created by starlight-typedoc)
+src/content/docs/api/
+
 # Astro
 .astro/
 

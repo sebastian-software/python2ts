@@ -78,6 +78,11 @@ export default defineConfig({
           autogenerate: { directory: "api" }
         },
         {
+          label: "Development",
+          collapsed: true,
+          autogenerate: { directory: "dev" }
+        },
+        {
           label: "Architecture Decisions",
           collapsed: true,
           autogenerate: { directory: "adr" }
