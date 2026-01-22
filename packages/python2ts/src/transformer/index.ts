@@ -58,15 +58,12 @@ const JS_RESERVED_KEYWORDS = new Set([
   "async",
   "await",
   "declare",
-  "from",
-  "get",
   "is",
   "module",
   "namespace",
-  "of",
   "require",
-  "set",
   "type"
+  // Note: 'get', 'set', 'from', 'of' are contextual keywords and valid as identifiers
 ])
 
 /**
@@ -1496,11 +1493,62 @@ function transformNumber(node: SyntaxNode, ctx: TransformContext): string {
 function transformString(node: SyntaxNode, ctx: TransformContext): string {
   const text = getNodeText(node, ctx.source)
 
+  // Handle bytes strings - remove the 'b' prefix
+  // Python: b'hello' or b"hello" -> JS: 'hello' or "hello"
+  // Escape sequences like \x03 work the same in JS
+  if (text.startsWith('b"') || text.startsWith("b'")) {
+    return text.slice(1)
+  }
+  if (text.startsWith('B"') || text.startsWith("B'")) {
+    return text.slice(1)
+  }
+  // Handle raw bytes strings (br or rb prefix)
+  if (
+    text.startsWith('br"') ||
+    text.startsWith("br'") ||
+    text.startsWith('rb"') ||
+    text.startsWith("rb'")
+  ) {
+    return text.slice(2)
+  }
+  if (
+    text.startsWith('BR"') ||
+    text.startsWith("BR'") ||
+    text.startsWith('RB"') ||
+    text.startsWith("RB'")
+  ) {
+    return text.slice(2)
+  }
+  if (
+    text.startsWith('Br"') ||
+    text.startsWith("Br'") ||
+    text.startsWith('rB"') ||
+    text.startsWith("rB'")
+  ) {
+    return text.slice(2)
+  }
+  if (
+    text.startsWith('bR"') ||
+    text.startsWith("bR'") ||
+    text.startsWith('Rb"') ||
+    text.startsWith("Rb'")
+  ) {
+    return text.slice(2)
+  }
+
   // Handle raw strings
   if (text.startsWith('r"') || text.startsWith("r'")) {
     return text.slice(1)
   }
   if (text.startsWith('R"') || text.startsWith("R'")) {
+    return text.slice(1)
+  }
+
+  // Handle unicode strings (Python 2 compatibility) - just remove the 'u' prefix
+  if (text.startsWith('u"') || text.startsWith("u'")) {
+    return text.slice(1)
+  }
+  if (text.startsWith('U"') || text.startsWith("U'")) {
     return text.slice(1)
   }
 
@@ -2748,17 +2796,63 @@ function transformSliceFromMember(
   // Get all elements between brackets
   const sliceElements = children.slice(bracketStart + 1, bracketEnd)
 
-  // Parse slice notation (start:stop:step)
+  // Check for multi-dimensional slicing (comma-separated)
+  const hasComma = sliceElements.some((el) => el.name === ",")
+
+  if (hasComma) {
+    // Multi-dimensional slice: [:, :0] -> slice(obj, [null, null], [null, 0])
+    // Split by commas to get each dimension
+    const dimensions: SyntaxNode[][] = []
+    let currentDim: SyntaxNode[] = []
+
+    for (const el of sliceElements) {
+      if (el.name === ",") {
+        dimensions.push(currentDim)
+        currentDim = []
+      } else {
+        currentDim.push(el)
+      }
+    }
+    dimensions.push(currentDim)
+
+    // Process each dimension as a slice
+    const dimSlices = dimensions.map((dimElements) => {
+      return parseSliceDimension(dimElements, ctx)
+    })
+
+    return `slice(${objCode}, ${dimSlices.join(", ")})`
+  }
+
+  // Single-dimension slice: parse slice notation (start:stop:step)
+  const parts = parseSliceParts(sliceElements, ctx)
+  return `slice(${objCode}, ${parts.join(", ")})`
+}
+
+/**
+ * Parse a single dimension's slice notation (start:stop:step)
+ * Returns an array of strings: ["start", "stop"] or ["start", "stop", "step"]
+ * For multi-dimensional slices, use wrapAsArray=true to get "[start, stop]" format
+ */
+function parseSliceParts(elements: SyntaxNode[], ctx: TransformContext): string[] {
   const colonIndices: number[] = []
-  sliceElements.forEach((el, i) => {
+  elements.forEach((el, i) => {
     if (el.name === ":") colonIndices.push(i)
   })
 
-  // Build slice parts
+  // If no colons, it's just an index, not a slice
+  if (colonIndices.length === 0) {
+    if (elements.length > 0 && elements[0]) {
+      return [transformNode(elements[0], ctx)]
+    }
+    return ["undefined"]
+  }
+
+  // Build slice parts [start, stop, step?]
   const parts: string[] = []
   let lastIdx = 0
+
   for (const colonIdx of colonIndices) {
-    const beforeColon = sliceElements.slice(lastIdx, colonIdx)
+    const beforeColon = elements.slice(lastIdx, colonIdx)
     if (beforeColon.length > 0 && beforeColon[0]) {
       parts.push(transformNode(beforeColon[0], ctx))
     } else {
@@ -2766,21 +2860,30 @@ function transformSliceFromMember(
     }
     lastIdx = colonIdx + 1
   }
+
   // Handle remaining after last colon
-  const afterLastColon = sliceElements.slice(lastIdx)
+  const afterLastColon = elements.slice(lastIdx)
   if (afterLastColon.length > 0 && afterLastColon[0] && afterLastColon[0].name !== ":") {
     parts.push(transformNode(afterLastColon[0], ctx))
   } else if (colonIndices.length > 0) {
     parts.push("undefined")
   }
 
-  // If no colons, it's not a slice
-  /* v8 ignore next 3 -- defensive: slice detection already checked for colons @preserve */
-  if (colonIndices.length === 0) {
-    return `slice(${objCode})`
-  }
+  return parts
+}
 
-  return `slice(${objCode}, ${parts.join(", ")})`
+/**
+ * Parse a single dimension's slice notation for multi-dimensional slices
+ * Returns a string like "[null, null]" or "[1, 5]" or index like "0"
+ */
+function parseSliceDimension(elements: SyntaxNode[], ctx: TransformContext): string {
+  const parts = parseSliceParts(elements, ctx)
+  // If only one part (index, not a slice), return it directly
+  if (parts.length === 1) {
+    return parts[0] ?? "undefined"
+  }
+  // Otherwise wrap in array brackets for multi-dimensional slice notation
+  return `[${parts.join(", ")}]`
 }
 
 function transformArrayExpression(node: SyntaxNode, ctx: TransformContext): string {
@@ -3497,8 +3600,15 @@ function transformForStatement(node: SyntaxNode, ctx: TransformContext): string 
   // Build the variable pattern
   let varCode: string
   if (varNodes.length === 1 && varNodes[0]) {
-    // Single variable
-    varCode = transformNode(varNodes[0], ctx)
+    const singleVar = varNodes[0]
+    // Check if it's a TupleExpression (parenthesized tuple like `(i, x)`)
+    if (singleVar.name === "TupleExpression") {
+      // Use transformForLoopVar to get array destructuring pattern
+      varCode = transformForLoopVar(singleVar, ctx)
+    } else {
+      // Single variable
+      varCode = transformNode(singleVar, ctx)
+    }
   } else {
     // Tuple unpacking: [x, y] or [i, [a, b]]
     varCode = "[" + varNodes.map((v) => transformForLoopVar(v, ctx)).join(", ") + "]"
@@ -4301,7 +4411,7 @@ function transformFunctionDefinition(node: SyntaxNode, ctx: TransformContext): s
     if (child.name === "async") {
       isAsync = true
     } else if (child.name === "VariableName") {
-      funcName = getNodeText(child, ctx.source)
+      funcName = escapeReservedKeyword(getNodeText(child, ctx.source))
     } else if (child.name === "ParamList") {
       paramList = child
     } else if (child.name === "Body") {
@@ -4572,6 +4682,7 @@ function transformClassMethod(
 
   for (const child of children) {
     if (child.name === "VariableName") {
+      // Method names don't need escaping - reserved words are valid as method names in ES6+
       methodName = getNodeText(child, ctx.source)
     } else if (child.name === "ParamList") {
       paramList = child
@@ -4733,7 +4844,7 @@ function transformMethodParamListImpl(
     if (child.name === "*" || getNodeText(child, ctx.source) === "*") {
       const nextChild = children[i + 1]
       if (nextChild?.name === "VariableName") {
-        const name = getNodeText(nextChild, ctx.source)
+        const name = escapeReservedKeyword(getNodeText(nextChild, ctx.source))
         params.push(`...${name}`)
         i += 2
         continue
@@ -4746,7 +4857,7 @@ function transformMethodParamListImpl(
     if (child.name === "**" || getNodeText(child, ctx.source) === "**") {
       const nextChild = children[i + 1]
       if (nextChild?.name === "VariableName") {
-        const name = getNodeText(nextChild, ctx.source)
+        const name = escapeReservedKeyword(getNodeText(nextChild, ctx.source))
         params.push(name)
         i += 2
         continue
@@ -4757,7 +4868,7 @@ function transformMethodParamListImpl(
 
     // Check for parameter with default value or type annotation
     if (child.name === "VariableName") {
-      const nameCode = getNodeText(child, ctx.source)
+      const nameCode = escapeReservedKeyword(getNodeText(child, ctx.source))
       let typeStr = ""
       let defaultStr = ""
       let consumed = 1
