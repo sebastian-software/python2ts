@@ -1,0 +1,253 @@
+/* Custom styles for python2ts documentation */
+
+:root {
+  --sl-color-accent-low: #1a4d31;
+  --sl-color-accent: #2e8555;
+  --sl-color-accent-high: #a8d5ba;
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #eceef2;
+  --sl-color-gray-2: #c0c2c7;
+  --sl-color-gray-3: #888b96;
+  --sl-color-gray-4: #545861;
+  --sl-color-gray-5: #353841;
+  --sl-color-gray-6: #24272e;
+  --sl-color-black: #17191e;
+}
+
+:root[data-theme="light"] {
+  --sl-color-accent-low: #d4edda;
+  --sl-color-accent: #2e8555;
+  --sl-color-accent-high: #1a4d31;
+}
+
+/* Better code block styling */
+.expressive-code {
+  margin: 1.5rem 0;
+}
+
+/* Card improvements */
+.sl-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sl-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  font-weight: 600;
+}
+
+/* Status checkmarks */
+td:has(✅) {
+  text-align: center;
+}
+
+/* Link styling */
+a:hover {
+  text-decoration: underline;
+}
+
+/* Hero customization for landing page */
+.hero-section {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, var(--sl-color-gray-6) 0%, var(--sl-color-black) 100%);
+  border-radius: 1rem;
+  margin-bottom: 2rem;
+}
+
+[data-theme="light"] .hero-section {
+  background: linear-gradient(135deg, var(--sl-color-gray-1) 0%, var(--sl-color-white) 100%);
+}
+
+.hero-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #3776ab 0%, #ffd43b 50%, #3178c6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--sl-color-gray-3);
+  max-width: 600px;
+  margin: 0 auto 2rem;
+}
+
+/* Feature grid */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.feature-card {
+  padding: 1.5rem;
+  background: var(--sl-color-gray-6);
+  border-radius: 0.75rem;
+  border: 1px solid var(--sl-color-gray-5);
+  transition: all 0.2s ease;
+}
+
+[data-theme="light"] .feature-card {
+  background: var(--sl-color-white);
+  border-color: var(--sl-color-gray-2);
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  border-color: var(--sl-color-accent);
+}
+
+.feature-card h3 {
+  margin-top: 0;
+  color: var(--sl-color-accent-high);
+}
+
+/* Code comparison styling */
+.code-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+@media (max-width: 768px) {
+  .code-comparison {
+    grid-template-columns: 1fr;
+  }
+}
+
+.code-panel {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.code-panel-header {
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.code-panel.python .code-panel-header {
+  background: #3776ab;
+  color: white;
+}
+
+.code-panel.typescript .code-panel-header {
+  background: #3178c6;
+  color: white;
+}
+
+/* Install command styling */
+.install-command {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--sl-color-gray-6);
+  border-radius: 0.5rem;
+  font-family: monospace;
+  margin: 1rem 0;
+}
+
+[data-theme="light"] .install-command {
+  background: var(--sl-color-gray-1);
+}
+
+/* Button styling */
+.button-primary {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: var(--sl-color-accent);
+  color: white;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.button-primary:hover {
+  background: var(--sl-color-accent-high);
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+.button-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  color: var(--sl-color-gray-2);
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.button-secondary:hover {
+  border-color: var(--sl-color-accent);
+  color: var(--sl-color-accent-high);
+  text-decoration: none;
+}
+
+/* Runtime badges */
+.runtime-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.runtime-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--sl-color-gray-6);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+[data-theme="light"] .runtime-badge {
+  background: var(--sl-color-gray-1);
+}
+
+.runtime-badge img {
+  width: 24px;
+  height: 24px;
+}
+
+/* API reference improvements */
+.sl-markdown-content h2 code,
+.sl-markdown-content h3 code,
+.sl-markdown-content h4 code {
+  font-size: 0.9em;
+}
+
+/* Footer */
+footer {
+  border-top: 1px solid var(--sl-color-gray-5);
+  margin-top: 4rem;
+  padding-top: 2rem;
+}
