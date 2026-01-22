@@ -2888,9 +2888,41 @@ function parseSliceDimension(elements: SyntaxNode[], ctx: TransformContext): str
 
 function transformArrayExpression(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
-  const elements = children.filter((c) => c.name !== "[" && c.name !== "]" && c.name !== ",")
 
-  const elementCodes = elements.map((el) => transformNode(el, ctx))
+  // Handle spread operators (*) in array literals
+  // [*a, *b, 3] -> [...a, ...b, 3]
+  const elementCodes: string[] = []
+  let i = 0
+
+  while (i < children.length) {
+    const child = children[i]
+    if (!child) {
+      i++
+      continue
+    }
+
+    // Skip brackets and commas
+    if (child.name === "[" || child.name === "]" || child.name === ",") {
+      i++
+      continue
+    }
+
+    // Check for spread: * followed by an expression
+    if (child.name === "*" || getNodeText(child, ctx.source) === "*") {
+      const nextChild = children[i + 1]
+      if (nextChild && nextChild.name !== "," && nextChild.name !== "]") {
+        // This is a spread expression
+        elementCodes.push(`...${transformNode(nextChild, ctx)}`)
+        i += 2 // Skip both * and the expression
+        continue
+      }
+    }
+
+    // Regular element
+    elementCodes.push(transformNode(child, ctx))
+    i++
+  }
+
   return `[${elementCodes.join(", ")}]`
 }
 
@@ -5169,7 +5201,8 @@ function transformDecoratedStatement(node: SyntaxNode, ctx: TransformContext): s
 
   for (const child of funcChildren) {
     if (child.name === "VariableName") {
-      funcName = getNodeText(child, ctx.source)
+      // Escape reserved keywords like 'var' -> '_var'
+      funcName = escapeReservedKeyword(getNodeText(child, ctx.source))
     } else if (child.name === "ParamList") {
       paramList = child
     } else if (child.name === "Body") {
@@ -6467,11 +6500,13 @@ function parseComprehensionClauses(
         let variable: string
         const firstVarNode = varNodes[0]
         if (varNodes.length === 1 && firstVarNode) {
-          // Single variable
-          variable = transformNode(firstVarNode, ctx)
+          // Single variable - use transformForLoopVar to handle TupleExpression correctly
+          // e.g., for (a, b) in ... -> for [a, b] of ...
+          variable = transformForLoopVar(firstVarNode, ctx)
         } else {
-          // Tuple unpacking - create destructuring pattern
-          variable = "[" + varNodes.map((v) => transformNode(v, ctx)).join(", ") + "]"
+          // Tuple unpacking - create destructuring pattern, use transformForLoopVar for nested tuples
+          // e.g., for x, (a, b) in ... -> for [x, [a, b]] of ...
+          variable = "[" + varNodes.map((v) => transformForLoopVar(v, ctx)).join(", ") + "]"
         }
 
         clauses.push({
