@@ -6844,7 +6844,10 @@ function transformDictComprehension(node: SyntaxNode, ctx: TransformContext): st
 
 function transformSetExpression(node: SyntaxNode, ctx: TransformContext): string {
   const children = getChildren(node)
-  const elements = children.filter((c) => c.name !== "{" && c.name !== "}" && c.name !== ",")
+  // Filter out braces, commas, and comments (inline comments break single-line output)
+  const elements = children.filter(
+    (c) => c.name !== "{" && c.name !== "}" && c.name !== "," && c.name !== "Comment"
+  )
 
   ctx.usesRuntime.add("set")
   const elementCodes = elements.map((el) => transformNode(el, ctx))
