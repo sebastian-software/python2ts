@@ -1,0 +1,302 @@
+---
+// Custom landing page - NOT using Starlight's restricted templates
+import "@astrojs/tailwind/base.css"
+import "../styles/custom.css"
+---
+
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>python2ts + pythonlib</title>
+    <meta name="description" content="Write Python. Ship TypeScript. Run Everywhere." />
+    <link rel="icon" href="/python2ts/favicon.ico" />
+  </head>
+  <body class="min-h-screen bg-gray-900 text-gray-100 [&_a]:no-underline">
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-gray-900/90 backdrop-blur-md border-b border-gray-800">
+      <nav class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="/python2ts/" class="flex items-center gap-3 text-xl font-bold text-white">
+          <img src="/python2ts/python-logo.svg" alt="" class="w-8 h-8" />
+          python2ts
+        </a>
+        <div class="flex items-center gap-6">
+          <a href="/python2ts/guide/getting-started" class="text-gray-300 hover:text-white transition-colors">Docs</a>
+          <a href="/python2ts/api/readme" class="text-gray-300 hover:text-white transition-colors">API</a>
+          <a href="https://github.com/sebastian-software/python2ts" class="text-gray-300 hover:text-white transition-colors">GitHub</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <!-- Hero Section -->
+      <section class="pt-32 pb-20 px-6">
+        <div class="max-w-6xl mx-auto">
+          <div class="flex flex-col lg:flex-row items-center gap-12">
+            <div class="flex-1 text-center lg:text-left">
+              <h1 class="text-5xl lg:text-6xl font-extrabold mb-6 text-white">
+                python2ts <span class="text-gray-500">+</span> pythonlib
+              </h1>
+              <p class="text-xl text-gray-400 mb-8 max-w-xl leading-relaxed">
+                Two packages that bridge the Python and TypeScript worlds.
+                Transpile Python to clean TypeScript, or use Python's best APIs directly in your TypeScript projects.
+              </p>
+              <div class="flex flex-wrap gap-4 justify-center lg:justify-start">
+                <a href="/python2ts/guide/getting-started" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-semibold transition-colors">
+                  Get Started →
+                </a>
+                <a href="https://github.com/sebastian-software/python2ts" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-colors border border-gray-600">
+                  View on GitHub
+                </a>
+              </div>
+            </div>
+
+            <!-- Python → TypeScript Animation -->
+            <div class="flex items-center gap-6">
+              <img src="/python2ts/python-logo.svg" alt="Python" class="w-24 h-24 lg:w-32 lg:h-32 animate-float" />
+              <svg class="w-10 h-10 lg:w-12 lg:h-12 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+              <img src="/python2ts/typescript-logo.svg" alt="TypeScript" class="w-24 h-24 lg:w-32 lg:h-32 animate-float-delayed" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats Section -->
+      <section class="py-16 px-6 bg-gray-800/40 border-y border-gray-800">
+        <div class="max-w-4xl mx-auto">
+          <div class="flex flex-wrap justify-center gap-12 lg:gap-20">
+            <div class="text-center">
+              <div class="text-4xl lg:text-5xl font-bold text-white">2000+</div>
+              <div class="text-sm text-gray-500 uppercase tracking-wider mt-2">Tests</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl lg:text-5xl font-bold text-white">20+</div>
+              <div class="text-sm text-gray-500 uppercase tracking-wider mt-2">Modules</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl lg:text-5xl font-bold text-white">4</div>
+              <div class="text-sm text-gray-500 uppercase tracking-wider mt-2">Runtimes</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl lg:text-5xl font-bold text-white">0</div>
+              <div class="text-sm text-gray-500 uppercase tracking-wider mt-2">Dependencies</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Two Packages Section -->
+      <section class="py-20 px-6">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="text-3xl font-bold text-center mb-12 text-white">Two Packages, One Mission</h2>
+          <div class="grid md:grid-cols-2 gap-8">
+            <div class="p-8 bg-gray-800/60 rounded-2xl border border-gray-700/50 hover:border-gray-600 transition-colors">
+              <div class="flex items-center gap-3 text-2xl font-bold mb-3 text-white">
+                <svg class="w-7 h-7 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+                </svg>
+                python2ts
+              </div>
+              <p class="text-gray-400 mb-5 leading-relaxed">
+                <strong class="text-gray-200">The Transpiler</strong> — Converts Python source code to clean, idiomatic TypeScript.
+                Full type preservation, docstring conversion, and intelligent runtime imports.
+              </p>
+              <code class="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900/80 rounded-lg text-sm font-mono text-gray-300 border border-gray-700/50">
+                <span class="text-emerald-500">$</span> npm install python2ts
+              </code>
+            </div>
+            <div class="p-8 bg-gray-800/60 rounded-2xl border border-gray-700/50 hover:border-gray-600 transition-colors">
+              <div class="flex items-center gap-3 text-2xl font-bold mb-3 text-white">
+                <svg class="w-7 h-7 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>
+                </svg>
+                pythonlib
+              </div>
+              <p class="text-gray-400 mb-5 leading-relaxed">
+                <strong class="text-gray-200">The Runtime Library</strong> — 20+ Python standard library modules reimplemented in TypeScript.
+                Zero dependencies, tree-shakeable, works standalone.
+              </p>
+              <code class="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900/80 rounded-lg text-sm font-mono text-gray-300 border border-gray-700/50">
+                <span class="text-emerald-500">$</span> npm install pythonlib
+              </code>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features Section -->
+      <section class="py-20 px-6 bg-gray-800/30 border-y border-gray-800">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="text-3xl font-bold text-center mb-12 text-white">Why python2ts?</h2>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="flex flex-col items-center text-center p-6 bg-gray-800/50 rounded-xl border border-gray-700/30">
+              <svg class="w-10 h-10 mb-4 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/>
+              </svg>
+              <h3 class="font-semibold mb-2 text-white">AI-First Workflow</h3>
+              <p class="text-sm text-gray-400 leading-relaxed">Python dominates AI/ML. TypeScript powers modern web apps. Bridge the gap.</p>
+            </div>
+            <div class="flex flex-col items-center text-center p-6 bg-gray-800/50 rounded-xl border border-gray-700/30">
+              <svg class="w-10 h-10 mb-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>
+              </svg>
+              <h3 class="font-semibold mb-2 text-white">Full Type Safety</h3>
+              <p class="text-sm text-gray-400 leading-relaxed">Python type hints become TypeScript types automatically. Generics, Protocols, TypedDicts.</p>
+            </div>
+            <div class="flex flex-col items-center text-center p-6 bg-gray-800/50 rounded-xl border border-gray-700/30">
+              <svg class="w-10 h-10 mb-4 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/>
+              </svg>
+              <h3 class="font-semibold mb-2 text-white">Battle-Tested</h3>
+              <p class="text-sm text-gray-400 leading-relaxed">2000+ tests. Runs on every commit across Node.js, Bun, Deno, and browsers.</p>
+            </div>
+            <div class="flex flex-col items-center text-center p-6 bg-gray-800/50 rounded-xl border border-gray-700/30">
+              <svg class="w-10 h-10 mb-4 text-cyan-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/>
+              </svg>
+              <h3 class="font-semibold mb-2 text-white">Zero Dependencies</h3>
+              <p class="text-sm text-gray-400 leading-relaxed">pythonlib has zero runtime dependencies. No bloat, no supply chain risks.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Runtime Support Section -->
+      <section class="py-20 px-6">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="text-3xl font-bold text-center mb-4 text-white">Runtime Support</h2>
+          <p class="text-gray-400 text-center mb-12">Tested on every commit across all major JavaScript runtimes</p>
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Node.js -->
+            <div class="flex flex-col items-center p-6 bg-gray-800/50 rounded-2xl border border-gray-700/50 hover:border-gray-600 transition-colors">
+              <svg class="w-12 h-12 mb-4" viewBox="0 0 256 289" fill="none">
+                <path d="M128 288.464c-3.975 0-7.685-1.06-11.13-2.915l-35.247-20.936c-5.3-2.915-2.65-3.975-1.06-4.505 7.155-2.385 8.48-2.915 15.9-7.155.795-.53 1.855-.265 2.65.265l27.032 16.166c1.06.53 2.385.53 3.18 0l105.74-61.217c1.06-.53 1.59-1.59 1.59-2.915V83.346c0-1.325-.53-2.385-1.59-2.915L129.325 19.214c-1.06-.53-2.385-.53-3.18 0L20.405 80.431c-1.06.53-1.59 1.855-1.59 2.915v121.904c0 1.06.53 2.385 1.59 2.915l28.887 16.696c15.635 7.95 25.44-1.325 25.44-10.6V94.476c0-1.59 1.325-3.18 3.18-3.18h13.25c1.59 0 3.18 1.325 3.18 3.18v119.784c0 20.936-11.395 33.126-31.27 33.126-6.095 0-10.865 0-24.38-6.625l-27.827-15.9C4.24 220.356 0 212.936 0 204.986V83.081c0-7.95 4.24-15.37 11.13-19.345L116.87 2.519c6.625-3.71 15.635-3.71 22.26 0l105.74 61.217c6.89 3.975 11.13 11.395 11.13 19.345v121.904c0 7.95-4.24 15.37-11.13 19.345L139.13 285.549c-3.445 1.855-7.42 2.915-11.13 2.915z" fill="#8CC84B"/>
+                <path d="M160.33 204.456c-44.785 0-54.12-20.671-54.12-37.897 0-1.59 1.325-3.18 3.18-3.18h13.515c1.59 0 2.915 1.06 2.915 2.65 2.12 14.045 8.215 20.936 36.307 20.936 22.26 0 31.8-5.035 31.8-16.96 0-6.89-2.65-11.925-37.367-15.37-28.887-2.915-46.905-9.275-46.905-32.33 0-21.466 18.018-34.186 48.23-34.186 33.92 0 50.615 11.66 52.735 37.102 0 .795-.265 1.59-.795 2.385-.53.53-1.325 1.06-2.12 1.06h-13.515c-1.325 0-2.65-1.06-2.915-2.385-3.18-14.575-11.395-19.345-33.39-19.345-24.645 0-27.56 8.48-27.56 14.84 0 7.685 3.445 10.07 36.307 14.31 32.595 4.24 47.965 10.335 47.965 33.126-.265 23.32-19.345 36.572-53.06 36.572" fill="#8CC84B"/>
+              </svg>
+              <span class="font-semibold text-white mb-1">Node.js</span>
+              <span class="text-sm text-gray-400">v22, v24</span>
+              <div class="mt-3 flex items-center gap-1.5 text-emerald-500 text-sm">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                Supported
+              </div>
+            </div>
+            <!-- Bun -->
+            <div class="flex flex-col items-center p-6 bg-gray-800/50 rounded-2xl border border-gray-700/50 hover:border-gray-600 transition-colors">
+              <svg class="w-12 h-12 mb-4" viewBox="0 0 80 80" fill="none">
+                <path d="M71.094 39.219c0 17.148-13.906 31.094-31.094 31.094S8.906 56.367 8.906 39.219 22.852 8.125 40 8.125s31.094 13.946 31.094 31.094z" fill="#fbf0df"/>
+                <path d="M40 73.125c-18.711 0-33.906-15.195-33.906-33.906S21.289 5.313 40 5.313s33.906 15.195 33.906 33.906S58.711 73.125 40 73.125zm0-62.188C24.414 10.938 11.719 23.633 11.719 39.22c0 15.585 12.695 28.28 28.281 28.28s28.281-12.695 28.281-28.28c0-15.587-12.695-28.282-28.281-28.282z" fill="#fbf0df"/>
+                <ellipse cx="29.336" cy="38.477" rx="4.805" ry="6.914" fill="#362b24"/>
+                <ellipse cx="50.664" cy="38.477" rx="4.805" ry="6.914" fill="#362b24"/>
+                <path d="M40 57.227c-7.344 0-13.633-4.727-15.547-11.328-.273-.977.273-1.992 1.25-2.266.977-.273 1.992.273 2.266 1.25 1.445 5.039 6.25 8.594 12.031 8.594s10.586-3.555 12.031-8.594c.273-.977 1.289-1.523 2.266-1.25.977.273 1.523 1.289 1.25 2.266-1.914 6.601-8.203 11.328-15.547 11.328z" fill="#362b24"/>
+              </svg>
+              <span class="font-semibold text-white mb-1">Bun</span>
+              <span class="text-sm text-gray-400">Latest</span>
+              <div class="mt-3 flex items-center gap-1.5 text-emerald-500 text-sm">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                Supported
+              </div>
+            </div>
+            <!-- Deno -->
+            <div class="flex flex-col items-center p-6 bg-gray-800/50 rounded-2xl border border-gray-700/50 hover:border-gray-600 transition-colors">
+              <svg class="w-12 h-12 mb-4" viewBox="0 0 512 512">
+                <circle cx="256" cy="256" r="256" fill="#fff"/>
+                <path d="M256 32C132.3 32 32 132.3 32 256s100.3 224 224 224 224-100.3 224-224S379.7 32 256 32zm93.1 300.7c-14.9 24.1-44.7 38.5-79.7 38.5-47.4 0-85.8-32.4-85.8-72.4 0-6.4.9-12.6 2.5-18.5l-67.5-16.9c-4.7-1.2-7.5-5.9-6.4-10.6l4.5-18.1c1.2-4.7 5.9-7.5 10.6-6.4l184.2 46.1c4.7 1.2 7.5 5.9 6.4 10.6l-4.5 18.1c-1.2 4.7-5.9 7.5-10.6 6.4l-47.9-12c-.7 2.8-1.1 5.7-1.1 8.7 0 22.1 17.9 40 40 40 17.2 0 31.8-10.8 37.5-26h-16.8c-4.9 0-8.8-3.9-8.8-8.8v-17.5c0-4.9 3.9-8.8 8.8-8.8h52.6c4.9 0 8.8 3.9 8.8 8.8 0 29.9-9.4 53.8-26.8 71.8z" fill="#12124b"/>
+                <ellipse cx="362" cy="195" rx="26" ry="32" fill="#12124b"/>
+              </svg>
+              <span class="font-semibold text-white mb-1">Deno</span>
+              <span class="text-sm text-gray-400">v2.x</span>
+              <div class="mt-3 flex items-center gap-1.5 text-emerald-500 text-sm">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                Supported
+              </div>
+            </div>
+            <!-- Browsers -->
+            <div class="flex flex-col items-center p-6 bg-gray-800/50 rounded-2xl border border-gray-700/50 hover:border-gray-600 transition-colors">
+              <svg class="w-12 h-12 mb-4 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>
+              </svg>
+              <span class="font-semibold text-white mb-1">Browsers</span>
+              <span class="text-sm text-gray-400">All Modern</span>
+              <div class="mt-3 flex items-center gap-1.5 text-emerald-500 text-sm">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                Supported
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Modules Preview Section -->
+      <section class="py-20 px-6 bg-gray-800/30 border-y border-gray-800">
+        <div class="max-w-6xl mx-auto">
+          <h2 class="text-3xl font-bold text-center mb-4 text-white">pythonlib Modules</h2>
+          <p class="text-gray-400 text-center mb-12">Use Python's best APIs in TypeScript — standalone, without the transpiler</p>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-5 bg-gray-800/50 rounded-xl border border-gray-700/30 text-center">
+              <h3 class="font-semibold mb-2 text-gray-200">itertools</h3>
+              <p class="text-xs text-gray-500">combinations, permutations, product, chain, cycle, groupby</p>
+            </div>
+            <div class="p-5 bg-gray-800/50 rounded-xl border border-gray-700/30 text-center">
+              <h3 class="font-semibold mb-2 text-gray-200">functools</h3>
+              <p class="text-xs text-gray-500">lruCache, partial, reduce, pipe, compose, cache</p>
+            </div>
+            <div class="p-5 bg-gray-800/50 rounded-xl border border-gray-700/30 text-center">
+              <h3 class="font-semibold mb-2 text-gray-200">collections</h3>
+              <p class="text-xs text-gray-500">Counter, defaultdict, deque, OrderedDict</p>
+            </div>
+            <div class="p-5 bg-gray-800/50 rounded-xl border border-gray-700/30 text-center">
+              <h3 class="font-semibold mb-2 text-gray-200">datetime</h3>
+              <p class="text-xs text-gray-500">datetime, date, time, timedelta</p>
+            </div>
+            <div class="p-5 bg-gray-800/50 rounded-xl border border-gray-700/30 text-center">
+              <h3 class="font-semibold mb-2 text-gray-200">pathlib</h3>
+              <p class="text-xs text-gray-500">Path with exists, readText, writeText, glob</p>
+            </div>
+            <div class="p-5 bg-gray-800/50 rounded-xl border border-gray-700/30 text-center">
+              <h3 class="font-semibold mb-2 text-gray-200">hashlib</h3>
+              <p class="text-xs text-gray-500">md5, sha1, sha256, sha512, blake2b</p>
+            </div>
+            <div class="p-5 bg-gray-800/50 rounded-xl border border-gray-700/30 text-center">
+              <h3 class="font-semibold mb-2 text-gray-200">re</h3>
+              <p class="text-xs text-gray-500">search, match, findAll, sub, compile</p>
+            </div>
+            <div class="p-5 bg-gray-800/50 rounded-xl border border-gray-700/30 text-center">
+              <h3 class="font-semibold mb-2 text-gray-200">+ 12 more</h3>
+              <p class="text-xs text-gray-500">math, json, string, os, sys, time, glob, shutil...</p>
+            </div>
+          </div>
+          <div class="text-center mt-10">
+            <a href="/python2ts/reference/runtime" class="inline-flex items-center gap-2 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors border border-gray-600">
+              View all modules →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA Section -->
+      <section class="py-24 px-6">
+        <div class="max-w-3xl mx-auto text-center">
+          <h2 class="text-3xl font-bold mb-6 text-white">Ready to get started?</h2>
+          <p class="text-gray-400 mb-10 text-lg">Install python2ts and start transpiling Python to TypeScript in minutes.</p>
+          <div class="flex flex-wrap justify-center gap-4">
+            <a href="/python2ts/guide/getting-started" class="px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-semibold text-lg transition-colors">
+              Read the Docs
+            </a>
+            <a href="https://github.com/sebastian-software/python2ts" class="px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold text-lg transition-colors border border-gray-600">
+              Star on GitHub
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-8 px-6 border-t border-gray-800 bg-gray-900">
+      <div class="max-w-6xl mx-auto text-center text-gray-500 text-sm">
+        <p>Built with ❤️ by <a href="https://www.sebastian-software.de" class="text-gray-400 hover:text-white transition-colors">Sebastian Software</a></p>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,97 @@
+/* Starlight theme customization - only CSS variables and keyframes that can't be done with Tailwind */
+
+:root {
+  /* Language colors for reference */
+  --python-blue: #3776ab;
+  --python-yellow: #ffd43b;
+  --typescript-blue: #3178c6;
+}
+
+/* Keyframe animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(55, 118, 171, 0.4)); }
+  50% { filter: drop-shadow(0 0 20px rgba(55, 118, 171, 0.7)); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Animation utility classes (can't be done with Tailwind easily) */
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 4s ease-in-out infinite 0.5s;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow-delayed {
+  animation: pulse-glow 3s ease-in-out infinite 1.5s;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 5s ease infinite;
+}
+
+/* Gradient text utility (complex gradient can't be done inline with Tailwind) */
+.gradient-text {
+  background: linear-gradient(135deg, var(--python-blue) 0%, var(--python-yellow) 40%, var(--typescript-blue) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Starlight card hover improvements */
+.sl-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sl-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Stats grid background */
+.stats-bg {
+  background: var(--sl-color-gray-6);
+}
+
+/* Install badge style */
+.install-bg {
+  background: var(--sl-color-black);
+  border: 1px solid var(--sl-color-gray-5);
+}
+
+/* Runtime badge style */
+.runtime-bg {
+  background: var(--sl-color-gray-6);
+  border: 1px solid var(--sl-color-gray-5);
+}
+
+/* Accent color text */
+.accent-text {
+  color: var(--sl-color-accent);
+}
+
+/* Muted text color */
+.muted-text {
+  color: var(--sl-color-gray-3);
+}
+
+/* Arrow icon color (inherits accent) */
+.arrow-icon {
+  color: var(--sl-color-accent);
+}
