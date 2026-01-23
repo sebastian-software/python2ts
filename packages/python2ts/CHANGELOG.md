@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.4.3](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.4.2...python2ts-v1.4.3) (2026-01-22)
+
+
+### Bug Fixes
+
+* class method *args, **kwargs parameter order ([9a0893b](https://github.com/sebastian-software/python2ts/commit/9a0893bbc7d0ba9132b4874c20ed39bafeca2db5)), closes [#62](https://github.com/sebastian-software/python2ts/issues/62)
+* comments in args, f-string debug syntax, scientific notation, bare raise ([cd25d79](https://github.com/sebastian-software/python2ts/commit/cd25d79b64ef1265ea11560ff1592d312e214570))
+* filter comments in expressions, 2D slice assignment with ndarray ([9a94e18](https://github.com/sebastian-software/python2ts/commit/9a94e1863cd457f0d9995d6ba1a99fe12f7bb393))
+* filter comments in set literals ([d16359f](https://github.com/sebastian-software/python2ts/commit/d16359f88b9f7499400bcfbec9c2bd1fd061cf9c))
+* handle edge cases for imports, method calls, and abstract classes ([3e1c1ba](https://github.com/sebastian-software/python2ts/commit/3e1c1ba154961bc8ffd705e01f06d5b2b873edb2))
+* parenthesized tuple, bytes literals, 2D slice, reserved words ([89e2c61](https://github.com/sebastian-software/python2ts/commit/89e2c6103f304caf26f9022f9c1dd93b31e268b3))
+* reserved keywords in decorated functions, spread in arrays, nested tuple unpacking ([b347544](https://github.com/sebastian-software/python2ts/commit/b34754483a6fdc079a41768540aac4f13cfd97cc))
+* reserved keywords in destructuring, spread in assignments, tuple comments, __doc__ in classes ([6c7263f](https://github.com/sebastian-software/python2ts/commit/6c7263f97c74921aa41e9cd5804ed88c5655c9ff))
+
 ## [1.4.2](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.4.1...python2ts-v1.4.2) (2026-01-21)
 
 
