@@ -10,6 +10,7 @@
 
 **Write Python. Ship TypeScript. Run Everywhere.**
 
+[![Powered by Sebastian Software](https://img.shields.io/badge/Powered%20by-Sebastian%20Software-00718d?style=flat-square)](https://oss.sebastian-software.com)
 [![CI](https://github.com/sebastian-software/python2ts/actions/workflows/ci.yml/badge.svg)](https://github.com/sebastian-software/python2ts/actions/workflows/ci.yml)
 [![python2ts coverage](https://img.shields.io/codecov/c/github/sebastian-software/python2ts?flag=python2ts&label=python2ts)](https://codecov.io/gh/sebastian-software/python2ts/flags)
 [![pythonlib coverage](https://img.shields.io/codecov/c/github/sebastian-software/python2ts?flag=pythonlib&label=pythonlib)](https://codecov.io/gh/sebastian-software/python2ts/flags)
@@ -188,4 +189,19 @@ Key design decisions are documented in [docs/adr/](./docs/adr/):
 
 ## License
 
-MIT © [Sebastian Software GmbH](https://sebastian-software.de)
+MIT
+
+---
+
+<!-- sebastian-software-branding:start -->
+<p align="center">
+  <a href="https://oss.sebastian-software.com">
+    <img src="https://sebastian-brand.vercel.app/sebastian-software/logo-software.svg" alt="Sebastian Software" width="240" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://oss.sebastian-software.com">Open Source at Sebastian Software</a><br />
+  Copyright &copy; 2026 Sebastian Software GmbH
+</p>
+<!-- sebastian-software-branding:end -->
