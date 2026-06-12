@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.4](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.4.3...python2ts-v1.4.4) (2026-06-12)
+
+
+### Code Refactoring
+
+* **transformer:** modularize into handler modules ([5aa1d24](https://github.com/sebastian-software/python2ts/commit/5aa1d24ed3d8beaccc2bcfc94f9ad1526d88d861))
+
 ## [1.4.3](https://github.com/sebastian-software/python2ts/compare/python2ts-v1.4.2...python2ts-v1.4.3) (2026-01-22)
 
 
