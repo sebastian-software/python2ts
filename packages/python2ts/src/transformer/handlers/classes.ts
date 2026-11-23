@@ -516,9 +516,7 @@ function transformDataclass(
 
   // Extract docstring
   const indent = "  ".repeat(ctx.indentLevel)
-  const { jsdoc } = body
-    ? extractDocstringFromBody(body, ctx, indent)
-    : { jsdoc: null, skipFirstStatement: false }
+  const { jsdoc } = body ? extractDocstringFromBody(body, ctx, indent) : { jsdoc: null }
 
   return generateDataclassCode(
     className,
