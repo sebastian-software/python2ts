@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ["22", "24"]
+        node-version: ["22", "24", "26"]
 
     steps:
       - name: Checkout repository
@@ -91,7 +91,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "26"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -122,7 +122,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "26"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -136,7 +136,11 @@ jobs:
 
   test-browser:
     name: Test (Browser)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    # Keep the preinstalled Chromium revision aligned with the pnpm lockfile.
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      options: --init --shm-size=1gb
 
     steps:
       - name: Checkout repository
@@ -148,14 +152,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "26"
           cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install chromium
 
       - name: Build packages
         run: pnpm build
